@@ -55,6 +55,7 @@ model User {
   sessions      Session[]
   Password      Password[]
   secret        String?
+  passwordSettings PasswordSettings?
 }
 
 model VerificationToken {
@@ -72,6 +73,19 @@ model Password {
   website  String
   username String
   password String
+
+  @@index([userId])
+}
+
+model PasswordSettings{
+  id String @id @default(cuid())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  length Int @default(16)
+  lowercase Boolean @default(true)
+  uppercase Boolean @default(true)
+  numbers Boolean @default(true)
+  symbols Boolean @default(true)
 
   @@index([userId])
 }
