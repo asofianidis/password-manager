@@ -3,8 +3,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
-import { api } from "~/utils/api";
-
 const Home: NextPage = () => {
   const session = useSession();
 
@@ -45,8 +43,24 @@ const Home: NextPage = () => {
             </Link>
           </div>
           <div>
-            {session.status === "unauthenticated" && (
-              <button onClick={() => {signIn("discord").catch(console.error)}}>Sign In</button>
+            {session.status === "unauthenticated" ? (
+              <button
+                onClick={() => {
+                  signIn("discord").catch(console.error);
+                }}
+                className="rounded bg-purple-500 px-4 py-2 text-white"
+              >
+                Sign In
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  signOut().catch(console.error);
+                }}
+                className="rounded bg-purple-500 px-4 py-2 text-white"
+              >
+                Sign Out
+              </button>
             )}
           </div>
         </div>
@@ -56,4 +70,3 @@ const Home: NextPage = () => {
 };
 
 export default Home;
-
