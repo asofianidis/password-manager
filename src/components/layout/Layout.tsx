@@ -46,7 +46,7 @@ function Layout({ children }: Props) {
               <path
                 fill-rule="evenodd"
                 d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                clip-rule="evenodd"
+                clipRule="evenodd"
               ></path>
             </svg>
           </button>
@@ -69,14 +69,14 @@ function Layout({ children }: Props) {
                   Password
                 </Link>
               </li>
-              {status == "authenticated" && (
+              {status == "authenticated" && session && (
                 <>
                   <li>
                     <Link
                       href="/profile"
                       className="block rounded py-2 pl-3 pr-4 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:border-0 md:p-0 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:bg-transparent md:dark:hover:text-blue-500"
                     >
-                      Profile
+                      <img src={typeof session.user.image == "string" ? session.user.image : ""} className="rounded-full w-12" alt="profile picture"/>
                     </Link>
                   </li>
                   <li>
@@ -108,13 +108,7 @@ function Layout({ children }: Props) {
           </div>
         </div>
       </nav>
-      <div className="flex flex-col items-center">
-        <div className="bg-slate-600 p-2">
-          <div className="flex flex-row">
-            <div className="flex flex-col">{children}</div>
-          </div>
-        </div>
-      </div>
+      {children}
     </>
   );
 }
