@@ -19,6 +19,20 @@ Sync is peer-to-peer (ideally over Tailscale) with no cloud server.
 - **Sync**: pair devices with a 6-digit code, then sync directly. All sync messages are
   end-to-end encrypted with the vault key.
 
+## Keyboard shortcuts
+
+| Shortcut       | Action                                  |
+| -------------- | --------------------------------------- |
+| ⌘K / ⌘P        | Go to password (command palette)        |
+| ⌘⇧P            | Show all commands                       |
+| ⌘N             | New password                            |
+| ⌘E             | Edit the open password                  |
+| ⌘S / Esc       | Save / cancel while editing             |
+| ⌘L             | Lock vault                              |
+| ⌘⇧E ⌘⇧M ⌘⇧G ⌘, | Explorer, Problems, Generator, Settings |
+
+In the palette, ⌘↵ on a password copies it instead of opening it.
+
 ## Development
 
 ```bash

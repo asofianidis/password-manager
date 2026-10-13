@@ -1,25 +1,40 @@
-import { useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState, type ReactNode } from 'react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Download, FileUp } from 'lucide-react'
-import type { ExportFormat, SettingsPatch } from '@shared/types'
+import { Download, FileUp, Search } from 'lucide-react'
+import type { ExportFormat, Settings, SettingsPatch } from '@shared/types'
 import { api, queries } from '@renderer/lib/api'
+import { cn } from '@renderer/lib/cn'
 import { toast, toastError } from '@renderer/lib/toast'
 import {
+  Breadcrumbs,
   Button,
-  Card,
+  Checkbox,
   ErrorText,
-  Field,
   Input,
-  PageHeader,
   PasswordInput,
-  Select,
-  Toggle
+  Select
 } from '@renderer/components/ui'
-import { cn } from '@renderer/lib/cn'
 import { ImportModal } from '@renderer/components/ImportModal'
 
+const SECTIONS = ['general', 'security', 'data'] as const
+type SectionId = (typeof SECTIONS)[number]
+
+const SECTION_LABELS: Record<SectionId, string> = {
+  general: 'General',
+  security: 'Security',
+  data: 'Import & Export'
+}
+
 export const Route = createFileRoute('/_app/settings')({
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { section?: SectionId; action?: 'import' } => ({
+    section: SECTIONS.includes(search.section as SectionId)
+      ? (search.section as SectionId)
+      : undefined,
+    action: search.action === 'import' ? 'import' : undefined
+  }),
   loader: ({ context }) => context.queryClient.ensureQueryData(queries.settings()),
   component: SettingsPage
 })
@@ -30,7 +45,7 @@ const AUTO_LOCK = [
   [10, '10 minutes'],
   [30, '30 minutes'],
   [60, '1 hour'],
-  [0, 'Never']
+  [0, 'never']
 ] as const
 
 const CLIPBOARD = [
@@ -38,94 +53,216 @@ const CLIPBOARD = [
   [30, '30 seconds'],
   [60, '1 minute'],
   [120, '2 minutes'],
-  [0, 'Never']
+  [0, 'never']
 ] as const
+
+interface SettingDef {
+  id: string
+  section: SectionId
+  title: string
+  description: string
+  render: (ctx: { settings: Settings; update: (patch: SettingsPatch) => void }) => ReactNode
+}
+
+const DEFS: SettingDef[] = [
+  {
+    id: 'deviceName',
+    section: 'general',
+    title: 'Device Name',
+    description: 'Shown to your other devices when syncing.',
+    render: ({ settings, update }) => (
+      <Input
+        className="max-w-sm"
+        defaultValue={settings.deviceName}
+        onBlur={(e) =>
+          e.target.value !== settings.deviceName && update({ deviceName: e.target.value })
+        }
+      />
+    )
+  },
+  {
+    id: 'oldPasswordDays',
+    section: 'general',
+    title: 'Old Password Threshold',
+    description: 'Flag passwords that have not changed in this many days (Problems view).',
+    render: ({ settings, update }) => (
+      <Input
+        type="number"
+        min={30}
+        className="w-28"
+        defaultValue={settings.oldPasswordDays}
+        onBlur={(e) =>
+          Number(e.target.value) !== settings.oldPasswordDays &&
+          update({ oldPasswordDays: Number(e.target.value) })
+        }
+      />
+    )
+  },
+  {
+    id: 'autoLockMinutes',
+    section: 'security',
+    title: 'Auto Lock',
+    description: 'Lock the vault after the computer has been idle for this long.',
+    render: ({ settings, update }) => (
+      <Select
+        className="max-w-xs"
+        value={settings.autoLockMinutes}
+        onChange={(e) => update({ autoLockMinutes: Number(e.target.value) })}
+      >
+        {AUTO_LOCK.map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </Select>
+    )
+  },
+  {
+    id: 'lockOnSuspend',
+    section: 'security',
+    title: 'Lock On Sleep',
+    description: '',
+    render: ({ settings, update }) => (
+      <Checkbox
+        label="Lock the vault when the computer sleeps or the screen locks."
+        checked={settings.lockOnSuspend}
+        onChange={(lockOnSuspend) => update({ lockOnSuspend })}
+      />
+    )
+  },
+  {
+    id: 'clipboardClearSeconds',
+    section: 'security',
+    title: 'Clipboard Timeout',
+    description: 'Clear copied passwords from the clipboard after this long.',
+    render: ({ settings, update }) => (
+      <Select
+        className="max-w-xs"
+        value={settings.clipboardClearSeconds}
+        onChange={(e) => update({ clipboardClearSeconds: Number(e.target.value) })}
+      >
+        {CLIPBOARD.map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </Select>
+    )
+  },
+  {
+    id: 'masterPassword',
+    section: 'security',
+    title: 'Master Password',
+    description:
+      'Re-wraps the vault key with a new password. Synced devices pick it up on their next sync.',
+    render: () => <ChangeMasterPassword />
+  },
+  {
+    id: 'import',
+    section: 'data',
+    title: 'Import',
+    description:
+      'Dashlane (CSV/ZIP), Chrome, Edge, Brave, Firefox, Safari/Apple Passwords, Bitwarden, 1Password, LastPass, KeePass, Proton Pass, or any CSV.',
+    render: () => <ImportSetting />
+  },
+  {
+    id: 'export',
+    section: 'data',
+    title: 'Export',
+    description: 'Save a copy of every credential to a file.',
+    render: () => <ExportSetting />
+  }
+]
 
 function SettingsPage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const { data: settings } = useSuspenseQuery(queries.settings())
+  const { section } = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const [query, setQuery] = useState('')
 
   const update = useMutation({
     mutationFn: (patch: SettingsPatch) => api.invoke('settings:update', patch),
     onSuccess: (next) => {
       queryClient.setQueryData(queries.settings().queryKey, next)
-      void queryClient.invalidateQueries({ queryKey: ['vault', 'health'] })
+      void queryClient.invalidateQueries({ queryKey: ['vault'] })
     },
     onError: toastError
   })
 
+  useEffect(() => {
+    if (section) document.getElementById(`section-${section}`)?.scrollIntoView({ block: 'start' })
+  }, [section])
+
+  const term = query.trim().toLowerCase()
+  const visible = DEFS.filter(
+    (d) =>
+      !term ||
+      `${SECTION_LABELS[d.section]} ${d.title} ${d.description}`.toLowerCase().includes(term)
+  )
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-8">
-      <PageHeader title="Settings" />
-
-      <Card title="General">
-        <div className="space-y-5">
-          <Field label="Device name" hint="Shown to your other devices when syncing.">
-            <Input
-              defaultValue={settings.deviceName}
-              onBlur={(e) =>
-                e.target.value !== settings.deviceName &&
-                update.mutate({ deviceName: e.target.value })
-              }
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Lock after inactivity">
-              <Select
-                value={settings.autoLockMinutes}
-                onChange={(e) => update.mutate({ autoLockMinutes: Number(e.target.value) })}
-              >
-                {AUTO_LOCK.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Clear copied passwords after">
-              <Select
-                value={settings.clipboardClearSeconds}
-                onChange={(e) => update.mutate({ clipboardClearSeconds: Number(e.target.value) })}
-              >
-                {CLIPBOARD.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-          <Toggle
-            label="Lock when the computer sleeps or the screen locks"
-            checked={settings.lockOnSuspend}
-            onChange={(lockOnSuspend) => update.mutate({ lockOnSuspend })}
+    <div className="flex h-full flex-col">
+      <Breadcrumbs path={['vault', 'settings.json']} />
+      <div className="border-b border-ide-border px-6 py-3">
+        <div className="relative max-w-3xl">
+          <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-ide-faint" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search settings"
+            className="pl-7"
           />
-          <Field
-            label="Flag passwords older than (days)"
-            hint="Used by the dashboard’s “old passwords” check."
-          >
-            <Input
-              type="number"
-              min={30}
-              defaultValue={settings.oldPasswordDays}
-              onBlur={(e) =>
-                Number(e.target.value) !== settings.oldPasswordDays &&
-                update.mutate({ oldPasswordDays: Number(e.target.value) })
-              }
-              className="w-32"
-            />
-          </Field>
         </div>
-      </Card>
-
-      <ChangeMasterPasswordCard />
-      <ImportCard />
-      <ExportCard />
+      </div>
+      <div className="flex min-h-0 flex-1">
+        <nav className="w-48 shrink-0 border-r border-ide-border py-2">
+          {SECTIONS.map((id) => {
+            const count = visible.filter((d) => d.section === id).length
+            return (
+              <button
+                key={id}
+                onClick={() => void navigate({ search: { section: id }, replace: true })}
+                disabled={count === 0}
+                className={cn(
+                  'flex w-full items-center justify-between px-4 py-1 text-left hover:bg-ide-hover disabled:opacity-40',
+                  section === id ? 'text-ide-bright' : 'text-ide-muted'
+                )}
+              >
+                {SECTION_LABELS[id]}
+                {term && <span className="text-[11px]">{count}</span>}
+              </button>
+            )
+          })}
+        </nav>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-16">
+          {SECTIONS.map((id) => {
+            const defs = visible.filter((d) => d.section === id)
+            if (defs.length === 0) return null
+            return (
+              <section key={id} id={`section-${id}`} className="max-w-3xl pt-4">
+                <h2 className="mb-1 text-lg text-ide-bright">{SECTION_LABELS[id]}</h2>
+                {defs.map((def) => (
+                  <div key={def.id} className="-mx-3 space-y-1.5 px-3 py-3 hover:bg-ide-line">
+                    <p>
+                      <span className="text-ide-muted">{SECTION_LABELS[def.section]}: </span>
+                      <span className="font-semibold text-ide-bright">{def.title}</span>
+                    </p>
+                    {def.description && <p className="text-xs text-ide-muted">{def.description}</p>}
+                    <div className="pt-1">{def.render({ settings, update: update.mutate })}</div>
+                  </div>
+                ))}
+              </section>
+            )
+          })}
+          {visible.length === 0 && <p className="pt-6 text-ide-muted">No settings found.</p>}
+        </div>
+      </div>
     </div>
   )
 }
 
-function ChangeMasterPasswordCard(): React.JSX.Element {
+function ChangeMasterPassword(): React.JSX.Element {
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -135,88 +272,94 @@ function ChangeMasterPasswordCard(): React.JSX.Element {
       setCurrent('')
       setNext('')
       setConfirm('')
-      toast('Master password changed. Synced devices will use it after their next sync.')
+      toast('Master password changed')
     }
   })
   const valid = current && next.length >= 10 && next === confirm
 
   return (
-    <Card
-      title="Master password"
-      description="Your vault is re-locked with the new password. Entries are not re-encrypted."
+    <form
+      className="max-w-md space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (valid) change.mutate()
+      }}
     >
-      <form
-        className="space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (valid) change.mutate()
-        }}
-      >
-        <Field label="Current master password">
-          <PasswordInput value={current} onChange={(e) => setCurrent(e.target.value)} />
-        </Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="New master password" hint="At least 10 characters">
-            <PasswordInput value={next} onChange={(e) => setNext(e.target.value)} />
-          </Field>
-          <Field label="Confirm new password">
-            <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-          </Field>
-        </div>
-        {confirm && next !== confirm && (
-          <p className="text-sm text-amber-300">Passwords don’t match.</p>
-        )}
-        <ErrorText error={change.error} />
-        <Button type="submit" disabled={!valid || change.isPending}>
-          {change.isPending ? 'Changing…' : 'Change master password'}
-        </Button>
-      </form>
-    </Card>
+      <PasswordInput
+        value={current}
+        onChange={(e) => setCurrent(e.target.value)}
+        placeholder="current master password"
+      />
+      <PasswordInput
+        value={next}
+        onChange={(e) => setNext(e.target.value)}
+        placeholder="new master password (10+ characters)"
+      />
+      <PasswordInput
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+        placeholder="confirm new master password"
+      />
+      {confirm && next !== confirm && (
+        <p className="text-xs text-syn-type">passwords don’t match</p>
+      )}
+      <ErrorText error={change.error} />
+      <Button type="submit" disabled={!valid || change.isPending}>
+        {change.isPending ? 'Changing…' : 'Change master password'}
+      </Button>
+    </form>
   )
 }
 
-function ImportCard(): React.JSX.Element {
-  const [open, setOpen] = useState(false)
+function ImportSetting(): React.JSX.Element {
+  const { action } = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const [open, setOpen] = useState(action === 'import')
   return (
-    <Card
-      title={<span id="import">Import</span>}
-      description="Dashlane, Chrome, Edge, Firefox, Safari / Apple Passwords, Bitwarden, 1Password, LastPass, KeePass, Proton Pass, or any CSV."
-    >
-      <div className="space-y-3">
-        <p className="text-sm text-zinc-400">
-          Dashlane: <i>Settings → Export data → Export to CSV</i>, then pick the ZIP or{' '}
-          <code className="text-zinc-300">credentials.csv</code>. Delete the export file once
-          imported.
-        </p>
-        <Button onClick={() => setOpen(true)}>
-          <FileUp className="size-4" />
-          Import passwords
-        </Button>
-      </div>
-      {open && <ImportModal onClose={() => setOpen(false)} />}
-    </Card>
+    <>
+      <p className="mb-2 text-xs text-syn-comment">
+        {
+          '// Dashlane: Settings → Export data → Export to CSV, then pick the ZIP or credentials.csv.'
+        }
+        <br />
+        {'// delete the export file once imported — it is not encrypted.'}
+      </p>
+      <Button onClick={() => setOpen(true)}>
+        <FileUp className="size-3.5" />
+        Import passwords…
+      </Button>
+      {open && (
+        <ImportModal
+          onClose={() => {
+            setOpen(false)
+            if (action)
+              void navigate({ search: (prev) => ({ ...prev, action: undefined }), replace: true })
+          }}
+        />
+      )}
+    </>
   )
 }
 
 const EXPORT_FORMATS: { value: ExportFormat; label: string; description: string }[] = [
   {
     value: 'pm-encrypted',
-    label: 'Encrypted backup',
-    description: 'Protected with a password you choose. Can be imported back into this app.'
+    label: 'encrypted backup (.pmbackup)',
+    description: 'protected with a password you choose; re-importable'
   },
   {
     value: 'csv',
-    label: 'CSV (unencrypted)',
-    description: 'Works with most password managers. Anyone with the file can read your passwords.'
+    label: 'csv (unencrypted)',
+    description: 'works with most password managers; readable by anyone with the file'
   },
   {
     value: 'pm-json',
-    label: 'JSON (unencrypted)',
-    description: 'Full-fidelity plaintext export. Anyone with the file can read your passwords.'
+    label: 'json (unencrypted)',
+    description: 'full-fidelity plaintext; readable by anyone with the file'
   }
 ]
 
-function ExportCard(): React.JSX.Element {
+function ExportSetting(): React.JSX.Element {
   const [format, setFormat] = useState<ExportFormat>('pm-encrypted')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -233,49 +376,39 @@ function ExportCard(): React.JSX.Element {
   const valid = format !== 'pm-encrypted' || (password.length >= 8 && password === confirm)
 
   return (
-    <Card title="Export" description="Save a copy of your passwords to a file.">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          {EXPORT_FORMATS.map((option) => (
-            <label
-              key={option.value}
-              className={cn(
-                'flex cursor-pointer gap-3 rounded-lg border p-3',
-                format === option.value
-                  ? 'border-emerald-500/50 bg-emerald-500/5'
-                  : 'border-zinc-800 hover:border-zinc-700'
-              )}
-            >
-              <input
-                type="radio"
-                name="export-format"
-                checked={format === option.value}
-                onChange={() => setFormat(option.value)}
-                className="mt-1 accent-emerald-500"
-              />
-              <span>
-                <span className="block text-sm font-medium">{option.label}</span>
-                <span className="block text-xs text-zinc-500">{option.description}</span>
-              </span>
-            </label>
-          ))}
-        </div>
-        {format === 'pm-encrypted' && (
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Backup password" hint="At least 8 characters">
-              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} />
-            </Field>
-            <Field label="Confirm backup password">
-              <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-            </Field>
-          </div>
-        )}
-        <ErrorText error={exportFile.error} />
-        <Button onClick={() => exportFile.mutate()} disabled={!valid || exportFile.isPending}>
-          <Download className="size-4" />
-          Export…
-        </Button>
-      </div>
-    </Card>
+    <div className="max-w-md space-y-2">
+      <Select value={format} onChange={(e) => setFormat(e.target.value as ExportFormat)}>
+        {EXPORT_FORMATS.map((f) => (
+          <option key={f.value} value={f.value}>
+            {f.label}
+          </option>
+        ))}
+      </Select>
+      <p
+        className={cn('text-xs', format === 'pm-encrypted' ? 'text-syn-comment' : 'text-syn-type')}
+      >
+        {'// '}
+        {EXPORT_FORMATS.find((f) => f.value === format)?.description}
+      </p>
+      {format === 'pm-encrypted' && (
+        <>
+          <PasswordInput
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="backup password (8+ characters)"
+          />
+          <PasswordInput
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            placeholder="confirm backup password"
+          />
+        </>
+      )}
+      <ErrorText error={exportFile.error} />
+      <Button onClick={() => exportFile.mutate()} disabled={!valid || exportFile.isPending}>
+        <Download className="size-3.5" />
+        Export…
+      </Button>
+    </div>
   )
 }

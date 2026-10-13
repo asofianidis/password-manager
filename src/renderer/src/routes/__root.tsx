@@ -6,6 +6,7 @@ import { Outlet, createRootRouteWithContext, useRouter } from '@tanstack/react-r
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { api, queries } from '@renderer/lib/api'
 import { Toaster } from '@renderer/components/ui'
+import { resetWorkspace } from '@renderer/lib/workspace'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -25,6 +26,7 @@ function useVaultEvents(): void {
       if (event === 'locked') {
         // Drop everything derived from the decrypted vault
         queryClient.removeQueries({ queryKey: ['vault'] })
+        resetWorkspace()
         void queryClient.invalidateQueries(queries.status())
         void router.navigate({ to: '/unlock' })
       } else if (event === 'changed') {

@@ -1,17 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Laptop, Lock, ShieldCheck } from 'lucide-react'
 import { api, queries } from '@renderer/lib/api'
-import {
-  Button,
-  ErrorText,
-  Field,
-  Input,
-  PasswordInput,
-  StrengthMeter
-} from '@renderer/components/ui'
 import { cn } from '@renderer/lib/cn'
+import { StrengthMeter } from '@renderer/components/ui'
 
 export const Route = createFileRoute('/unlock')({
   beforeLoad: async ({ context }) => {
@@ -28,18 +20,125 @@ function UnlockPage(): React.JSX.Element {
   const { data: status } = useQuery(queries.status())
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6 [-webkit-app-region:drag]">
-      <div className="w-full max-w-md [-webkit-app-region:no-drag]">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/30">
-            <ShieldCheck className="size-7 text-emerald-400" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Password Manager</h1>
-          <p className="mt-1 text-sm text-zinc-400">Stored and encrypted on this device only.</p>
+    <div className="flex min-h-screen items-center justify-center bg-ide-chrome p-6 drag">
+      <div className="w-full max-w-2xl border border-ide-border bg-ide-bg shadow-2xl shadow-black/50 no-drag">
+        <div className="flex h-8 items-center justify-center border-b border-ide-border bg-ide-panel text-xs text-ide-muted">
+          pm — vault
         </div>
-        {status?.state === 'no-vault' ? <SetupForms /> : status ? <UnlockForm /> : null}
+        <div className="min-h-80 p-5 text-[13px] leading-6">
+          <p className="text-ide-bright">
+            password-manager{' '}
+            <span className="text-ide-muted">— local-first, end-to-end encrypted</span>
+          </p>
+          {status?.state === 'no-vault' ? (
+            <Setup />
+          ) : status ? (
+            <>
+              <p className="text-ide-muted">
+                vault {status.vaultId?.slice(0, 8)} · argon2id + aes-256-gcm
+              </p>
+              <Unlock />
+            </>
+          ) : null}
+        </div>
       </div>
     </div>
+  )
+}
+
+function Command({ children }: { children: ReactNode }): React.JSX.Element {
+  return (
+    <p className="mt-4">
+      <span className="text-syn-string">➜</span> <span className="text-syn-fn">~</span>{' '}
+      <span className="text-ide-bright">{children}</span>
+    </p>
+  )
+}
+
+function Prompt({
+  label,
+  value,
+  onChange,
+  secret,
+  autoFocus,
+  placeholder,
+  disabled
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  secret?: boolean
+  autoFocus?: boolean
+  placeholder?: string
+  disabled?: boolean
+}): React.JSX.Element {
+  return (
+    <label className="flex items-center">
+      <span className="shrink-0 text-syn-string">?</span>
+      <span className="ml-2 shrink-0 text-ide-bright">{label}:</span>
+      <input
+        type={secret ? 'password' : 'text'}
+        value={value}
+        autoFocus={autoFocus}
+        readOnly={disabled}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        spellCheck={false}
+        autoComplete="off"
+        className="ml-2 min-w-0 flex-1 bg-transparent text-syn-fn caret-ide-accent outline-none placeholder:text-ide-faint"
+      />
+    </label>
+  )
+}
+
+const FRAMES = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+
+function Spinner({ children }: { children: ReactNode }): React.JSX.Element {
+  const [frame, setFrame] = useState(0)
+  useEffect(() => {
+    const timer = setInterval(() => setFrame((f) => (f + 1) % FRAMES.length), 80)
+    return () => clearInterval(timer)
+  }, [])
+  return (
+    <p className="text-ide-muted">
+      <span className="text-ide-accent">{FRAMES[frame]}</span> {children}
+    </p>
+  )
+}
+
+function ErrorLine({ error }: { error: unknown }): React.JSX.Element | null {
+  if (!error) return null
+  return (
+    <p className="text-syn-prop">
+      ✖ error: {(error instanceof Error ? error.message : String(error)).toLowerCase()}
+    </p>
+  )
+}
+
+/** Enter moves to the next prompt; on the last prompt it submits. */
+function TerminalForm({
+  onSubmit,
+  children
+}: {
+  onSubmit: () => void
+  children: ReactNode
+}): React.JSX.Element {
+  const ref = useRef<HTMLFormElement>(null)
+  return (
+    <form
+      ref={ref}
+      onSubmit={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter') return
+        e.preventDefault()
+        const inputs = [...(ref.current?.querySelectorAll('input') ?? [])]
+        const index = inputs.indexOf(e.target as HTMLInputElement)
+        if (index >= 0 && index < inputs.length - 1) inputs[index + 1].focus()
+        else onSubmit()
+      }}
+    >
+      {children}
+    </form>
   )
 }
 
@@ -52,7 +151,7 @@ function useOnUnlocked(): () => Promise<void> {
   }
 }
 
-function UnlockForm(): React.JSX.Element {
+function Unlock(): React.JSX.Element {
   const [password, setPassword] = useState('')
   const onUnlocked = useOnUnlocked()
   const unlock = useMutation({
@@ -62,140 +161,103 @@ function UnlockForm(): React.JSX.Element {
   })
 
   return (
-    <form
-      className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6"
-      onSubmit={(e) => {
-        e.preventDefault()
-        if (password) unlock.mutate()
-      }}
-    >
-      <Field label="Master password">
-        <PasswordInput
-          autoFocus
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter your master password"
-        />
-      </Field>
-      <ErrorText error={unlock.error} />
-      <Button
-        variant="primary"
-        type="submit"
-        className="w-full"
-        disabled={!password || unlock.isPending}
-      >
-        <Lock className="size-4" />
-        {unlock.isPending ? 'Unlocking…' : 'Unlock'}
-      </Button>
-    </form>
+    <TerminalForm onSubmit={() => password && !unlock.isPending && unlock.mutate()}>
+      <Command>pm unlock</Command>
+      <Prompt
+        label="master password"
+        value={password}
+        onChange={setPassword}
+        secret
+        autoFocus
+        disabled={unlock.isPending}
+      />
+      {unlock.isPending && <Spinner>deriving key (argon2id)…</Spinner>}
+      <ErrorLine error={unlock.error} />
+      {!unlock.isPending && <p className="text-ide-faint">press ↵ to unlock</p>}
+    </TerminalForm>
   )
 }
 
-function SetupForms(): React.JSX.Element {
-  const [mode, setMode] = useState<'create' | 'join'>('create')
+function Setup(): React.JSX.Element {
+  const [mode, setMode] = useState<'init' | 'join'>('init')
+  const options = [
+    ['init', 'create a new vault on this device'],
+    ['join', 'copy a vault from another device (tailscale / lan)']
+  ] as const
+
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-      <div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-zinc-950 p-1">
-        {(
-          [
-            ['create', 'New vault', KeyRound],
-            ['join', 'Join from device', Laptop]
-          ] as const
-        ).map(([value, label, Icon]) => (
+    <>
+      <p className="text-ide-muted">no vault found on this device. choose one:</p>
+      <div className="mt-2">
+        {options.map(([value, description]) => (
           <button
             key={value}
             type="button"
             onClick={() => setMode(value)}
             className={cn(
-              'flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium',
-              mode === value ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
+              'flex w-full gap-3 text-left hover:text-ide-bright',
+              mode === value ? 'text-ide-bright' : 'text-ide-muted'
             )}
           >
-            <Icon className="size-4" />
-            {label}
+            <span className="w-3 text-syn-string">{mode === value ? '❯' : ''}</span>
+            <span className={cn('w-10', mode === value && 'text-syn-fn')}>{value}</span>
+            <span>{description}</span>
           </button>
         ))}
       </div>
-      {mode === 'create' ? <CreateForm /> : <JoinForm />}
-    </div>
+      {mode === 'init' ? <Init key="init" /> : <Join key="join" />}
+    </>
   )
 }
 
-function MasterPasswordFields({
-  password,
-  confirm,
-  onPassword,
-  onConfirm
-}: {
-  password: string
-  confirm: string
-  onPassword: (value: string) => void
-  onConfirm: (value: string) => void
-}): React.JSX.Element {
+function Init(): React.JSX.Element {
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const onUnlocked = useOnUnlocked()
   const { data: strength } = useQuery({
     queryKey: ['strength', password],
     queryFn: () => api.invoke('strength:check', password),
     enabled: password.length > 0,
     gcTime: 0
   })
-  return (
-    <>
-      <Field
-        label="Master password"
-        hint={`At least ${MIN_LENGTH} characters. It cannot be recovered if you forget it.`}
-      >
-        <PasswordInput autoFocus value={password} onChange={(e) => onPassword(e.target.value)} />
-      </Field>
-      {password && strength && (
-        <StrengthMeter score={strength.score} detail={`Cracked in ${strength.crackTime}`} />
-      )}
-      <Field label="Confirm master password">
-        <PasswordInput value={confirm} onChange={(e) => onConfirm(e.target.value)} />
-      </Field>
-    </>
-  )
-}
-
-function CreateForm(): React.JSX.Element {
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const onUnlocked = useOnUnlocked()
   const create = useMutation({
     mutationFn: () => api.invoke('vault:create', password),
     onSuccess: onUnlocked
   })
+
+  const tooShort = password.length > 0 && password.length < MIN_LENGTH
   const mismatch = confirm.length > 0 && confirm !== password
   const valid = password.length >= MIN_LENGTH && password === confirm
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(e) => {
-        e.preventDefault()
-        if (valid) create.mutate()
-      }}
-    >
-      <MasterPasswordFields
-        password={password}
-        confirm={confirm}
-        onPassword={setPassword}
-        onConfirm={setConfirm}
+    <TerminalForm onSubmit={() => valid && !create.isPending && create.mutate()}>
+      <Command>pm init</Command>
+      <Prompt
+        label="new master password"
+        value={password}
+        onChange={setPassword}
+        secret
+        autoFocus
       />
-      {mismatch && <p className="text-sm text-amber-300">Passwords don’t match.</p>}
-      <ErrorText error={create.error} />
-      <Button
-        variant="primary"
-        type="submit"
-        className="w-full"
-        disabled={!valid || create.isPending}
-      >
-        {create.isPending ? 'Creating vault…' : 'Create vault'}
-      </Button>
-    </form>
+      {password && strength && (
+        <div className="pl-4">
+          <StrengthMeter score={strength.score} detail={`cracked in ${strength.crackTime}`} />
+        </div>
+      )}
+      {tooShort && <p className="pl-4 text-syn-type">⚠ at least {MIN_LENGTH} characters</p>}
+      <Prompt label="confirm master password" value={confirm} onChange={setConfirm} secret />
+      {mismatch && <p className="pl-4 text-syn-type">⚠ passwords don’t match</p>}
+      {create.isPending && <Spinner>generating vault key and deriving master key…</Spinner>}
+      <ErrorLine error={create.error} />
+      <p className="mt-2 text-syn-comment italic">
+        {'// the master password cannot be recovered if you forget it'}
+      </p>
+      {valid && !create.isPending && <p className="text-ide-faint">press ↵ to create the vault</p>}
+    </TerminalForm>
   )
 }
 
-function JoinForm(): React.JSX.Element {
+function Join(): React.JSX.Element {
   const [host, setHost] = useState('')
   const [port, setPort] = useState(String(DEFAULT_SYNC_PORT))
   const [code, setCode] = useState('')
@@ -208,46 +270,24 @@ function JoinForm(): React.JSX.Element {
   const valid = host.trim() && Number(port) > 0 && code.replace(/\D/g, '').length === 6 && password
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(e) => {
-        e.preventDefault()
-        if (valid) join.mutate()
-      }}
-    >
-      <p className="text-sm text-zinc-400">
-        On a device that already has your vault, open <b>Sync → Pair a device</b>, then enter the
-        address and code it shows.
+    <TerminalForm onSubmit={() => valid && !join.isPending && join.mutate()}>
+      <Command>pm join</Command>
+      <p className="text-syn-comment italic">
+        {'// on a device with your vault: Sync → Start pairing, then enter what it shows'}
       </p>
-      <div className="grid grid-cols-[1fr_7rem] gap-3">
-        <Field label="Device address" hint="Tailscale IP, MagicDNS name, or LAN IP">
-          <Input value={host} onChange={(e) => setHost(e.target.value)} placeholder="100.x.y.z" />
-        </Field>
-        <Field label="Port">
-          <Input value={port} onChange={(e) => setPort(e.target.value)} inputMode="numeric" />
-        </Field>
-      </div>
-      <Field label="Pairing code">
-        <Input
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="123456"
-          inputMode="numeric"
-          className="font-mono tracking-widest"
-        />
-      </Field>
-      <Field label="Master password" hint="The master password of the vault you are joining.">
-        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} />
-      </Field>
-      <ErrorText error={join.error} />
-      <Button
-        variant="primary"
-        type="submit"
-        className="w-full"
-        disabled={!valid || join.isPending}
-      >
-        {join.isPending ? 'Joining…' : 'Join vault'}
-      </Button>
-    </form>
+      <Prompt
+        label="device address"
+        value={host}
+        onChange={setHost}
+        placeholder="100.x.y.z or name.tailnet.ts.net"
+        autoFocus
+      />
+      <Prompt label="port" value={port} onChange={setPort} />
+      <Prompt label="pairing code" value={code} onChange={setCode} placeholder="123456" />
+      <Prompt label="master password" value={password} onChange={setPassword} secret />
+      {join.isPending && <Spinner>pairing and pulling vault…</Spinner>}
+      <ErrorLine error={join.error} />
+      {valid && !join.isPending && <p className="text-ide-faint">press ↵ to join</p>}
+    </TerminalForm>
   )
 }

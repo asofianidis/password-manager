@@ -5,7 +5,7 @@ import type { ImportFile, ImportFormat, ImportPreview } from '@shared/types'
 import { IMPORT_FORMAT_LABELS } from '@shared/importers'
 import { api } from '@renderer/lib/api'
 import { toast } from '@renderer/lib/toast'
-import { Button, ErrorText, Field, Modal, PasswordInput, Select, Toggle } from './ui'
+import { Button, Checkbox, ErrorText, Field, Modal, PasswordInput, Select } from './ui'
 
 export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Element {
   const queryClient = useQueryClient()
@@ -49,7 +49,7 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
   const toImport = preview ? preview.total - (skipDuplicates ? preview.duplicates : 0) : 0
 
   return (
-    <Modal title="Import passwords" onClose={close}>
+    <Modal title="pm import" onClose={close}>
       <div className="space-y-4">
         <Button onClick={() => pick.mutate()} disabled={pick.isPending} className="w-full">
           <FileUp className="size-4" />
@@ -101,7 +101,7 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
         )}
 
         {preview && (
-          <div className="space-y-4 rounded-lg border border-zinc-800 p-4">
+          <div className="space-y-3 border border-ide-border p-3">
             <p className="text-sm">
               Found <b>{preview.total}</b> password{preview.total === 1 ? '' : 's'}
               {preview.duplicates > 0 && (
@@ -112,15 +112,15 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
               .
             </p>
             {preview.warnings.map((warning) => (
-              <p key={warning} className="text-xs text-amber-300">
+              <p key={warning} className="text-xs text-syn-type">
                 {warning}
               </p>
             ))}
             {preview.sample.length > 0 && (
-              <ul className="space-y-1 text-xs text-zinc-400">
+              <ul className="space-y-0.5 text-xs text-ide-muted">
                 {preview.sample.map((s, i) => (
                   <li key={i} className="truncate">
-                    <span className="text-zinc-200">{s.title}</span> · {s.username || '—'}
+                    <span className="text-ide-fg">{s.title}</span> · {s.username || '—'}
                   </li>
                 ))}
                 {preview.total > preview.sample.length && (
@@ -129,7 +129,7 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
               </ul>
             )}
             {preview.duplicates > 0 && (
-              <Toggle
+              <Checkbox
                 label="Skip duplicates"
                 checked={skipDuplicates}
                 onChange={setSkipDuplicates}
