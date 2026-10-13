@@ -1,0 +1,50 @@
+@import './base.css';
+
+body {
+  user-select: none;
+}
+
+.nav {
+  display: flex;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--ev-c-gray-3);
+}
+
+.nav a {
+  color: var(--ev-c-text-2);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.nav a.active {
+  color: var(--ev-c-text-1);
+}
+
+.content {
+  padding: 20px;
+}
+
+.content h1 {
+  margin-bottom: 12px;
+}
+
+.content p,
+.content ul {
+  margin-bottom: 12px;
+}
+
+.content ul {
+  padding-left: 20px;
+}
+
+button {
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--ev-c-gray-1);
+  background: var(--color-background-soft);
+  color: var(--ev-c-text-1);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
