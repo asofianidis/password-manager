@@ -15,9 +15,9 @@ function AboutPage(): React.JSX.Element {
   const { data } = useSuspenseQuery(appInfoQuery)
 
   return (
-    <div>
-      <h1>About</h1>
-      <ul>
+    <div className="space-y-3">
+      <h1 className="text-2xl font-bold">About</h1>
+      <ul className="list-disc pl-5 text-zinc-300">
         <li>
           App: {data.name} v{data.version}
         </li>
