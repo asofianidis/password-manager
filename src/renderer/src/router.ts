@@ -8,6 +8,8 @@ export const router = createRouter({
   history: createHashHistory(),
   context: { queryClient },
   defaultPreload: 'intent',
+  // Pages scroll inside <main>, not the window
+  scrollToTopSelectors: ['#main'],
   // Let TanStack Query own caching; loaders just prime the query cache
   defaultPreloadStaleTime: 0
 })

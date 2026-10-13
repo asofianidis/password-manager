@@ -5,7 +5,8 @@ export const queryClient = new QueryClient({
     queries: {
       // Data comes from the local main process, not the network
       refetchOnWindowFocus: false,
-      retry: false
+      retry: false,
+      staleTime: 30_000
     }
   }
 })
