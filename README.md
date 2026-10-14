@@ -44,6 +44,31 @@ npm run lint
 npm run build:mac  # or build:win / build:linux
 ```
 
+## CI and releases
+
+`.github/workflows/build.yml` lints, typechecks, and tests every push and pull request. It then
+packages the app on native runners:
+
+| Platform | Artifacts                           |
+| -------- | ----------------------------------- |
+| macOS    | `.dmg` and `.zip` for x64 and arm64 |
+| Windows  | NSIS installer `.exe` (x64)         |
+| Linux    | `.AppImage` and `.deb` (x64)        |
+
+Download the builds from the run's **Artifacts** section. To publish a release, push a version tag:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+The version in the tag is stamped into the app, and a **draft** GitHub release is created with every
+installer attached. Review it, then publish.
+
+Builds are **unsigned**. macOS will say the app is from an unidentified developer (right-click →
+Open), and Windows SmartScreen will warn on first launch. To sign, add electron-builder's signing
+secrets (`CSC_LINK`/`CSC_KEY_PASSWORD`, plus `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`
+for notarization), pass them to the package step, and remove `CSC_IDENTITY_AUTO_DISCOVERY: false`.
+
 ## Layout
 
 ```
