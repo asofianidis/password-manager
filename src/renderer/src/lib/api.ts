@@ -37,5 +37,11 @@ export const queries = {
       queryKey: ['sync', 'status'],
       queryFn: () => api.invoke('sync:status'),
       staleTime: 0
+    }),
+  update: () =>
+    queryOptions({
+      queryKey: ['update'],
+      queryFn: () => api.invoke('update:status'),
+      staleTime: Infinity
     })
 }

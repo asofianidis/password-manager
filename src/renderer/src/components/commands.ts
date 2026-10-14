@@ -37,6 +37,18 @@ export async function runSync(peerId?: string): Promise<void> {
   }
 }
 
+async function checkForUpdates(): Promise<void> {
+  try {
+    const { state, version } = await api.invoke('update:check')
+    toast(
+      state === 'idle' ? 'You’re on the latest version' : `Version ${version} is available`,
+      'info'
+    )
+  } catch (error) {
+    toastError(error)
+  }
+}
+
 export function useAppCommands(): AppCommand[] {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -139,6 +151,12 @@ export function useAppCommands(): AppCommand[] {
         label: 'Open Settings',
         shortcut: `${MOD},`,
         run: () => void navigate({ to: '/settings' })
+      },
+      {
+        id: 'update',
+        category: 'Preferences',
+        label: 'Check for Updates',
+        run: () => void checkForUpdates()
       }
     ],
     [navigate, queryClient]

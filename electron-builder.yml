@@ -51,5 +51,9 @@ appImage:
 deb:
   artifactName: ${name}-${version}-${arch}.${ext}
 npmRebuild: false
-# Releases are uploaded by the GitHub workflow; electron-builder never publishes on its own
-publish: null
+# Releases are uploaded by the GitHub workflow (builds run with --publish never). This config only
+# tells electron-builder to write the latest*.yml feeds and app-update.yml that the updater reads.
+publish:
+  provider: github
+  owner: asofianidis
+  repo: password-manager

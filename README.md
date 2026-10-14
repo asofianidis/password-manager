@@ -64,6 +64,12 @@ git tag v1.0.0 && git push origin v1.0.0
 The version in the tag is stamped into the app, and a **draft** GitHub release is created with every
 installer attached. Review it, then publish.
 
+Each release also carries the `latest*.yml` update feeds. Installed apps check GitHub releases on
+launch and every 4 hours (or via **Check for Updates** in the command palette). When a newer
+version exists, an update button appears in the bottom-left corner. On Windows and Linux it
+downloads the update and then offers to restart and install it. On macOS, Squirrel.Mac only
+installs signed builds, so the button opens the release page until signing is set up.
+
 Builds are **unsigned**. macOS will say the app is from an unidentified developer (right-click →
 Open), and Windows SmartScreen will warn on first launch. To sign, add electron-builder's signing
 secrets (`CSC_LINK`/`CSC_KEY_PASSWORD`, plus `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`

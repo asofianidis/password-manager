@@ -34,6 +34,8 @@ function useVaultEvents(): void {
       } else if (event === 'sync-status') {
         void queryClient.invalidateQueries({ queryKey: ['sync'] })
         void queryClient.invalidateQueries(queries.settings())
+      } else if (event === 'update-status') {
+        void queryClient.invalidateQueries(queries.update())
       }
     })
   }, [queryClient, router])

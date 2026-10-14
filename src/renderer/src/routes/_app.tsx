@@ -30,6 +30,7 @@ import { MOD, isMac, isMod } from '@renderer/lib/keys'
 import { toastError } from '@renderer/lib/toast'
 import { openPalette } from '@renderer/lib/workspace'
 import { CommandPalette } from '@renderer/components/CommandPalette'
+import { UpdateButton } from '@renderer/components/UpdateButton'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context }) => {
@@ -184,6 +185,7 @@ function StatusBar(): React.JSX.Element {
   return (
     <footer className="flex h-6 shrink-0 items-center justify-between bg-ide-status text-[11px] text-white/90">
       <div className="flex h-full items-center">
+        <UpdateButton />
         <button onClick={lock} className={cn(itemClass, 'bg-white/10 px-3')} title="Lock vault">
           <LockOpen className="size-3" />
           vault

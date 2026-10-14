@@ -16,6 +16,7 @@ import {
 } from './import-export'
 import { sync } from './sync/sync'
 import { listTailscalePeers } from './sync/tailscale'
+import { updater } from './updater'
 
 type Handlers = {
   [C in InvokeChannel]: (
@@ -71,7 +72,11 @@ const handlers: Handlers = {
   'sync:now': (_, peerId) => sync.syncAll(peerId),
   'sync:start-pairing': () => sync.startPairing(),
   'sync:stop-pairing': () => sync.stopPairing(),
-  'sync:tailscale-peers': () => listTailscalePeers()
+  'sync:tailscale-peers': () => listTailscalePeers(),
+
+  'update:status': () => updater.status(),
+  'update:check': () => updater.check(),
+  'update:install': () => updater.install()
 }
 
 function requireUnlocked(): void {
@@ -108,6 +113,7 @@ export function wireEvents(): void {
   })
   vault.on('changed', () => broadcast('changed'))
   sync.on('status', () => broadcast('sync-status'))
+  updater.on('status', () => broadcast('update-status'))
   settingsStore.onChange(() => {
     void sync.reconcile()
   })

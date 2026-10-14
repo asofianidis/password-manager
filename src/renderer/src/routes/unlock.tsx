@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
 import { StrengthMeter } from '@renderer/components/ui'
+import { UpdateButton } from '@renderer/components/UpdateButton'
 
 export const Route = createFileRoute('/unlock')({
   beforeLoad: async ({ context }) => {
@@ -41,6 +42,9 @@ function UnlockPage(): React.JSX.Element {
             </>
           ) : null}
         </div>
+      </div>
+      <div className="fixed bottom-0 left-0 h-6 text-[11px] no-drag">
+        <UpdateButton />
       </div>
     </div>
   )

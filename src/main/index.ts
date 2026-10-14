@@ -7,6 +7,7 @@ import { vault } from './vault/vault'
 import { settingsStore } from './settings'
 import { sync } from './sync/sync'
 import { startAutoLock } from './auto-lock'
+import { updater } from './updater'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -87,6 +88,7 @@ if (!app.requestSingleInstanceLock()) {
     await sync.reconcile()
 
     createWindow()
+    updater.start()
 
     app.on('activate', function () {
       // On macOS it's common to re-create a window in the app when the

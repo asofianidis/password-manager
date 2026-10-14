@@ -181,4 +181,13 @@ export interface ImportPreview {
 export type ExportFormat = 'pm-encrypted' | 'pm-json' | 'csv'
 
 /** Events pushed from the main process to the renderer. */
-export type VaultEvent = 'locked' | 'changed' | 'sync-status'
+export type VaultEvent = 'locked' | 'changed' | 'sync-status' | 'update-status'
+
+export interface UpdateStatus {
+  /** idle: no update found (or not checked yet); ready: downloaded, installs on restart */
+  state: 'idle' | 'available' | 'downloading' | 'ready'
+  version: string | null
+  /** Download progress, 0-100 */
+  progress: number | null
+  error: string | null
+}

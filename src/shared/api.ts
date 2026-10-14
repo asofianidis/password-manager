@@ -15,6 +15,7 @@ import type {
   SyncResult,
   SyncStatus,
   TailscalePeer,
+  UpdateStatus,
   VaultEntry,
   VaultEvent,
   VaultStatus
@@ -57,6 +58,10 @@ export interface InvokeApi {
   'sync:start-pairing': () => SyncStatus
   'sync:stop-pairing': () => SyncStatus
   'sync:tailscale-peers': () => TailscalePeer[]
+
+  'update:status': () => UpdateStatus
+  'update:check': () => UpdateStatus
+  'update:install': () => void
 }
 
 export type InvokeChannel = keyof InvokeApi
@@ -91,7 +96,10 @@ export const INVOKE_CHANNELS = [
   'sync:now',
   'sync:start-pairing',
   'sync:stop-pairing',
-  'sync:tailscale-peers'
+  'sync:tailscale-peers',
+  'update:status',
+  'update:check',
+  'update:install'
 ] as const satisfies readonly InvokeChannel[]
 
 /** IPC handlers wrap results so error messages survive the process boundary intact. */
