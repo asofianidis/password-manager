@@ -29,9 +29,41 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
+  version:
+    name: Resolve release version
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: resolve
+        name: Pick tag
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            tag="$GITHUB_REF_NAME"
+          elif [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main ]]; then
+            # Use package.json's version if it's ahead of the latest tag, otherwise bump the patch
+            pkg="$(node -p "require('./package.json').version")"
+            latest="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
+            latest="${latest#v}"
+            if [[ -z "$latest" ]] || [[ "$(printf '%s\n%s\n' "$pkg" "$latest" | sort -V | tail -n1)" == "$pkg" && "$pkg" != "$latest" ]]; then
+              tag="v$pkg"
+            else
+              IFS=. read -r major minor patch <<< "$latest"
+              tag="v$major.$minor.$((patch + 1))"
+            fi
+          else
+            tag=""
+          fi
+          echo "Resolved tag: ${tag:-<none>}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build (${{ matrix.name }})
-    needs: check
+    needs: [check, version]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -55,9 +87,11 @@ jobs:
       - run: npm ci
 
       - name: Set version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: needs.version.outputs.tag != ''
         shell: bash
-        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+        env:
+          TAG: ${{ needs.version.outputs.tag }}
+        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
 
       - name: Bundle with electron-vite
         run: npx electron-vite build
@@ -81,8 +115,8 @@ jobs:
 
   release:
     name: Publish GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    if: needs.version.outputs.tag != ''
+    needs: [version, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -94,9 +128,11 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version.outputs.tag }}
         run: |
-          gh release create "$GITHUB_REF_NAME" artifacts/* \
+          # Creates the tag at this commit if it doesn't exist yet
+          gh release create "$TAG" artifacts/* \
             --repo "$GITHUB_REPOSITORY" \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes \
-            --draft
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --generate-notes
