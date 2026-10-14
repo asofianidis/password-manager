@@ -70,9 +70,18 @@ version exists, an update button appears in the bottom-left corner. On Windows a
 downloads the update and then offers to restart and install it. On macOS, Squirrel.Mac only
 installs signed builds, so the button opens the release page until signing is set up.
 
-Builds are **not notarized**. The macOS app is ad-hoc signed, so on first launch macOS will say it
-can't verify the developer: open **System Settings → Privacy & Security** and click **Open Anyway**
-(or run `xattr -dr com.apple.quarantine "/Applications/Password Manager.app"`). Windows SmartScreen
+Builds are **not notarized**. On macOS the easiest way to install is from the terminal. It
+downloads the latest release with `curl`, which (unlike a browser) doesn't mark the app as
+quarantined, so Gatekeeper doesn't block it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/asofianidis/password-manager/main/scripts/install-mac.sh | bash
+```
+
+If you download the `.dmg` in a browser instead, the app is ad-hoc signed, so on first launch macOS
+will say it can't verify the developer: open **System Settings → Privacy & Security** and click
+**Open Anyway** (or run `xattr -dr com.apple.quarantine "/Applications/Password Manager.app"`).
+Windows SmartScreen
 will also warn on first launch. To sign properly, add electron-builder's signing secrets
 (`CSC_LINK`/`CSC_KEY_PASSWORD`, plus `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID` for
 notarization), pass them to the package step, remove `CSC_IDENTITY_AUTO_DISCOVERY: false`, and drop
