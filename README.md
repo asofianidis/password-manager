@@ -70,10 +70,13 @@ version exists, an update button appears in the bottom-left corner. On Windows a
 downloads the update and then offers to restart and install it. On macOS, Squirrel.Mac only
 installs signed builds, so the button opens the release page until signing is set up.
 
-Builds are **unsigned**. macOS will say the app is from an unidentified developer (right-click →
-Open), and Windows SmartScreen will warn on first launch. To sign, add electron-builder's signing
-secrets (`CSC_LINK`/`CSC_KEY_PASSWORD`, plus `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`
-for notarization), pass them to the package step, and remove `CSC_IDENTITY_AUTO_DISCOVERY: false`.
+Builds are **not notarized**. The macOS app is ad-hoc signed, so on first launch macOS will say it
+can't verify the developer: open **System Settings → Privacy & Security** and click **Open Anyway**
+(or run `xattr -dr com.apple.quarantine "/Applications/Password Manager.app"`). Windows SmartScreen
+will also warn on first launch. To sign properly, add electron-builder's signing secrets
+(`CSC_LINK`/`CSC_KEY_PASSWORD`, plus `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID` for
+notarization), pass them to the package step, remove `CSC_IDENTITY_AUTO_DISCOVERY: false`, and drop
+`identity: '-'` from `electron-builder.yml`.
 
 ## Layout
 
