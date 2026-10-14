@@ -13,12 +13,12 @@ export interface Problem {
 }
 
 export const SEVERITY_STYLE: Record<Severity, { icon: typeof XCircle; color: string }> = {
-  error: { icon: XCircle, color: 'text-syn-prop' },
-  warning: { icon: AlertTriangle, color: 'text-syn-type' },
-  info: { icon: Info, color: 'text-ide-accent' }
+  error: { icon: XCircle, color: 'text-danger' },
+  warning: { icon: AlertTriangle, color: 'text-warn' },
+  info: { icon: Info, color: 'text-info' }
 }
 
-/** Password-health issues for one credential, phrased like compiler diagnostics. */
+/** Password-health issues for one credential. */
 export function entryProblems(summary: EntrySummary, crackTime?: string): Problem[] {
   const problems: Problem[] = []
   if (!summary.hasPassword) return problems

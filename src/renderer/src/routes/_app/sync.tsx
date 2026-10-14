@@ -1,25 +1,35 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { CircleDot, Network, Plus, RefreshCw, Smartphone, Trash2 } from 'lucide-react'
+import {
+  ArrowRight,
+  Check,
+  Info,
+  Laptop,
+  Network,
+  Plus,
+  RefreshCw,
+  Smartphone,
+  Trash2,
+  X
+} from 'lucide-react'
 import type { SettingsPatch, TailscalePeer } from '@shared/types'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
 import { timeAgo } from '@renderer/lib/format'
 import { toast, toastError } from '@renderer/lib/toast'
-import { log, syncLogStore } from '@renderer/lib/workspace'
+import { log, syncLogStore, type LogLine } from '@renderer/lib/workspace'
 import { runSync } from '@renderer/components/commands'
-import { Terminal } from '@renderer/components/Terminal'
 import {
   Badge,
-  Breadcrumbs,
   Button,
+  Card,
   Checkbox,
   ErrorText,
   Field,
   Input,
   Modal,
-  Section,
+  PageHeader,
   Select
 } from '@renderer/components/ui'
 
@@ -33,17 +43,16 @@ export const Route = createFileRoute('/_app/sync')({
 })
 
 const AUTO_SYNC_OPTIONS = [
-  [0, 'off'],
-  [5, 'every 5 minutes'],
-  [15, 'every 15 minutes'],
-  [60, 'every hour']
+  [0, 'Off'],
+  [5, 'Every 5 minutes'],
+  [15, 'Every 15 minutes'],
+  [60, 'Every hour']
 ] as const
 
 function SyncPage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const { data: settings } = useSuspenseQuery(queries.settings())
   const { data: status } = useSuspenseQuery(queries.syncStatus())
-  const logLines = syncLogStore.use()
   const [adding, setAdding] = useState(false)
 
   const update = useMutation({
@@ -70,135 +79,131 @@ function SyncPage(): React.JSX.Element {
   const busy = syncNow.isPending || status.syncing
 
   return (
-    <div className="flex h-full flex-col">
-      <Breadcrumbs
-        path={['vault', 'sync']}
+    <div className="mx-auto max-w-5xl pb-12">
+      <PageHeader
+        title="Sync"
+        subtitle="Peer-to-peer over Tailscale or your LAN. End-to-end encrypted, no cloud."
         actions={
-          sync.peers.length > 0 && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => syncNow.mutate(undefined)}
-              disabled={busy}
-            >
-              <RefreshCw className={cn('size-3.5', busy && 'animate-spin')} />
-              Sync all
+          <>
+            <Button onClick={() => setAdding(true)}>
+              <Plus className="size-3.5" />
+              Add device
             </Button>
-          )
+            {sync.peers.length > 0 && (
+              <Button variant="primary" onClick={() => syncNow.mutate(undefined)} disabled={busy}>
+                <RefreshCw className={cn('size-3.5', busy && 'animate-spin')} />
+                Sync now
+              </Button>
+            )}
+          </>
         }
       />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
-        <p className="text-xs text-syn-comment">
-          {
-            '// devices sync peer-to-peer (no cloud). payloads are end-to-end encrypted with your vault key.'
-          }
-          <br />
-          {'// use a Tailscale tailnet or a trusted LAN. both devices must be unlocked to sync.'}
-        </p>
 
-        <Section
-          title="Remotes"
-          description="devices this one pushes to and pulls from"
-          actions={
-            <Button size="sm" onClick={() => setAdding(true)}>
-              <Plus className="size-3.5" />
-              Add remote
-            </Button>
-          }
+      <div className="space-y-4 px-8">
+        <Card
+          title="Devices"
+          description="This device pushes to and pulls from these. Both ends must be unlocked."
+          bodyClassName="p-2"
         >
           {sync.peers.length === 0 ? (
-            <p className="text-xs text-ide-muted">
-              No remotes. Add one, or pair a new device below.
+            <p className="px-3 py-4 text-xs text-muted">
+              No devices yet. Add one, or pair a new device below.
             </p>
           ) : (
-            <table className="w-full text-[13px]">
-              <tbody>
-                {sync.peers.map((peer) => (
-                  <tr key={peer.id} className="group hover:bg-ide-hover">
-                    <td className="w-5 py-1">
-                      <CircleDot
-                        className={cn(
-                          'size-3.5',
-                          peer.lastError
-                            ? 'text-syn-prop'
-                            : peer.lastSyncAt
-                              ? 'text-syn-string'
-                              : 'text-ide-faint'
-                        )}
-                      />
-                    </td>
-                    <td className="py-1 pr-4 text-syn-fn">{peer.name}</td>
-                    <td className="py-1 pr-4 text-ide-muted">
+            sync.peers.map((peer) => (
+              <div
+                key={peer.id}
+                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-hover"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-canvas ring-1 ring-line ring-inset">
+                  <Laptop className="size-4 text-muted" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-2">
+                    <span className="text-bright">{peer.name}</span>
+                    <span className="font-mono text-xs text-faint">
                       {peer.host}:{peer.port}
-                    </td>
-                    <td className="truncate py-1 text-xs">
-                      {peer.lastError ? (
-                        <span className="text-syn-prop">{peer.lastError}</span>
-                      ) : (
-                        <span className="text-ide-muted">synced {timeAgo(peer.lastSyncAt)}</span>
-                      )}
-                    </td>
-                    <td className="w-24 py-1 text-right">
-                      <span className="opacity-0 group-hover:opacity-100">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Sync"
-                          onClick={() => syncNow.mutate(peer.id)}
-                          disabled={busy}
-                        >
-                          <RefreshCw className="size-3.5" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Remove remote"
-                          onClick={() => {
-                            log('cmd', `pm remote remove ${peer.name}`)
-                            removePeer.mutate(peer.id)
-                          }}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </span>
+                  </p>
+                  <p
+                    className={cn(
+                      'truncate text-xs',
+                      peer.lastError ? 'text-danger' : 'text-muted'
+                    )}
+                  >
+                    {peer.lastError ?? `Synced ${timeAgo(peer.lastSyncAt)}`}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    'size-2 rounded-full',
+                    peer.lastError ? 'bg-danger' : peer.lastSyncAt ? 'bg-ok' : 'bg-faint'
+                  )}
+                />
+                <span className="flex opacity-0 transition-opacity group-hover:opacity-100">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    title="Sync with this device"
+                    onClick={() => syncNow.mutate(peer.id)}
+                    disabled={busy}
+                  >
+                    <RefreshCw className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    title="Remove device"
+                    onClick={() => {
+                      log('cmd', `Removed ${peer.name}`)
+                      removePeer.mutate(peer.id)
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </span>
+              </div>
+            ))
           )}
-        </Section>
+        </Card>
 
         <div className="grid grid-cols-2 gap-4">
-          <Section
+          <Card
             title="This device"
-            description="accept connections from your other devices"
+            description="Accept connections from your other devices"
             actions={
               <Badge tone={status.serverRunning ? 'success' : 'neutral'}>
+                <span
+                  className={cn(
+                    'size-1.5 rounded-full',
+                    status.serverRunning ? 'bg-ok' : 'bg-faint'
+                  )}
+                />
                 {!status.serverRunning
-                  ? 'stopped'
+                  ? 'Stopped'
                   : sync.serverEnabled
-                    ? 'listening'
-                    : 'pairing only'}
+                    ? 'Listening'
+                    : 'Pairing only'}
               </Badge>
             }
           >
-            <div className="space-y-3">
+            <div className="space-y-4">
               <Checkbox
                 label="Accept sync connections"
-                description="required for other devices to sync with or pair to this one"
+                description="Needed for other devices to sync with or pair to this one"
                 checked={sync.serverEnabled}
                 onChange={(serverEnabled) => {
-                  log('cmd', `pm serve ${serverEnabled ? '--start' : '--stop'}`)
+                  log('cmd', serverEnabled ? 'Started listening' : 'Stopped listening')
                   update.mutate({ sync: { serverEnabled } })
                 }}
               />
-              <div className="grid grid-cols-[1fr_6rem] gap-2">
+              <div className="grid grid-cols-[1fr_6rem] gap-3">
                 <Field
-                  label="listen address"
-                  hint="your Tailscale IP limits connections to your tailnet"
+                  label="Listen address"
+                  hint="Use your Tailscale IP to limit it to your tailnet"
                 >
                   <Input
+                    className="font-mono"
                     defaultValue={sync.bindAddress}
                     onBlur={(e) =>
                       e.target.value.trim() !== sync.bindAddress &&
@@ -206,8 +211,9 @@ function SyncPage(): React.JSX.Element {
                     }
                   />
                 </Field>
-                <Field label="port">
+                <Field label="Port">
                   <Input
+                    className="font-mono"
                     defaultValue={sync.port}
                     inputMode="numeric"
                     onBlur={(e) =>
@@ -219,19 +225,24 @@ function SyncPage(): React.JSX.Element {
               </div>
               {status.serverError && <ErrorText error={status.serverError} />}
               {status.listenAddresses.length > 0 && (
-                <div className="text-xs">
-                  <span className="text-ide-muted">reachable at</span>
-                  {status.listenAddresses.map((address) => (
-                    <div key={address} className="text-ide-fg select-text">
-                      {address}
-                      {address.startsWith('100.') && (
-                        <span className="ml-2 text-syn-string">tailscale</span>
-                      )}
-                    </div>
-                  ))}
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-muted">Reachable at</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {status.listenAddresses.map((address) => (
+                      <span
+                        key={address}
+                        className="inline-flex items-center gap-1.5 rounded-md bg-canvas px-2 py-1 font-mono text-xs text-fg ring-1 ring-line select-text ring-inset"
+                      >
+                        {address}
+                        {address.startsWith('100.') && (
+                          <span className="font-sans text-[10px] text-accent">tailscale</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
-              <Field label="auto sync">
+              <Field label="Auto sync">
                 <Select
                   value={sync.autoSyncMinutes}
                   onChange={(e) =>
@@ -246,15 +257,59 @@ function SyncPage(): React.JSX.Element {
                 </Select>
               </Field>
             </div>
-          </Section>
-          <PairingSection />
+          </Card>
+          <PairingCard />
         </div>
+
+        <ActivityCard />
       </div>
 
-      <Terminal className="h-48" lines={logLines} />
-
-      {adding && <AddRemoteModal defaultPort={sync.port} onClose={() => setAdding(false)} />}
+      {adding && <AddDeviceModal defaultPort={sync.port} onClose={() => setAdding(false)} />}
     </div>
+  )
+}
+
+const LOG_ICON: Record<LogLine['kind'], { icon: typeof Check; className: string }> = {
+  cmd: { icon: ArrowRight, className: 'text-muted' },
+  ok: { icon: Check, className: 'text-ok' },
+  err: { icon: X, className: 'text-danger' },
+  info: { icon: Info, className: 'text-info' }
+}
+
+function ActivityCard(): React.JSX.Element {
+  const lines = syncLogStore.use()
+  return (
+    <Card title="Activity" description="This session only" bodyClassName="px-2 pb-2 pt-3">
+      {lines.length === 0 ? (
+        <p className="px-3 pb-2 text-xs text-faint">Nothing yet.</p>
+      ) : (
+        <ol className="max-h-60 overflow-y-auto">
+          {[...lines].reverse().map((line) => {
+            const { icon: Icon, className } = LOG_ICON[line.kind]
+            return (
+              <li key={line.id} className="flex items-start gap-3 rounded-lg px-3 py-1.5 text-xs">
+                <span className="w-16 shrink-0 font-mono text-faint tabular-nums">
+                  {new Date(line.at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  })}
+                </span>
+                <Icon className={cn('mt-px size-3.5 shrink-0', className)} />
+                <span
+                  className={cn(
+                    'min-w-0 break-words select-text',
+                    line.kind === 'err' ? 'text-danger' : 'text-fg'
+                  )}
+                >
+                  {line.text}
+                </span>
+              </li>
+            )
+          })}
+        </ol>
+      )}
+    </Card>
   )
 }
 
@@ -268,7 +323,7 @@ function useCountdown(expiresAt: number | null): number {
   return expiresAt ? Math.max(0, Math.round((expiresAt - now) / 1000)) : 0
 }
 
-function PairingSection(): React.JSX.Element {
+function PairingCard(): React.JSX.Element {
   const queryClient = useQueryClient()
   const { data: status } = useSuspenseQuery(queries.syncStatus())
   const remaining = useCountdown(status.pairing?.expiresAt ?? null)
@@ -278,10 +333,10 @@ function PairingSection(): React.JSX.Element {
   }
   const start = useMutation({
     mutationFn: () => api.invoke('sync:start-pairing'),
-    onMutate: () => log('cmd', 'pm pair --start'),
+    onMutate: () => log('cmd', 'Opened pairing'),
     onSuccess: (next) => {
       onStatus(next)
-      log('info', `pairing open for 5 minutes on ${next.listenAddresses.join(', ')}`)
+      log('info', `Pairing open for 5 minutes on ${next.listenAddresses.join(', ')}`)
     },
     onError: (error) => {
       log('err', error.message)
@@ -290,7 +345,7 @@ function PairingSection(): React.JSX.Element {
   })
   const stop = useMutation({
     mutationFn: () => api.invoke('sync:stop-pairing'),
-    onMutate: () => log('cmd', 'pm pair --stop'),
+    onMutate: () => log('cmd', 'Closed pairing'),
     onSuccess: onStatus
   })
 
@@ -299,47 +354,60 @@ function PairingSection(): React.JSX.Element {
   }, [remaining, status.pairing, queryClient])
 
   return (
-    <Section
+    <Card
       title={
         <span className="flex items-center gap-2">
-          <Smartphone className="size-3.5" />
+          <Smartphone className="size-4 text-accent" />
           Pair a new device
         </span>
       }
-      description="set up your vault on another computer or phone"
+      description="Set up your vault on another computer"
     >
       {status.pairing ? (
-        <div className="space-y-3">
-          <p className="text-xs text-ide-muted">
-            On the new device run <span className="text-ide-fg">pm join</span> with one of the
-            addresses shown and this code:
+        <div className="space-y-4">
+          <p className="text-xs text-muted">
+            On the new device, choose <span className="text-fg">Join an existing vault</span> and
+            enter one of this device&apos;s addresses with this code:
           </p>
-          <p className="text-4xl font-semibold tracking-[0.3em] text-syn-string select-text">
-            {status.pairing.code}
-          </p>
-          <p className="text-xs text-syn-comment">
-            {`// expires in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')} · the new device still needs your master password`}
-          </p>
-          <Button size="sm" onClick={() => stop.mutate()}>
-            Cancel pairing
-          </Button>
+          <div className="flex gap-1.5">
+            {[...status.pairing.code].map((digit, i) => (
+              <span
+                key={i}
+                className="flex h-14 w-11 items-center justify-center rounded-lg bg-canvas font-mono text-2xl font-semibold text-accent ring-1 ring-accent/30 select-text ring-inset"
+              >
+                {digit}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted">
+              Expires in{' '}
+              <span className="font-mono text-fg tabular-nums">
+                {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')}
+              </span>
+              . The new device still needs your master password.
+            </p>
+            <Button size="sm" onClick={() => stop.mutate()}>
+              Cancel
+            </Button>
+          </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          <p className="text-xs text-ide-muted">
+        <div className="space-y-4">
+          <p className="text-xs text-muted">
             Opens a 5-minute window and shows a one-time code. Sync connections are accepted
             temporarily if they are off.
           </p>
-          <Button onClick={() => start.mutate()} disabled={start.isPending}>
+          <Button variant="primary" onClick={() => start.mutate()} disabled={start.isPending}>
             Start pairing
           </Button>
         </div>
       )}
-    </Section>
+    </Card>
   )
 }
 
-function AddRemoteModal({
+function AddDeviceModal({
   defaultPort,
   onClose
 }: {
@@ -360,9 +428,9 @@ function AddRemoteModal({
   const add = useMutation({
     mutationFn: () => api.invoke('sync:add-peer', { name, host, port: Number(port) }),
     onSuccess: async (peer) => {
-      log('cmd', `pm remote add ${peer.name} ${peer.host}:${peer.port}`)
+      log('cmd', `Added ${peer.name} (${peer.host}:${peer.port})`)
       await queryClient.invalidateQueries(queries.settings())
-      toast(`Added remote ${peer.name}`)
+      toast(`Added ${peer.name}`)
       onClose()
     }
   })
@@ -373,19 +441,23 @@ function AddRemoteModal({
   }
 
   return (
-    <Modal title="pm remote add" onClose={onClose}>
+    <Modal
+      title="Add a device"
+      description="Sync with a device that already has this vault."
+      onClose={onClose}
+    >
       <form
-        className="space-y-3"
+        className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault()
           add.mutate()
         }}
       >
-        <div className="border border-ide-border">
-          <div className="flex items-center justify-between px-2 py-1">
-            <span className="flex items-center gap-2 text-xs text-ide-muted">
+        <div className="overflow-hidden rounded-xl border border-line">
+          <div className="flex items-center justify-between py-1.5 pr-1.5 pl-3">
+            <span className="flex items-center gap-2 text-xs text-muted">
               <Network className="size-3.5" />
-              tailscale devices
+              Tailscale devices
             </span>
             <Button
               size="sm"
@@ -393,16 +465,16 @@ function AddRemoteModal({
               onClick={() => void tailscale.refetch()}
               disabled={tailscale.isFetching}
             >
-              {tailscale.isFetching ? 'scanning…' : tailscale.data ? 'refresh' : 'scan tailnet'}
+              {tailscale.isFetching ? 'Scanning…' : tailscale.data ? 'Refresh' : 'Scan tailnet'}
             </Button>
           </div>
           {tailscale.error && (
-            <div className="px-2 pb-2">
+            <div className="px-3 pb-2">
               <ErrorText error={tailscale.error} />
             </div>
           )}
           {tailscale.data && (
-            <ul className="max-h-40 overflow-y-auto border-t border-ide-border py-1">
+            <ul className="max-h-40 overflow-y-auto border-t border-line p-1">
               {tailscale.data
                 .filter((p) => !p.self)
                 .map((peer) => (
@@ -410,38 +482,42 @@ function AddRemoteModal({
                     <button
                       type="button"
                       onClick={() => choose(peer)}
-                      className="flex w-full items-center gap-2 px-2 py-0.5 text-left text-xs hover:bg-ide-hover"
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-hover"
                     >
                       <span
-                        className={cn(
-                          'size-1.5 rounded-full',
-                          peer.online ? 'bg-syn-string' : 'bg-ide-faint'
-                        )}
+                        className={cn('size-1.5 rounded-full', peer.online ? 'bg-ok' : 'bg-faint')}
                       />
-                      <span className="flex-1 truncate">{peer.name}</span>
-                      <span className="text-ide-muted">{peer.ips[0]}</span>
+                      <span className="flex-1 truncate text-fg">{peer.name}</span>
+                      <span className="font-mono text-faint">{peer.ips[0]}</span>
                     </button>
                   </li>
                 ))}
             </ul>
           )}
         </div>
-        <Field label="name">
+        <Field label="Name">
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="work-laptop" />
         </Field>
-        <div className="grid grid-cols-[1fr_6rem] gap-2">
-          <Field label="address" hint="Tailscale IP, MagicDNS name, or LAN IP">
-            <Input value={host} onChange={(e) => setHost(e.target.value)} />
+        <div className="grid grid-cols-[1fr_6rem] gap-3">
+          <Field label="Address" hint="Tailscale IP, MagicDNS name, or LAN IP">
+            <Input className="font-mono" value={host} onChange={(e) => setHost(e.target.value)} />
           </Field>
-          <Field label="port">
-            <Input value={port} onChange={(e) => setPort(e.target.value)} inputMode="numeric" />
+          <Field label="Port">
+            <Input
+              className="font-mono"
+              value={port}
+              onChange={(e) => setPort(e.target.value)}
+              inputMode="numeric"
+            />
           </Field>
         </div>
         <ErrorText error={add.error} />
         <div className="flex justify-end gap-2">
-          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
           <Button variant="primary" type="submit" disabled={!host.trim() || add.isPending}>
-            Add remote
+            Add device
           </Button>
         </div>
       </form>

@@ -1,17 +1,22 @@
-import { useEffect, useRef, useState, type ComponentProps } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Wand2 } from 'lucide-react'
 import type { EntryInput, VaultEntry } from '@shared/types'
 import { api, queries } from '@renderer/lib/api'
-import { cn } from '@renderer/lib/cn'
-import { identifier } from '@renderer/lib/format'
 import { MOD, isMod } from '@renderer/lib/keys'
 import { toast } from '@renderer/lib/toast'
-import { Breadcrumbs, Button, ErrorText, RevealButton, StrengthMeter } from './ui'
-import { CodeBlock, type CodeLine } from './code'
-import { Comment, Kw, Prop, Punc, Type } from './syntax'
-
-const I = '  '
+import {
+  Button,
+  Checkbox,
+  ErrorText,
+  Field,
+  Input,
+  Kbd,
+  Monogram,
+  PasswordInput,
+  StrengthMeter,
+  Textarea
+} from './ui'
 
 const EMPTY: EntryInput = {
   title: '',
@@ -33,38 +38,23 @@ function useDebounced<T>(value: T, delay: number): T {
   return debounced
 }
 
-/** A borderless input that reads like a string literal and grows with its content. */
-function StringInput({ className, ...props }: ComponentProps<'input'>): React.JSX.Element {
-  return (
-    <span className="text-syn-string">
-      &quot;
-      <input
-        spellCheck={false}
-        autoComplete="off"
-        className={cn(
-          '[field-sizing:content] min-w-[2ch] rounded-sm bg-transparent text-syn-string caret-ide-accent outline-none placeholder:text-ide-faint placeholder:italic focus:bg-ide-input',
-          className
-        )}
-        {...props}
-      />
-      &quot;
-    </span>
-  )
-}
-
 export function EntryEditor({
   entry,
+  defaultFolder,
   autoGenerate,
   onSaved,
   onCancel
 }: {
   entry?: VaultEntry
+  defaultFolder?: string
   autoGenerate?: boolean
   onSaved: (entry: VaultEntry) => void
   onCancel: () => void
 }): React.JSX.Element {
   const queryClient = useQueryClient()
-  const [form, setForm] = useState<EntryInput>(entry ? pickInput(entry) : EMPTY)
+  const [form, setForm] = useState<EntryInput>(
+    entry ? pickInput(entry) : { ...EMPTY, folder: defaultFolder ?? '' }
+  )
   const [revealed, setRevealed] = useState(!entry)
   const set = <K extends keyof EntryInput>(key: K, value: EntryInput[K]): void =>
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -77,6 +67,11 @@ export function EntryEditor({
     gcTime: 0
   })
   const { data: settings } = useQuery(queries.settings())
+  const { data: entries } = useQuery(queries.entries())
+  const folders = useMemo(
+    () => [...new Set((entries ?? []).map((e) => e.folder).filter(Boolean))].sort(),
+    [entries]
+  )
 
   const generate = useMutation({
     mutationFn: () => api.invoke('generator:generate', settings!.generator),
@@ -120,206 +115,128 @@ export function EntryEditor({
     return () => window.removeEventListener('keydown', onKeyDown)
   })
 
-  const name = identifier(form.title || 'untitled')
-  const field = (key: keyof EntryInput, input: React.ReactNode): React.ReactNode => (
-    <>
-      {I}
-      <Prop>{key}</Prop>
-      <Punc>: </Punc>
-      {input}
-      <Punc>,</Punc>
-    </>
-  )
-
-  const lines: CodeLine[] = [
-    {
-      key: 'c1',
-      content: <Comment>{entry ? `// editing ${entry.title}` : '// new credential'}</Comment>
-    },
-    {
-      key: 'c2',
-      content: (
-        <Comment>{`// ${MOD}S to save · esc to cancel · values are encrypted on save`}</Comment>
-      )
-    },
-    { key: 'blank', content: '' },
-    {
-      key: 'open',
-      content: (
-        <>
-          <Kw>export const</Kw> {name} <Punc>=</Punc> <Punc>{'{'}</Punc>
-        </>
-      )
-    },
-    {
-      key: 'title',
-      content: field(
-        'title',
-        <StringInput
-          autoFocus
-          value={form.title}
-          placeholder="GitHub"
-          onChange={(e) => set('title', e.target.value)}
-        />
-      )
-    },
-    {
-      key: 'username',
-      content: field(
-        'username',
-        <StringInput
-          value={form.username}
-          placeholder="me@example.com"
-          onChange={(e) => set('username', e.target.value)}
-        />
-      )
-    },
-    {
-      key: 'password',
-      content: field(
-        'password',
-        <StringInput
-          type={revealed ? 'text' : 'password'}
-          value={form.password}
-          placeholder="••••••••"
-          onChange={(e) => set('password', e.target.value)}
-        />
-      ),
-      trailing: (
-        <span className="inline-flex items-center gap-1 align-middle">
-          <RevealButton revealed={revealed} onToggle={() => setRevealed((r) => !r)} />
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-ide-accent"
-            onClick={() => generate.mutate()}
-            disabled={!settings || generate.isPending}
-          >
-            <Wand2 className="size-3.5" />
-            generate
-          </Button>
-        </span>
-      )
-    },
-    ...(form.password && strength
-      ? [
-          {
-            key: 'strength',
-            content: (
-              <span className="inline-block pl-[2ch]">
-                <StrengthMeter score={strength.score} detail={`cracked in ${strength.crackTime}`} />
-              </span>
-            )
-          }
-        ]
-      : []),
-    {
-      key: 'url',
-      content: field(
-        'url',
-        <StringInput
-          value={form.url}
-          placeholder="https://github.com"
-          onChange={(e) => set('url', e.target.value)}
-        />
-      )
-    },
-    {
-      key: 'folder',
-      content: field(
-        'folder',
-        <StringInput
-          value={form.folder}
-          placeholder=""
-          onChange={(e) => set('folder', e.target.value)}
-        />
-      )
-    },
-    {
-      key: 'favorite',
-      content: field(
-        'favorite',
-        <button
-          type="button"
-          onClick={() => set('favorite', !form.favorite)}
-          className="rounded-sm text-syn-keyword hover:bg-ide-input"
-          title="Toggle"
-        >
-          {String(form.favorite)}
-        </button>
-      )
-    },
-    {
-      key: 'totp',
-      content: field(
-        'totp',
-        <StringInput
-          value={form.totp}
-          placeholder="otpauth://…"
-          onChange={(e) => set('totp', e.target.value)}
-        />
-      ),
-      trailing: <Comment>{'// optional 2FA secret'}</Comment>
-    },
-    {
-      key: 'notes',
-      content: (
-        <div className="flex items-start">
-          <span className="whitespace-pre">
-            {I}
-            <Prop>notes</Prop>
-            <Punc>: </Punc>
-            <span className="text-syn-string">`</span>
-          </span>
-          <textarea
-            value={form.notes}
-            onChange={(e) => set('notes', e.target.value)}
-            rows={Math.max(1, form.notes.split('\n').length)}
-            spellCheck={false}
-            className="[field-sizing:content] min-w-[2ch] resize-none rounded-sm bg-transparent leading-6 text-syn-string caret-ide-accent outline-none focus:bg-ide-input"
-          />
-          <span className="text-syn-string">`</span>
-          <Punc>,</Punc>
-        </div>
-      )
-    },
-    {
-      key: 'close',
-      content: (
-        <>
-          <Punc>{'}'}</Punc> <Kw>satisfies</Kw> <Type>Credential</Type>
-        </>
-      )
-    }
-  ]
-
   return (
     <form
-      className="flex h-full flex-col"
+      className="mx-auto flex max-w-3xl flex-col gap-6 px-8 pt-8 pb-12"
       onSubmit={(e) => {
         e.preventDefault()
         save.mutate()
       }}
     >
-      <Breadcrumbs
-        path={['vault', ...(form.folder ? [form.folder] : []), `${name}.ts ●`]}
-        actions={
-          <>
-            <Button size="sm" variant="ghost" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button size="sm" variant="primary" type="submit" disabled={save.isPending}>
-              {save.isPending ? 'Saving…' : `Save (${MOD}S)`}
-            </Button>
-          </>
-        }
-      />
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <CodeBlock lines={lines} />
-        <div className="px-14">
-          <ErrorText error={save.error} />
+      <header className="flex items-center gap-4">
+        <Monogram title={form.title || '?'} url={form.url} size="lg" />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-muted">{entry ? 'Editing' : 'New password'}</p>
+          <h1 className="truncate text-2xl font-semibold tracking-tight text-bright">
+            {form.title || <span className="text-faint">Untitled</span>}
+          </h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button variant="ghost" onClick={onCancel}>
+            Cancel
+            <Kbd className="ml-1">esc</Kbd>
+          </Button>
+          <Button variant="primary" type="submit" disabled={save.isPending}>
+            {save.isPending ? 'Saving…' : 'Save'}
+            <Kbd className="ml-1 border-accent-fg/20 bg-accent-fg/10 text-accent-fg">{MOD}S</Kbd>
+          </Button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-xl border border-line bg-raised/60 p-5">
+        <Field label="Name">
+          <Input
+            autoFocus
+            value={form.title}
+            placeholder="GitHub"
+            onChange={(e) => set('title', e.target.value)}
+          />
+        </Field>
+        <Field label="Website">
+          <Input
+            value={form.url}
+            placeholder="https://github.com"
+            className="font-mono"
+            spellCheck={false}
+            onChange={(e) => set('url', e.target.value)}
+          />
+        </Field>
+        <Field label="Username" className="col-span-2">
+          <Input
+            value={form.username}
+            placeholder="me@example.com"
+            className="font-mono"
+            spellCheck={false}
+            autoComplete="off"
+            onChange={(e) => set('username', e.target.value)}
+          />
+        </Field>
+        <div className="col-span-2 space-y-2">
+          <Field label="Password">
+            <PasswordInput
+              visible={revealed}
+              onVisibleChange={setRevealed}
+              value={form.password}
+              placeholder="••••••••••••"
+              onChange={(e) => set('password', e.target.value)}
+              trailing={
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 text-accent hover:text-accent"
+                  onClick={() => generate.mutate()}
+                  disabled={!settings || generate.isPending}
+                >
+                  <Wand2 className="size-3.5" />
+                  Generate
+                </Button>
+              }
+            />
+          </Field>
+          {form.password && strength && (
+            <StrengthMeter score={strength.score} detail={`cracked in ${strength.crackTime}`} />
+          )}
+        </div>
+        <Field label="Folder" hint="Shows up under Collections in the sidebar">
+          <Input
+            value={form.folder}
+            list="folders"
+            placeholder="None"
+            onChange={(e) => set('folder', e.target.value)}
+          />
+          <datalist id="folders">
+            {folders.map((f) => (
+              <option key={f} value={f} />
+            ))}
+          </datalist>
+        </Field>
+        <Field label="Two-factor secret" hint="Optional otpauth:// URI or base32 key">
+          <Input
+            value={form.totp}
+            placeholder="otpauth://…"
+            className="font-mono"
+            spellCheck={false}
+            autoComplete="off"
+            onChange={(e) => set('totp', e.target.value)}
+          />
+        </Field>
+        <Field label="Notes" className="col-span-2">
+          <Textarea
+            value={form.notes}
+            spellCheck={false}
+            onChange={(e) => set('notes', e.target.value)}
+          />
+        </Field>
+        <div className="col-span-2">
+          <Checkbox
+            label="Favorite"
+            description="Pin to Favorites in the sidebar"
+            checked={form.favorite}
+            onChange={(favorite) => set('favorite', favorite)}
+          />
         </div>
       </div>
+      <ErrorText error={save.error} />
     </form>
   )
 }

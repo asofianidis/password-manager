@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { ChevronRight, FileKey2, Star } from 'lucide-react'
+import { CornerDownRight, Search, Star } from 'lucide-react'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
 import { hostOf } from '@renderer/lib/format'
@@ -9,6 +9,7 @@ import { MOD, SHIFT, isMod } from '@renderer/lib/keys'
 import { toast, toastError } from '@renderer/lib/toast'
 import { closePalette, paletteStore } from '@renderer/lib/workspace'
 import { useAppCommands, type AppCommand } from './commands'
+import { Kbd, Monogram } from './ui'
 
 type Item =
   | { kind: 'command'; command: AppCommand }
@@ -16,6 +17,7 @@ type Item =
       kind: 'entry'
       id: string
       title: string
+      url: string
       detail: string
       favorite: boolean
       weak: boolean
@@ -70,6 +72,7 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
         kind: 'entry',
         id: e.id,
         title: e.title,
+        url: e.url,
         detail: [e.username, hostOf(e.url)].filter(Boolean).join(' · '),
         favorite: e.favorite,
         weak: e.hasPassword && e.score <= 2
@@ -120,71 +123,98 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
     }
   }
 
+  const firstCommand = items.findIndex((item) => item.kind === 'command')
+
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-center pt-12"
+      className="fixed inset-0 z-50 flex justify-center bg-black/50 pt-[12vh] backdrop-blur-[2px]"
       onMouseDown={(e) => e.target === e.currentTarget && closePalette()}
     >
-      <div className="h-fit w-full max-w-xl border border-ide-border bg-ide-panel shadow-2xl shadow-black/60">
-        <div className="p-1.5">
+      <div className="h-fit w-full max-w-2xl animate-rise overflow-hidden rounded-2xl border border-line-strong bg-panel shadow-2xl shadow-black/70">
+        <div className="flex items-center gap-3 border-b border-line px-4">
+          {commandMode ? (
+            <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-[11px] font-medium text-accent">
+              Command
+            </span>
+          ) : (
+            <Search className="size-4 shrink-0 text-faint" />
+          )}
           <input
             ref={inputRef}
-            value={query}
+            value={commandMode ? query.slice(1) : query}
             onChange={(e) => {
-              setQuery(e.target.value)
+              setQuery(commandMode ? `>${e.target.value}` : e.target.value)
               setIndex(0)
             }}
-            onKeyDown={onKeyDown}
+            onKeyDown={(e) => {
+              // Backspace on an empty command query leaves command mode
+              if (commandMode && e.key === 'Backspace' && query === '>') {
+                e.preventDefault()
+                setQuery('')
+                return
+              }
+              onKeyDown(e)
+            }}
             placeholder={
-              commandMode
-                ? 'Type a command'
-                : 'Search passwords by name, user, or site ( > for commands )'
+              commandMode ? 'Run a command…' : 'Search passwords, or type > for commands'
             }
-            className="h-7 w-full rounded-sm border border-ide-accent bg-ide-input px-2 text-ide-bright placeholder:text-ide-faint focus:outline-none"
+            className="h-14 w-full bg-transparent text-[15px] text-bright placeholder:text-faint focus:outline-none"
             spellCheck={false}
           />
+          <Kbd>esc</Kbd>
         </div>
-        <ul ref={listRef} className="max-h-96 overflow-y-auto pb-1">
+        <ul ref={listRef} className="max-h-[26rem] overflow-y-auto p-2">
           {items.map((item, i) => (
             <li key={item.kind === 'entry' ? item.id : item.command.id} data-index={i}>
+              {i === 0 && item.kind === 'entry' && (
+                <p className="px-3 pt-1 pb-1.5 text-[11px] font-medium text-faint">Passwords</p>
+              )}
+              {i === firstCommand && (
+                <p
+                  className={cn(
+                    'px-3 pb-1.5 text-[11px] font-medium text-faint',
+                    i > 0 ? 'pt-3' : 'pt-1'
+                  )}
+                >
+                  Commands
+                </p>
+              )}
               <button
                 onMouseMove={() => setIndex(i)}
                 onClick={() => void run(item)}
                 className={cn(
-                  'flex w-full items-center gap-2 px-3 py-1 text-left',
-                  i === index ? 'bg-ide-sel text-ide-bright' : 'text-ide-fg'
+                  'flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left',
+                  i === index ? 'bg-sel text-bright' : 'text-fg'
                 )}
               >
                 {item.kind === 'entry' ? (
                   <>
-                    <FileKey2
-                      className={cn(
-                        'size-3.5 shrink-0',
-                        item.weak ? 'text-syn-prop' : 'text-syn-type'
-                      )}
-                    />
+                    <Monogram title={item.title} url={item.url} size="sm" />
                     <span className="truncate">{item.title}</span>
-                    {item.favorite && (
-                      <Star className="size-3 shrink-0 fill-syn-type text-syn-type" />
-                    )}
-                    <span className="truncate text-xs text-ide-muted">{item.detail}</span>
+                    {item.favorite && <Star className="size-3 shrink-0 fill-warn text-warn" />}
+                    {item.weak && <span className="size-1.5 shrink-0 rounded-full bg-danger" />}
+                    <span className="truncate text-xs text-faint">{item.detail}</span>
                     {i === index && (
-                      <span className="ml-auto shrink-0 text-[11px] text-ide-muted">
-                        ↵ open · {MOD}↵ copy password
+                      <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] text-muted">
+                        <Kbd>↵</Kbd> open
+                        <Kbd className="ml-1">{MOD}↵</Kbd> copy
                       </span>
                     )}
                   </>
                 ) : (
                   <>
-                    <ChevronRight className="size-3.5 shrink-0 text-ide-muted" />
-                    <span className="truncate">
-                      <span className="text-ide-muted">{item.command.category}: </span>
-                      {item.command.label}
+                    <span
+                      className={cn(
+                        'flex size-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-line ring-inset',
+                        i === index ? 'bg-accent/10 text-accent' : 'bg-canvas text-faint'
+                      )}
+                    >
+                      <CornerDownRight className="size-3.5" />
                     </span>
+                    <span className="truncate">{item.command.label}</span>
+                    <span className="truncate text-xs text-faint">{item.command.category}</span>
                     {item.command.shortcut && (
-                      <span className="ml-auto shrink-0 text-[11px] text-ide-muted">
-                        {item.command.shortcut}
-                      </span>
+                      <Kbd className="ml-auto shrink-0">{item.command.shortcut}</Kbd>
                     )}
                   </>
                 )}
@@ -192,19 +222,28 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
             </li>
           ))}
           {items.length === 0 && (
-            <li className="px-3 py-2 text-xs text-ide-muted">
+            <li className="px-3 py-8 text-center text-xs text-muted">
               {entries.length === 0 && !commandMode
                 ? `No passwords yet. Type > for commands, or press ${MOD}N.`
                 : 'No matching results'}
             </li>
           )}
         </ul>
-        {!commandMode && !term && (
-          <p className="border-t border-ide-border px-3 py-1 text-[11px] text-ide-faint">
-            Type <span className="text-ide-muted">&gt;</span> for commands · {MOD}
-            {SHIFT}P
-          </p>
-        )}
+        <div className="flex items-center gap-4 border-t border-line px-4 py-2 text-[11px] text-faint">
+          <span className="flex items-center gap-1.5">
+            <Kbd>↑</Kbd>
+            <Kbd>↓</Kbd> navigate
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Kbd>↵</Kbd> select
+          </span>
+          {!commandMode && (
+            <span className="ml-auto flex items-center gap-1.5">
+              <Kbd>&gt;</Kbd> commands · {MOD}
+              {SHIFT}P
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )

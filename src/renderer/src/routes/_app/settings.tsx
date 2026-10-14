@@ -1,19 +1,19 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Download, FileUp, Search } from 'lucide-react'
+import { Download, FileUp, HardDriveDownload, Search, Settings2, ShieldCheck } from 'lucide-react'
 import type { ExportFormat, Settings, SettingsPatch } from '@shared/types'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
 import { toast, toastError } from '@renderer/lib/toast'
 import {
-  Breadcrumbs,
   Button,
-  Checkbox,
   ErrorText,
   Input,
+  PageHeader,
   PasswordInput,
-  Select
+  Select,
+  Switch
 } from '@renderer/components/ui'
 import { ImportModal } from '@renderer/components/ImportModal'
 
@@ -24,6 +24,12 @@ const SECTION_LABELS: Record<SectionId, string> = {
   general: 'General',
   security: 'Security',
   data: 'Import & Export'
+}
+
+const SECTION_ICONS: Record<SectionId, typeof Settings2> = {
+  general: Settings2,
+  security: ShieldCheck,
+  data: HardDriveDownload
 }
 
 export const Route = createFileRoute('/_app/settings')({
@@ -45,7 +51,7 @@ const AUTO_LOCK = [
   [10, '10 minutes'],
   [30, '30 minutes'],
   [60, '1 hour'],
-  [0, 'never']
+  [0, 'Never']
 ] as const
 
 const CLIPBOARD = [
@@ -53,7 +59,7 @@ const CLIPBOARD = [
   [30, '30 seconds'],
   [60, '1 minute'],
   [120, '2 minutes'],
-  [0, 'never']
+  [0, 'Never']
 ] as const
 
 interface SettingDef {
@@ -61,6 +67,8 @@ interface SettingDef {
   section: SectionId
   title: string
   description: string
+  /** Full-width controls go below the description instead of beside it */
+  stacked?: boolean
   render: (ctx: { settings: Settings; update: (patch: SettingsPatch) => void }) => ReactNode
 }
 
@@ -68,11 +76,11 @@ const DEFS: SettingDef[] = [
   {
     id: 'deviceName',
     section: 'general',
-    title: 'Device Name',
+    title: 'Device name',
     description: 'Shown to your other devices when syncing.',
     render: ({ settings, update }) => (
       <Input
-        className="max-w-sm"
+        className="w-56"
         defaultValue={settings.deviceName}
         onBlur={(e) =>
           e.target.value !== settings.deviceName && update({ deviceName: e.target.value })
@@ -83,13 +91,13 @@ const DEFS: SettingDef[] = [
   {
     id: 'oldPasswordDays',
     section: 'general',
-    title: 'Old Password Threshold',
-    description: 'Flag passwords that have not changed in this many days (Problems view).',
+    title: 'Old password threshold',
+    description: 'Flag passwords that have not changed in this many days on the Health page.',
     render: ({ settings, update }) => (
       <Input
         type="number"
         min={30}
-        className="w-28"
+        className="w-24 font-mono"
         defaultValue={settings.oldPasswordDays}
         onBlur={(e) =>
           Number(e.target.value) !== settings.oldPasswordDays &&
@@ -101,11 +109,11 @@ const DEFS: SettingDef[] = [
   {
     id: 'autoLockMinutes',
     section: 'security',
-    title: 'Auto Lock',
+    title: 'Auto lock',
     description: 'Lock the vault after the computer has been idle for this long.',
     render: ({ settings, update }) => (
       <Select
-        className="max-w-xs"
+        className="w-44"
         value={settings.autoLockMinutes}
         onChange={(e) => update({ autoLockMinutes: Number(e.target.value) })}
       >
@@ -120,11 +128,11 @@ const DEFS: SettingDef[] = [
   {
     id: 'lockOnSuspend',
     section: 'security',
-    title: 'Lock On Sleep',
-    description: '',
+    title: 'Lock on sleep',
+    description: 'Lock the vault when the computer sleeps or the screen locks.',
     render: ({ settings, update }) => (
-      <Checkbox
-        label="Lock the vault when the computer sleeps or the screen locks."
+      <Switch
+        label="Lock on sleep"
         checked={settings.lockOnSuspend}
         onChange={(lockOnSuspend) => update({ lockOnSuspend })}
       />
@@ -133,11 +141,11 @@ const DEFS: SettingDef[] = [
   {
     id: 'clipboardClearSeconds',
     section: 'security',
-    title: 'Clipboard Timeout',
+    title: 'Clipboard timeout',
     description: 'Clear copied passwords from the clipboard after this long.',
     render: ({ settings, update }) => (
       <Select
-        className="max-w-xs"
+        className="w-44"
         value={settings.clipboardClearSeconds}
         onChange={(e) => update({ clipboardClearSeconds: Number(e.target.value) })}
       >
@@ -152,9 +160,10 @@ const DEFS: SettingDef[] = [
   {
     id: 'masterPassword',
     section: 'security',
-    title: 'Master Password',
+    title: 'Master password',
     description:
       'Re-wraps the vault key with a new password. Synced devices pick it up on their next sync.',
+    stacked: true,
     render: () => <ChangeMasterPassword />
   },
   {
@@ -163,6 +172,7 @@ const DEFS: SettingDef[] = [
     title: 'Import',
     description:
       'Dashlane (CSV/ZIP), Chrome, Edge, Brave, Firefox, Safari/Apple Passwords, Bitwarden, 1Password, LastPass, KeePass, Proton Pass, or any CSV.',
+    stacked: true,
     render: () => <ImportSetting />
   },
   {
@@ -170,6 +180,7 @@ const DEFS: SettingDef[] = [
     section: 'data',
     title: 'Export',
     description: 'Save a copy of every credential to a file.',
+    stacked: true,
     render: () => <ExportSetting />
   }
 ]
@@ -202,60 +213,76 @@ function SettingsPage(): React.JSX.Element {
   )
 
   return (
-    <div className="flex h-full flex-col">
-      <Breadcrumbs path={['vault', 'settings.json']} />
-      <div className="border-b border-ide-border px-6 py-3">
-        <div className="relative max-w-3xl">
-          <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-ide-faint" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search settings"
-            className="pl-7"
-          />
-        </div>
-      </div>
-      <div className="flex min-h-0 flex-1">
-        <nav className="w-48 shrink-0 border-r border-ide-border py-2">
+    <div className="mx-auto max-w-5xl pb-16">
+      <PageHeader
+        title="Settings"
+        subtitle="Stored encrypted alongside your vault."
+        actions={
+          <div className="relative w-64">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-faint" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search settings"
+              className="pl-8"
+            />
+          </div>
+        }
+      />
+      <div className="flex gap-8 px-8">
+        <nav className="sticky top-6 h-fit w-44 shrink-0 space-y-0.5">
           {SECTIONS.map((id) => {
             const count = visible.filter((d) => d.section === id).length
+            const Icon = SECTION_ICONS[id]
             return (
               <button
                 key={id}
                 onClick={() => void navigate({ search: { section: id }, replace: true })}
                 disabled={count === 0}
                 className={cn(
-                  'flex w-full items-center justify-between px-4 py-1 text-left hover:bg-ide-hover disabled:opacity-40',
-                  section === id ? 'text-ide-bright' : 'text-ide-muted'
+                  'flex h-8 w-full items-center gap-2.5 rounded-lg px-2.5 text-left transition-colors hover:bg-hover disabled:opacity-40',
+                  section === id ? 'bg-sel text-bright' : 'text-muted'
                 )}
               >
+                <Icon className={cn('size-4', section === id ? 'text-accent' : 'text-faint')} />
                 {SECTION_LABELS[id]}
-                {term && <span className="text-[11px]">{count}</span>}
+                {term && <span className="ml-auto text-[11px] text-faint">{count}</span>}
               </button>
             )
           })}
         </nav>
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-16">
+        <div className="min-w-0 flex-1 space-y-8">
           {SECTIONS.map((id) => {
             const defs = visible.filter((d) => d.section === id)
             if (defs.length === 0) return null
             return (
-              <section key={id} id={`section-${id}`} className="max-w-3xl pt-4">
-                <h2 className="mb-1 text-lg text-ide-bright">{SECTION_LABELS[id]}</h2>
-                {defs.map((def) => (
-                  <div key={def.id} className="-mx-3 space-y-1.5 px-3 py-3 hover:bg-ide-line">
-                    <p>
-                      <span className="text-ide-muted">{SECTION_LABELS[def.section]}: </span>
-                      <span className="font-semibold text-ide-bright">{def.title}</span>
-                    </p>
-                    {def.description && <p className="text-xs text-ide-muted">{def.description}</p>}
-                    <div className="pt-1">{def.render({ settings, update: update.mutate })}</div>
-                  </div>
-                ))}
+              <section key={id} id={`section-${id}`} className="scroll-mt-6">
+                <h2 className="mb-3 font-medium text-bright">{SECTION_LABELS[id]}</h2>
+                <div className="divide-y divide-line rounded-xl border border-line bg-raised/60">
+                  {defs.map((def) => (
+                    <div
+                      key={def.id}
+                      className={cn(
+                        'px-5 py-4',
+                        !def.stacked && 'flex items-center justify-between gap-6'
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-bright">{def.title}</p>
+                        {def.description && (
+                          <p className="mt-0.5 text-xs text-muted">{def.description}</p>
+                        )}
+                      </div>
+                      <div className={cn('shrink-0', def.stacked && 'pt-4')}>
+                        {def.render({ settings, update: update.mutate })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </section>
             )
           })}
-          {visible.length === 0 && <p className="pt-6 text-ide-muted">No settings found.</p>}
+          {visible.length === 0 && <p className="pt-6 text-muted">No settings found.</p>}
         </div>
       </div>
     </div>
@@ -288,21 +315,19 @@ function ChangeMasterPassword(): React.JSX.Element {
       <PasswordInput
         value={current}
         onChange={(e) => setCurrent(e.target.value)}
-        placeholder="current master password"
+        placeholder="Current master password"
       />
       <PasswordInput
         value={next}
         onChange={(e) => setNext(e.target.value)}
-        placeholder="new master password (10+ characters)"
+        placeholder="New master password (10+ characters)"
       />
       <PasswordInput
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
-        placeholder="confirm new master password"
+        placeholder="Confirm new master password"
       />
-      {confirm && next !== confirm && (
-        <p className="text-xs text-syn-type">passwords don’t match</p>
-      )}
+      {confirm && next !== confirm && <p className="text-xs text-warn">Passwords don’t match</p>}
       <ErrorText error={change.error} />
       <Button type="submit" disabled={!valid || change.isPending}>
         {change.isPending ? 'Changing…' : 'Change master password'}
@@ -317,12 +342,9 @@ function ImportSetting(): React.JSX.Element {
   const [open, setOpen] = useState(action === 'import')
   return (
     <>
-      <p className="mb-2 text-xs text-syn-comment">
-        {
-          '// Dashlane: Settings → Export data → Export to CSV, then pick the ZIP or credentials.csv.'
-        }
-        <br />
-        {'// delete the export file once imported — it is not encrypted.'}
+      <p className="mb-3 rounded-lg bg-canvas px-3 py-2 text-xs text-muted ring-1 ring-line ring-inset">
+        Dashlane: Settings → Export data → Export to CSV, then pick the ZIP or credentials.csv.
+        Delete the export file once imported, since it is not encrypted.
       </p>
       <Button onClick={() => setOpen(true)}>
         <FileUp className="size-3.5" />
@@ -344,18 +366,18 @@ function ImportSetting(): React.JSX.Element {
 const EXPORT_FORMATS: { value: ExportFormat; label: string; description: string }[] = [
   {
     value: 'pm-encrypted',
-    label: 'encrypted backup (.pmbackup)',
-    description: 'protected with a password you choose; re-importable'
+    label: 'Encrypted backup (.pmbackup)',
+    description: 'Protected with a password you choose. Can be imported again.'
   },
   {
     value: 'csv',
-    label: 'csv (unencrypted)',
-    description: 'works with most password managers; readable by anyone with the file'
+    label: 'CSV (unencrypted)',
+    description: 'Works with most password managers. Readable by anyone with the file.'
   },
   {
     value: 'pm-json',
-    label: 'json (unencrypted)',
-    description: 'full-fidelity plaintext; readable by anyone with the file'
+    label: 'JSON (unencrypted)',
+    description: 'Full-fidelity plaintext. Readable by anyone with the file.'
   }
 ]
 
@@ -384,10 +406,7 @@ function ExportSetting(): React.JSX.Element {
           </option>
         ))}
       </Select>
-      <p
-        className={cn('text-xs', format === 'pm-encrypted' ? 'text-syn-comment' : 'text-syn-type')}
-      >
-        {'// '}
+      <p className={cn('text-xs', format === 'pm-encrypted' ? 'text-muted' : 'text-warn')}>
         {EXPORT_FORMATS.find((f) => f.value === format)?.description}
       </p>
       {format === 'pm-encrypted' && (
@@ -395,12 +414,12 @@ function ExportSetting(): React.JSX.Element {
           <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="backup password (8+ characters)"
+            placeholder="Backup password (8+ characters)"
           />
           <PasswordInput
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder="confirm backup password"
+            placeholder="Confirm backup password"
           />
         </>
       )}

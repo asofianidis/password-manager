@@ -32,13 +32,13 @@ export function UpdateButton({ className }: { className?: string }): React.JSX.E
       disabled={state === 'downloading'}
       title={title}
       className={cn(
-        'flex h-full items-center gap-1 bg-syn-string/25 px-3 text-white hover:bg-syn-string/40 disabled:cursor-default disabled:hover:bg-syn-string/25',
-        error && 'bg-syn-prop/30',
+        'flex h-8 items-center gap-2 rounded-lg bg-accent/10 px-2.5 text-xs font-medium text-accent ring-1 ring-accent/25 ring-inset hover:bg-accent/15 disabled:cursor-default',
+        error && 'bg-danger/10 text-danger ring-danger/25',
         className
       )}
     >
-      <Icon className={cn('size-3', state === 'downloading' && 'animate-spin')} />
-      {label}
+      <Icon className={cn('size-3.5 shrink-0', state === 'downloading' && 'animate-spin')} />
+      <span className="truncate">{label}</span>
     </button>
   )
 }

@@ -15,7 +15,7 @@ export interface AppCommand {
 }
 
 export async function runSync(peerId?: string): Promise<void> {
-  log('cmd', peerId ? `pm sync --remote ${peerId.slice(0, 8)}` : 'pm sync --all')
+  log('cmd', peerId ? 'Syncing with one device' : 'Syncing with all devices')
   try {
     const [results, settings] = await Promise.all([
       api.invoke('sync:now', peerId),
@@ -24,12 +24,12 @@ export async function runSync(peerId?: string): Promise<void> {
     const names = new Map(settings.sync.peers.map((p) => [p.id, p]))
     for (const r of results) {
       const peer = names.get(r.peerId)
-      const target = peer ? `${peer.name} (${peer.host}:${peer.port})` : r.peerId
-      if (r.ok) log('ok', `${target}: sent ${r.sent}, received ${r.received} change(s)`)
+      const target = peer ? peer.name : r.peerId
+      if (r.ok) log('ok', `${target}: sent ${r.sent}, received ${r.received}`)
       else log('err', `${target}: ${r.error}`)
     }
     const failed = results.filter((r) => !r.ok).length
-    if (failed) toast(`Sync failed for ${failed} remote(s)`, 'error')
+    if (failed) toast(`Sync failed for ${failed} device${failed === 1 ? '' : 's'}`, 'error')
     else toast('Sync complete')
   } catch (error) {
     log('err', error instanceof Error ? error.message : String(error))
@@ -84,14 +84,14 @@ export function useAppCommands(): AppCommand[] {
       {
         id: 'problems',
         category: 'View',
-        label: 'Show Problems (Dashboard)',
+        label: 'Show Health',
         shortcut: `${MOD}${SHIFT}M`,
         run: () => void navigate({ to: '/' })
       },
       {
         id: 'explorer',
         category: 'View',
-        label: 'Show Passwords Explorer',
+        label: 'Show Vault',
         shortcut: `${MOD}${SHIFT}E`,
         run: () => void navigate({ to: '/passwords' })
       },

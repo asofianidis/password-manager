@@ -1,37 +1,35 @@
 @import 'tailwindcss';
 
-/* One Dark–inspired IDE palette */
+/* Graphite surfaces with an electric-lime accent */
 @theme {
   --font-sans:
-    'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Monaco, 'Cascadia Code', Consolas, monospace;
+    'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable',
+    'Segoe UI', system-ui, sans-serif;
   --font-mono:
     'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Monaco, 'Cascadia Code', Consolas, monospace;
 
-  --color-ide-chrome: #111318;
-  --color-ide-panel: #16191e;
-  --color-ide-bg: #1b1e24;
-  --color-ide-input: #101216;
-  --color-ide-border: #262a32;
-  --color-ide-hover: #22262e;
-  --color-ide-sel: #2c3340;
-  --color-ide-line: #1f232a;
-  --color-ide-fg: #c5cad3;
-  --color-ide-bright: #e6e9ef;
-  --color-ide-muted: #7f8794;
-  --color-ide-faint: #4b5263;
-  --color-ide-accent: #61afef;
-  --color-ide-button: #2f5f9e;
-  --color-ide-button-hover: #3a71b8;
-  --color-ide-status: #1d4f8a;
+  --color-canvas: #0a0b0a;
+  --color-panel: #111311;
+  --color-raised: #171a17;
+  --color-hover: #1d211d;
+  --color-sel: #242924;
+  --color-line: #20241f;
+  --color-line-strong: #2d322c;
+  --color-bright: #eef1ea;
+  --color-fg: #c3c8be;
+  --color-muted: #858c81;
+  --color-faint: #50564d;
 
-  --color-syn-keyword: #c678dd;
-  --color-syn-string: #98c379;
-  --color-syn-number: #d19a66;
-  --color-syn-prop: #e06c75;
-  --color-syn-fn: #61afef;
-  --color-syn-type: #e5c07b;
-  --color-syn-comment: #5c6370;
-  --color-syn-cyan: #56b6c2;
+  --color-accent: #c4f042;
+  --color-accent-hover: #d4f76d;
+  --color-accent-fg: #11160a;
+
+  --color-danger: #ff6e61;
+  --color-warn: #f2b84b;
+  --color-ok: #4fd99b;
+  --color-info: #85a9ff;
+
+  --radius-panel: 14px;
 }
 
 @layer base {
@@ -40,11 +38,12 @@
   }
 
   body {
-    @apply bg-ide-bg font-mono text-[13px] text-ide-fg antialiased select-none;
+    @apply bg-canvas font-sans text-[13px] text-fg antialiased select-none;
+    font-feature-settings: 'cv11', 'ss01';
   }
 
   ::selection {
-    @apply bg-ide-sel;
+    @apply bg-accent/25 text-bright;
   }
 
   ::-webkit-scrollbar {
@@ -53,11 +52,14 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-ide-faint/40;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+    @apply bg-faint/40;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-ide-faint/70;
+    @apply bg-faint/70;
   }
 
   ::-webkit-scrollbar-track,
@@ -67,6 +69,10 @@
 
   input[type='number']::-webkit-inner-spin-button {
     opacity: 0.4;
+  }
+
+  input[type='range'] {
+    @apply accent-accent;
   }
 }
 
@@ -78,12 +84,19 @@
   -webkit-app-region: no-drag;
 }
 
-@keyframes blink {
-  50% {
+/* Faint dot grid used behind empty states and the unlock screen */
+@utility bg-dots {
+  background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.05) 1px, transparent 0);
+  background-size: 18px 18px;
+}
+
+@keyframes rise {
+  from {
     opacity: 0;
+    transform: translateY(6px) scale(0.98);
   }
 }
 
-@utility animate-blink {
-  animation: blink 1.1s step-end infinite;
+@utility animate-rise {
+  animation: rise 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }

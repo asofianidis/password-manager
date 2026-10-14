@@ -49,7 +49,11 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
   const toImport = preview ? preview.total - (skipDuplicates ? preview.duplicates : 0) : 0
 
   return (
-    <Modal title="pm import" onClose={close}>
+    <Modal
+      title="Import passwords"
+      description="Nothing is added until you confirm."
+      onClose={close}
+    >
       <div className="space-y-4">
         <Button onClick={() => pick.mutate()} disabled={pick.isPending} className="w-full">
           <FileUp className="size-4" />
@@ -101,8 +105,8 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
         )}
 
         {preview && (
-          <div className="space-y-3 border border-ide-border p-3">
-            <p className="text-sm">
+          <div className="space-y-3 rounded-xl border border-line bg-raised/60 p-4">
+            <p className="text-bright">
               Found <b>{preview.total}</b> password{preview.total === 1 ? '' : 's'}
               {preview.duplicates > 0 && (
                 <>
@@ -112,15 +116,15 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
               .
             </p>
             {preview.warnings.map((warning) => (
-              <p key={warning} className="text-xs text-syn-type">
+              <p key={warning} className="text-xs text-warn">
                 {warning}
               </p>
             ))}
             {preview.sample.length > 0 && (
-              <ul className="space-y-0.5 text-xs text-ide-muted">
+              <ul className="space-y-0.5 text-xs text-muted">
                 {preview.sample.map((s, i) => (
                   <li key={i} className="truncate">
-                    <span className="text-ide-fg">{s.title}</span> · {s.username || '—'}
+                    <span className="text-fg">{s.title}</span> · {s.username || '—'}
                   </li>
                 ))}
                 {preview.total > preview.sample.length && (
@@ -137,7 +141,9 @@ export function ImportModal({ onClose }: { onClose: () => void }): React.JSX.Ele
             )}
             <ErrorText error={commit.error} />
             <div className="flex justify-end gap-2">
-              <Button onClick={close}>Cancel</Button>
+              <Button variant="ghost" onClick={close}>
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 onClick={() => commit.mutate()}

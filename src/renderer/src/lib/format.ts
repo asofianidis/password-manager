@@ -9,26 +9,19 @@ export const STRENGTH_LABELS: Record<StrengthScore, string> = {
 }
 
 export const strengthText: Record<StrengthScore, string> = {
-  0: 'text-syn-prop',
-  1: 'text-syn-prop',
-  2: 'text-syn-type',
-  3: 'text-syn-string',
-  4: 'text-syn-string'
+  0: 'text-danger',
+  1: 'text-danger',
+  2: 'text-warn',
+  3: 'text-ok',
+  4: 'text-accent'
 }
 
-/** Turns a title into a code identifier, e.g. "My Bank (old)" → "myBankOld". */
-export function identifier(title: string): string {
-  const words = title
-    .normalize('NFKD')
-    .replace(/[^A-Za-z0-9\s]/g, ' ')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-  if (words.length === 0) return 'credential'
-  const id = words
-    .map((w, i) => (i === 0 ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1).toLowerCase()))
-    .join('')
-  return /^[0-9]/.test(id) ? `_${id}` : id
+export const strengthBg: Record<StrengthScore, string> = {
+  0: 'bg-danger',
+  1: 'bg-danger',
+  2: 'bg-warn',
+  3: 'bg-ok',
+  4: 'bg-accent'
 }
 
 export function hostOf(url: string): string {
