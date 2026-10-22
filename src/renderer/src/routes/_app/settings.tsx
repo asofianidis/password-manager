@@ -27,6 +27,7 @@ import {
   Switch
 } from '@renderer/components/ui'
 import { ImportModal } from '@renderer/components/ImportModal'
+import { isMac, isWindows } from '@renderer/lib/keys'
 
 const SECTIONS = ['general', 'security', 'browser', 'data'] as const
 type SectionId = (typeof SECTIONS)[number]
@@ -82,6 +83,8 @@ interface SettingDef {
   description: string
   /** Full-width controls go below the description instead of beside it */
   stacked?: boolean
+  /** Hidden on platforms that don't support it */
+  available?: boolean
   render: (ctx: { settings: Settings; update: (patch: SettingsPatch) => void }) => ReactNode
 }
 
@@ -98,6 +101,22 @@ const DEFS: SettingDef[] = [
         onBlur={(e) =>
           e.target.value !== settings.deviceName && update({ deviceName: e.target.value })
         }
+      />
+    )
+  },
+  {
+    id: 'openAtLogin',
+    section: 'general',
+    title: 'Open at login',
+    description: isMac
+      ? 'Start in the menu bar when you log in, so the browser extension can fill logins right away.'
+      : 'Start in the system tray when you sign in, so the browser extension can fill logins right away.',
+    available: isMac || isWindows,
+    render: ({ settings, update }) => (
+      <Switch
+        label="Open at login"
+        checked={settings.openAtLogin}
+        onChange={(openAtLogin) => update({ openAtLogin })}
       />
     )
   },
@@ -235,8 +254,9 @@ function SettingsPage(): React.JSX.Element {
   const term = query.trim().toLowerCase()
   const visible = DEFS.filter(
     (d) =>
-      !term ||
-      `${SECTION_LABELS[d.section]} ${d.title} ${d.description}`.toLowerCase().includes(term)
+      d.available !== false &&
+      (!term ||
+        `${SECTION_LABELS[d.section]} ${d.title} ${d.description}`.toLowerCase().includes(term))
   )
 
   return (

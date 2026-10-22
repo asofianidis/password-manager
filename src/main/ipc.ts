@@ -18,6 +18,7 @@ import { sync } from './sync/sync'
 import { listTailscalePeers } from './sync/tailscale'
 import { updater } from './updater'
 import { browserBridge } from './browser'
+import { setOpenAtLogin } from './login-item'
 
 type Handlers = {
   [C in InvokeChannel]: (
@@ -53,7 +54,10 @@ const handlers: Handlers = {
   'clipboard:copy-secret': (_, text) => copySecret(text),
 
   'settings:get': () => settingsStore.get(),
-  'settings:update': (_, patch) => settingsStore.update(patch),
+  'settings:update': (_, patch) => {
+    if (patch.openAtLogin !== undefined) setOpenAtLogin(patch.openAtLogin)
+    return settingsStore.update(patch)
+  },
 
   'import:pick-file': (window) => {
     requireUnlocked()

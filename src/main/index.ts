@@ -10,12 +10,13 @@ import { startAutoLock } from './auto-lock'
 import { updater } from './updater'
 import { browserBridge } from './browser'
 import { createTray, notifyRunningInTray, runsInBackground } from './tray'
+import { launchedAtLogin, syncOpenAtLogin } from './login-item'
 
 let mainWindow: BrowserWindow | null = null
 /** Set once the app is really quitting, so closing the window stops hiding it */
 let quitting = false
 
-function createWindow(): void {
+function createWindow({ hidden = false } = {}): void {
   mainWindow = new BrowserWindow({
     width: 1180,
     height: 780,
@@ -36,7 +37,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow?.show()
+    if (!hidden) mainWindow?.show()
   })
 
   // Keep running in the tray / menu bar so the browser extension can still fill logins
@@ -108,6 +109,7 @@ if (!app.requestSingleInstanceLock()) {
     })
 
     await settingsStore.load()
+    await syncOpenAtLogin()
     await vault.init()
 
     registerIpc((event) => event.sender === mainWindow?.webContents)
@@ -115,7 +117,10 @@ if (!app.requestSingleInstanceLock()) {
     startAutoLock()
     await sync.reconcile()
 
-    createWindow()
+    // Started at login: stay in the tray / menu bar until the user opens the window
+    const hidden = launchedAtLogin()
+    if (hidden && process.platform === 'darwin') app.dock?.hide()
+    createWindow({ hidden })
     createTray(() => void showWindow())
     updater.start()
     void browserBridge.start(showWindow)

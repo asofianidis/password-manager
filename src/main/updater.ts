@@ -1,10 +1,12 @@
 import { EventEmitter } from 'events'
-import { app, shell } from 'electron'
+import { app, autoUpdater as nativeUpdater, shell } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { UpdateStatus } from '../shared/types'
 
 const RELEASES_URL = 'https://github.com/asofianidis/password-manager/releases'
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
+/** How long the app gets to shut down cleanly before an update kills it */
+const FORCE_EXIT_MS = 1500
 
 /**
  * Checks GitHub releases for a newer version. Windows and Linux download and install in place.
@@ -58,8 +60,15 @@ class Updater extends EventEmitter {
       return
     }
     if (this.state.state === 'ready') {
-      // Defer so the IPC reply goes out before the app quits
-      setImmediate(() => autoUpdater.quitAndInstall())
+      // Only emitted once the installer has started, so a failed install doesn't kill the app
+      nativeUpdater.once('before-quit-for-update', () => {
+        // The installer can't replace files the old version still has open. Nothing may keep it
+        // running (the tray, a pending dialog, sync shutting down), so force it out
+        setTimeout(() => app.exit(0), FORCE_EXIT_MS)
+      })
+      // Defer so the IPC reply goes out before the app quits. Silent: no installer wizard, and
+      // the new version opens once it's installed
+      setImmediate(() => autoUpdater.quitAndInstall(true, true))
     } else if (this.state.state === 'available') {
       this.set({ state: 'downloading', progress: 0, error: null })
       await autoUpdater.downloadUpdate()

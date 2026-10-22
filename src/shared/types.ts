@@ -109,6 +109,8 @@ export interface Settings {
   lockOnSuspend: boolean
   clipboardClearSeconds: number
   oldPasswordDays: number
+  /** Start in the tray / menu bar when the user logs in (Windows and macOS) */
+  openAtLogin: boolean
   generator: GeneratorOptions
   sync: {
     serverEnabled: boolean

@@ -15,6 +15,7 @@ function defaults(): Settings {
     lockOnSuspend: true,
     clipboardClearSeconds: 30,
     oldPasswordDays: 365,
+    openAtLogin: false,
     generator: {
       mode: 'random',
       length: 20,
