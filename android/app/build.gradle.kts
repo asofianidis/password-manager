@@ -31,7 +31,9 @@ android {
                 storeFile = File(keystore)
                 storePassword = System.getenv("PM_ANDROID_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("PM_ANDROID_KEY_ALIAS")
-                keyPassword = System.getenv("PM_ANDROID_KEY_PASSWORD") ?: System.getenv("PM_ANDROID_KEYSTORE_PASSWORD")
+                // CI passes an unset secret as an empty string
+                keyPassword = System.getenv("PM_ANDROID_KEY_PASSWORD")?.takeIf { it.isNotEmpty() }
+                    ?: System.getenv("PM_ANDROID_KEYSTORE_PASSWORD")
             }
         }
     }
