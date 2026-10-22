@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#23281f"/>
+      <stop offset="1" stop-color="#0a0b0a"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9fa78"/>
+      <stop offset="1" stop-color="#a9d62c"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#tile)"/>
+  <rect x="101" y="101" width="822" height="822" rx="185" fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="2"/>
+  <path d="M512 250 L716 326 V500 C716 646 630 742 512 794 C394 742 308 646 308 500 V326 Z" fill="#c4f042" opacity="0.28" filter="url(#glow)"/>
+  <path d="M512 250 L716 326 V500 C716 646 630 742 512 794 C394 742 308 646 308 500 V326 Z" fill="url(#shield)"/>
+  <path d="M512 250 L716 326 V340 L512 264 L308 340 V326 Z" fill="#ffffff" opacity="0.25"/>
+  <circle cx="512" cy="468" r="62" fill="#11160a"/>
+  <path d="M484 500 L462 648 Q460 662 474 662 H550 Q564 662 562 648 L540 500 Z" fill="#11160a"/>
+</svg>
