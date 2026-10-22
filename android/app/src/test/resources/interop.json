@@ -1,0 +1,1467 @@
+{
+  "password": "second master password",
+  "oldPassword": "first master password",
+  "vault": {
+    "format": "pm-vault",
+    "version": 1,
+    "vaultId": "42064db8-7bf3-40d7-95e1-62d4ac1e6461",
+    "key": {
+      "kdf": {
+        "algorithm": "argon2id",
+        "salt": "FC8zxE4RUtArlejbT34Ntg==",
+        "memoryKiB": 65536,
+        "iterations": 3,
+        "parallelism": 1
+      },
+      "wrappedKey": "ASm6SEMd/O+LkfBqq770+PBPSKMTXXt0pZxljx59NmIbpHTEQmNIjehz1/PoqFWZP5DY3QTq3GFpIiVZ",
+      "updatedAt": 1792680860407,
+      "keyId": "Nc9k8S9nHeLP6roJAwdGiM",
+      "previousKeys": [
+        {
+          "keyId": "aTV9pJ2nKG1ywSIgABEEkA",
+          "revoked": false,
+          "wrappedKey": "nHnothgeLwPMxBvgLw7GHRvWL9cxKTr/3gnVZE2gJIXZY+0B6cHrFgZWZpb1zHe4dhn/d+hnd0iZ34qf"
+        }
+      ]
+    },
+    "data": "42k7dIOihS9Ry/dP92lTvEv8RLIK9O9XAKoEq/nHiNRFB0WIda2ycp4p+ajCdtHoxPARbdFu7c7D0TL9vw88qDrZJG4netl8hLpVXYaS8q+01ReENoilZ7RypRLg55xJN1hpLddYdVu9yMEX2MGuEcOXhUX36h8AimG8VFnBnEC1w3egPjBXfT2K23TnmfeZs4lBHTQP18FVs4eukEF3camBuHnG8zY/gzFX9D8AVL5v5yKMDbj+BrhL/oOB6iPD5u+X0/W3N8+2LpppwB3gb9YJlRHVvqRnAZ8MunXFu6dkPkC0YyuUZqmdKiSK46WXMDSPPpkBr5D6oAlsjOIwIs5Kml4fkztn6yF8HMpMv82N8abCclCUyuHfO03H1cEZqn1+c5wIhsH19CSPuPT6KpAh2sC2QXXRgO/M4fIzbOt6AbvcHS5UFmdJZMFxuxga5jV0XbUlqaATwe2sMu/BDrr+rDwWCCFs7V13CBsxF5bNz+wAzgFP+Pt6IPCHjWecQhXJkKazAteEYmH40Tk4ANzYqAwWYjbBJb3fCqG4O0vLX/h1u7Kd7AkM8Paf5pJ0IIYSRnjUeoq9lrfP7Ts4emttgRPr/cfQltZAWayUqW25iU0Op3xjqYPS4nx6HxI91ZPgkTACTFus+bLRMuMb7mRMfZ1/0wRBRwIfe38vaBaR207+E0kNTyWK7abLLDb9HFthSvKav4eE8Gi74iQEwUEk/b7NrkK5XS+6Kvx51pAQ3/nGOHE/pUlfkbvl1u1zNFUFSkEx/1P5gy7jufuwZaS2",
+    "savedAt": 1792680860581
+  },
+  "oldVault": {
+    "format": "pm-vault",
+    "version": 1,
+    "vaultId": "42064db8-7bf3-40d7-95e1-62d4ac1e6461",
+    "key": {
+      "kdf": {
+        "algorithm": "argon2id",
+        "salt": "LeUgnBqGPxhWwjhzIkvEIw==",
+        "memoryKiB": 65536,
+        "iterations": 3,
+        "parallelism": 1
+      },
+      "wrappedKey": "0zmdSw9px+xPUPXnou6sIIBwqmfP/aKZvF0QHVC4m7mLaRMQt46wNh1IlT1ku7zJcLeVNvJvyHxGfWEL",
+      "updatedAt": 1792680860024,
+      "keyId": "aTV9pJ2nKG1ywSIgABEEkA"
+    },
+    "data": "vITC22QTmghhVyD3BJR/AGMZu/lH9VYxEj6PgyS5+YkqxAJg3THxPqQpENAUc6j1zRE6VWguUK7qDi2E3echaY8glHmWpn4X/H7ObMZ1EQqhZQ/XsQ2etClLHQvqNO/DdyIxfBqIqQTyHEgEry9lqYfYZfflnM1xL1Y7TJO91lxLoqlRGBjKuDAFeyYphGqCQBis1BONtNEijgs4ra23i6DwOG2BRM4PLzxqOiMRyHOkaWIrKqBsFT+fcYPqxgaxt253vdlzswbK9eQMTxwbpv2N0Eg3MSne+Ehb69hHWA1J+rF6EnxP+xd9bjMCLthuNbYV1wUVJ2yz+B4+IVuGcytszyjTx/zPOT1lmsGJ9643DlIp5qBvO/tUUvwLOVlU9DfuvElbbeEoRg13ipwa5PwhVtcAx5RdrW/ICPkOOAU24SW7jqFJ8PmGvRcwW5UlQD3E6F/8LiHth5Fxeq4SC3ohd04SLKSAil16Mn/ZqGl3n6Pk4hgsj2596vab/lI40rVl9KNMbiJ68cuR936N/zu5s0owt/lQ2GFIK1PehOPd7CNHxVprCWAxIKzI3Ha6pL01pv+Br7q+szvUy0ThIsenVGBz6gkKKW7QeELy64CljPC0gukmbwJ2bOAzZgbhpZV2pnQdYHgTSP7wj7ATP3gx4EB1vEActKOE7PHBSlP3XWjkxmDk6P1nCGL7VuSH8F3YQMe3Zda2NoBFItgpP3+aj2U1HUfmhoqtjLgeFgVe58pIy/fhLGObof2oVSw5K8kCmplkc8xePEzQSSfTAKss",
+    "savedAt": 1792680860228
+  },
+  "canonical": [
+    {
+      "entry": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"GitHub\",\"username\":\"me@example.com\",\"password\":\"hunter2\",\"url\":\"https://github.com\",\"notes\":\"plain\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"GitHub\",\"username\":\"me@example.com\",\"password\":\"hunter2\",\"url\":\"https://github.com\",\"notes\":\"quote \\\" back \\\\ slash\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"GitHub\",\"username\":\"me@example.com\",\"password\":\"hunter2\",\"url\":\"https://github.com\",\"notes\":\"ctl \\u0001\\u001f\\b\\f\\n\\r\\t\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"GitHub\",\"username\":\"me@example.com\",\"password\":\"hunter2\",\"url\":\"https://github.com\",\"notes\":\"é ü 中文 🔑\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"GitHub\",\"username\":\"me@example.com\",\"password\":\"hunter2\",\"url\":\"https://github.com\",\"notes\":\"\\ud800 lone\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"GitHub\",\"username\":\"me@example.com\",\"password\":\"hunter2\",\"url\":\"https://github.com\",\"notes\":\"z\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000}"
+    }
+  ],
+  "ties": [
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "winner": "b"
+    }
+  ],
+  "matches": [
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://gist.github.com",
+      "level": 1
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.com",
+      "pageUrl": "https://www.github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://gist.github.com",
+      "level": 1
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "github.com",
+      "pageUrl": "https://www.github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "http://github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://gist.github.com",
+      "level": 1
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://github.com",
+      "pageUrl": "https://www.github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://gist.github.com",
+      "level": 1
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://www.github.com/login",
+      "pageUrl": "https://www.github.com",
+      "level": 2
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://example.com:8443",
+      "level": 2
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://example.com:8443",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://github.io",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://me.github.io",
+      "level": 2
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://me.github.io",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://co.uk",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 1
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://bbc.co.uk",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "http://localhost:3000",
+      "level": 2
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "http://localhost:3000",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://192.168.1.10",
+      "level": 2
+    },
+    {
+      "entryUrl": "https://192.168.1.10",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "androidapp://com.github.android",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "http://github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://gist.github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://evil-github.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://example.com:8443",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://example.com",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://evil.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://me.github.io",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://news.bbc.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://evil.co.uk",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "http://localhost:3000",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://192.168.1.10",
+      "level": 0
+    },
+    {
+      "entryUrl": "",
+      "pageUrl": "https://www.github.com",
+      "level": 0
+    }
+  ]
+}

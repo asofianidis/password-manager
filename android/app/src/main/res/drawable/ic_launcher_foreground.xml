@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher icon: the shield from build/icon.svg, inside the adaptive icon safe zone -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <group android:pivotX="512" android:pivotY="522" android:scaleX="0.95" android:scaleY="0.95" android:translateY="-10">
+        <path android:pathData="M512,250 L716,326 V500 C716,646 630,742 512,794 C394,742 308,646 308,500 V326 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:type="linear" android:startX="512" android:startY="250" android:endX="512" android:endY="794">
+                    <item android:offset="0" android:color="#FFD9FA78" />
+                    <item android:offset="1" android:color="#FFA9D62C" />
+                </gradient>
+            </aapt:attr>
+        </path>
+        <path android:fillColor="#40FFFFFF" android:pathData="M512,250 L716,326 V340 L512,264 L308,340 V326 Z" />
+        <path android:fillColor="#FF11160A" android:pathData="M450,468 A62,62 0 1,0 574,468 A62,62 0 1,0 450,468 Z M484,500 L462,648 Q460,662 474,662 H550 Q564,662 562,648 L540,500 Z" />
+    </group>
+</vector>
