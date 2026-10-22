@@ -38,6 +38,10 @@ mac:
   # Ad-hoc sign when no Developer ID is configured. Unsigned arm64 apps are reported as "damaged"
   # by Gatekeeper; an ad-hoc signature lets users allow the app via Privacy & Security instead.
   identity: '-'
+  extendInfo:
+    # Without this, macOS 15+ silently blocks connections to other devices on the network (sync
+    # fails with EHOSTUNREACH) instead of asking the user for Local Network access
+    NSLocalNetworkUsageDescription: Password Manager syncs your vault directly with your other devices on this network.
   target:
     - target: dmg
       arch: [x64, arm64]

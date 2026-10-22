@@ -77,6 +77,13 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     })
   } catch (error) {
     const cause = (error as { cause?: { code?: string } }).cause?.code
+    // macOS reports a denied Local Network permission as an instant "no route to host"
+    if (cause === 'EHOSTUNREACH' && process.platform === 'darwin') {
+      throw new Error(
+        'Could not reach device (EHOSTUNREACH). If it is on your local network, allow Password ' +
+          'Manager in System Settings → Privacy & Security → Local Network'
+      )
+    }
     throw new Error(cause ? `Could not reach device (${cause})` : 'Could not reach device')
   }
   const json = (await response.json().catch(() => ({}))) as T & { error?: string }
