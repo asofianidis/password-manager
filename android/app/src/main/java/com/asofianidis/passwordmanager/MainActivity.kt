@@ -14,6 +14,7 @@ import com.asofianidis.passwordmanager.ui.LockedScreen
 import com.asofianidis.passwordmanager.ui.PmTheme
 import com.asofianidis.passwordmanager.ui.SetupScreen
 import com.asofianidis.passwordmanager.vault.VaultState
+import kotlinx.coroutines.launch
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +45,7 @@ class MainActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         pm.autoLock.checkExpired()
+        pm.scope.launch { pm.updater.checkIfDue() }
     }
 
     override fun onUserInteraction() {

@@ -201,8 +201,10 @@ fun SettingsScreen() {
                     }
                 }
             }
-            val version = remember { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
-            Text("Version $version", color = Palette.faint, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 20.dp))
+
+            SectionLabel("Updates", Modifier.padding(start = 0.dp))
+            UpdatesPanel()
+            Spacer(Modifier.height(24.dp))
         }
     }
 

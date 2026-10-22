@@ -47,7 +47,8 @@ offer updates themselves; see [CI and releases](#ci-and-releases).
 
 Download `password-manager-<version>.apk` from the
 [releases](https://github.com/asofianidis/password-manager/releases) and open it on your phone
-(allow your browser to install apps when asked). Then see [Android app](#android-app).
+(allow your browser to install apps when asked). Then see [Android app](#android-app). After that
+the app updates itself.
 
 ## Features
 
@@ -164,6 +165,15 @@ screenshots and backups, and from other autofill services, so they can't save yo
 **Sync.** The phone is a client only: it syncs with every computer you added when you unlock it,
 shortly after each change, and from the sync button. A master password change or device revoke on
 a computer reaches the phone on its next sync; it then asks for the new master password.
+
+**Updates.** The app checks the GitHub releases every 6 hours and when opened (at most hourly), and
+offers a newer version in the vault list and under **Settings → Updates**. Installing needs a
+one-time **Allow installs** (Android's _Install unknown apps_ for this app). With **Install updates
+automatically** on, it installs in the background while the app is closed and the vault is locked;
+on Android 12+ that happens without a prompt, and older versions ask for each one. Otherwise it
+posts a notification. Before installing, the app checks the APK's SHA-256 against the release, and
+that it's this app, the advertised version, and signed with the same key (Android checks the key
+again). Debug builds don't update themselves.
 
 ### Building
 

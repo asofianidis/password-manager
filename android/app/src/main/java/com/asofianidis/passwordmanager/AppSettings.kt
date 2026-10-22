@@ -3,6 +3,7 @@ package com.asofianidis.passwordmanager
 import android.content.Context
 import android.os.Build
 import androidx.core.content.edit
+import com.asofianidis.passwordmanager.update.UpdateInfo
 import com.asofianidis.passwordmanager.vault.VaultJson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -109,6 +110,38 @@ class AppSettings(context: Context) {
     var notice: String?
         get() = prefs.getString("notice", null)
         set(value) = update { if (value == null) remove("notice") else putString("notice", value) }
+
+    /** Poll GitHub for new versions */
+    var updateChecks: Boolean
+        get() = prefs.getBoolean("updateChecks", true)
+        set(value) = update { putBoolean("updateChecks", value) }
+
+    /** Install new versions in the background instead of only notifying */
+    var updateInstall: Boolean
+        get() = prefs.getBoolean("updateInstall", true)
+        set(value) = update { putBoolean("updateInstall", value) }
+
+    var lastUpdateCheck: Long
+        get() = prefs.getLong("lastUpdateCheck", 0)
+        set(value) = prefs.edit { putLong("lastUpdateCheck", value) }
+
+    /** What the last check found */
+    var availableUpdate: UpdateInfo?
+        get() = prefs.getString("availableUpdate", null)
+            ?.let { runCatching { VaultJson.decodeFromString(UpdateInfo.serializer(), it) }.getOrNull() }
+        set(value) = prefs.edit {
+            if (value == null) remove("availableUpdate") else putString("availableUpdate", VaultJson.encodeToString(UpdateInfo.serializer(), value))
+        }
+
+    /** The version a notification was last posted for */
+    var notifiedUpdate: String?
+        get() = prefs.getString("notifiedUpdate", null)
+        set(value) = prefs.edit { putString("notifiedUpdate", value) }
+
+    /** The version handed to the installer, so the new version can tell it was updated */
+    var installingUpdate: String?
+        get() = prefs.getString("installingUpdate", null)
+        set(value) = prefs.edit(commit = true) { if (value == null) remove("installingUpdate") else putString("installingUpdate", value) }
 
     // Apps the user chose a login for: package name → entry ids. Kept on this device only.
     private fun appLinks(): Map<String, Set<String>> = prefs.getString("appLinks", null)

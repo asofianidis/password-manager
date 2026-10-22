@@ -10,6 +10,8 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.asofianidis.passwordmanager.sync.SyncClient
+import com.asofianidis.passwordmanager.update.UpdateWorker
+import com.asofianidis.passwordmanager.update.Updater
 import com.asofianidis.passwordmanager.vault.Vault
 import com.asofianidis.passwordmanager.vault.VaultState
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +33,8 @@ class PmApp : Application() {
         private set
     lateinit var clipboard: SecureClipboard
         private set
+    lateinit var updater: Updater
+        private set
 
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -42,6 +46,8 @@ class PmApp : Application() {
         autoLock = AutoLock(this, vault, settings)
         sync = SyncManager(this, vault, settings, SyncClient(vault, { settings.deviceId }, { settings.deviceName }))
         clipboard = SecureClipboard(this, settings)
+        updater = Updater(this, settings)
+        UpdateWorker.schedule(this)
 
         // Start the auto-lock countdown whenever the vault is unlocked
         vault.status.drop(1).onEach { status ->

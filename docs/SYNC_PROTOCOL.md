@@ -95,8 +95,8 @@ The Android app (`android/`, reference: `sync/SyncClient.kt`) follows these:
 - Use the Tailscale Android app for connectivity; address the desktop by its
   `100.x.y.z` IP or MagicDNS name.
 - Android blocks cleartext HTTP by default, and `network_security_config` can't allow an IP
-  range such as `100.64.0.0/10`, so the app allows cleartext everywhere (it makes no other
-  requests). Confidentiality comes from the vault-key encryption plus WireGuard, not from TLS.
+  range such as `100.64.0.0/10`, so the app allows cleartext everywhere except GitHub (its only
+  other requests are update checks and downloads, which must use HTTPS). Confidentiality comes from the vault-key encryption plus WireGuard, not from TLS.
 - The merge tie-break compares `JSON.stringify` output, so a client in another language must
   serialize entries with the desktop's key order and JavaScript's string escaping
   (`canonicalJson` in `vault/Merge.kt`).

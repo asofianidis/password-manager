@@ -132,6 +132,7 @@ fun VaultListScreen(status: VaultStatus) {
     ) { padding ->
         LazyColumn(Modifier.padding(padding).fillMaxSize()) {
             if (status.pendingKeyChange) item { PendingKeyBanner() }
+            item { UpdateBanner() }
             if (offerBiometric) {
                 item {
                     Banner(
