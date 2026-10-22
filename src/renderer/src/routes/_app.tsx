@@ -28,6 +28,7 @@ import { toastError } from '@renderer/lib/toast'
 import { openPalette } from '@renderer/lib/workspace'
 import { CommandPalette } from '@renderer/components/CommandPalette'
 import { UpdateButton } from '@renderer/components/UpdateButton'
+import { PendingKeyBanner } from '@renderer/components/PendingKeyBanner'
 import { Eyebrow, Kbd, LogoMark } from '@renderer/components/ui'
 
 export const Route = createFileRoute('/_app')({
@@ -81,6 +82,7 @@ function AppLayout(): React.JSX.Element {
         id="main"
         className="my-2 mr-2 min-w-0 flex-1 overflow-y-auto rounded-(--radius-panel) border border-line bg-panel shadow-xl shadow-black/30"
       >
+        <PendingKeyBanner />
         <Outlet />
       </main>
       <CommandPalette />

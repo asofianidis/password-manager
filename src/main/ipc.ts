@@ -35,11 +35,15 @@ const handlers: Handlers = {
   'vault:change-master-password': (_, current, next) => vault.changeMasterPassword(current, next),
   'vault:join': async (_, host, port, code, password) => {
     const pairing = await sync.fetchPairing(host, port, code)
+    // Also handles a device that already has the vault and is pairing again
     const status = await vault.join(pairing.vaultId, pairing.header, password)
     const peer = await sync.addPeer({ name: pairing.deviceName, host, port })
     await sync.syncAll(peer.id)
     return status
   },
+  'vault:adopt-pending-key': (_, password) => vault.adoptPendingKey(password),
+  'vault:discard-pending-key': () => vault.discardPendingKey(),
+  'vault:revoke-other-devices': (_, password) => vault.revokeOtherDevices(password),
 
   'entries:list': () => summarize(vault.list(), settingsStore.get().oldPasswordDays),
   'entries:get': (_, id) => vault.get(id),

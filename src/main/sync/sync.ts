@@ -2,7 +2,13 @@ import { EventEmitter } from 'events'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
 import { networkInterfaces } from 'os'
 import { randomBytes, randomInt, randomUUID, timingSafeEqual } from 'crypto'
-import type { PairingWindow, SyncPeer, SyncResult, SyncStatus } from '../../shared/types'
+import type {
+  PairingWindow,
+  SyncPeer,
+  SyncResult,
+  SyncStatus,
+  VaultEntry
+} from '../../shared/types'
 import { AAD, DecryptionError, openJson, sealJson } from '../vault/crypto'
 import { vault } from '../vault/vault'
 import { settingsStore } from '../settings'
@@ -66,6 +72,16 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.end(data)
 }
 
+/** A peer answered with an error status. */
+class PeerError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    super(message)
+  }
+}
+
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   let response: Response
   try {
@@ -87,7 +103,12 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     throw new Error(cause ? `Could not reach device (${cause})` : 'Could not reach device')
   }
   const json = (await response.json().catch(() => ({}))) as T & { error?: string }
-  if (!response.ok) throw new Error(json.error ?? `Device responded with HTTP ${response.status}`)
+  if (!response.ok) {
+    throw new PeerError(
+      response.status,
+      json.error ?? `Device responded with HTTP ${response.status}`
+    )
+  }
   return json
 }
 
@@ -238,9 +259,21 @@ class SyncService extends EventEmitter<{ status: [] }> {
     if (typeof body.nonce !== 'string' || body.nonce.length < 16)
       throw new HttpError(400, 'Bad nonce')
 
+    // Find the key the sender used. Requests without a key id come from older versions of the app
+    // and are only tried with the current key.
+    const keyId = typeof body.keyId === 'string' ? body.keyId : vault.keyId
+    const retired = keyId === vault.keyId ? null : vault.retiredKey(keyId)
+    if (keyId !== vault.keyId && !retired) {
+      if (keyId === vault.pendingKeyId) {
+        throw new HttpError(409, 'That device needs the new master password entered first')
+      }
+      throw new HttpError(401, 'Not authorized for this vault')
+    }
+    const key = retired?.key ?? vault.key
+
     let message: SyncMessage
     try {
-      message = openJson<SyncMessage>(vault.key, body.payload, AAD.syncRequest(vault.vaultId))
+      message = openJson<SyncMessage>(key, body.payload, AAD.syncRequest(vault.vaultId))
     } catch (error) {
       if (error instanceof DecryptionError)
         throw new HttpError(401, 'Not authorized for this vault')
@@ -256,10 +289,21 @@ class SyncService extends EventEmitter<{ status: [] }> {
     if (this.seenNonces.has(body.nonce)) throw new HttpError(409, 'Replayed request')
     this.seenNonces.set(body.nonce, now)
 
+    if (retired) {
+      if (retired.revoked) {
+        throw new HttpError(403, 'This device was removed from the vault. Pair it again.')
+      }
+      // The sender is on a key we retired when the master password changed. Anyone with an old
+      // copy of the vault holds that key too, so don't trust its entries or send ours. Send only
+      // the new header, which opens with the new master password.
+      const reply = this.buildMessage(body.nonce, [])
+      return { payload: sealJson(key, reply, AAD.syncResponse(vault.vaultId, body.nonce)) }
+    }
+
     await vault.applyRemote(message.entries, message.header)
 
     const reply: SyncMessage = this.buildMessage(body.nonce)
-    return { payload: sealJson(vault.key, reply, AAD.syncResponse(vault.vaultId, body.nonce)) }
+    return { payload: sealJson(key, reply, AAD.syncResponse(vault.vaultId, body.nonce)) }
   }
 
   private pruneNonces(now: number): void {
@@ -268,16 +312,9 @@ class SyncService extends EventEmitter<{ status: [] }> {
     }
   }
 
-  private buildMessage(nonce: string): SyncMessage {
+  private buildMessage(nonce: string, entries: VaultEntry[] = vault.allRecords()): SyncMessage {
     const { deviceId, deviceName } = settingsStore.get()
-    return {
-      deviceId,
-      deviceName,
-      sentAt: Date.now(),
-      nonce,
-      header: vault.keyHeader,
-      entries: vault.allRecords()
-    }
+    return { deviceId, deviceName, sentAt: Date.now(), nonce, header: vault.keyHeader, entries }
   }
 
   async startPairing(): Promise<SyncStatus> {
@@ -348,30 +385,32 @@ class SyncService extends EventEmitter<{ status: [] }> {
   }
 
   private async syncPeer(peer: SyncPeer): Promise<SyncResult> {
-    const nonce = randomBytes(18).toString('base64url')
-    const vaultId = vault.vaultId
     const sent = vault.allRecords().length
     try {
-      const request: SyncRequest = {
-        vaultId,
-        nonce,
-        payload: sealJson(vault.key, this.buildMessage(nonce), AAD.syncRequest(vaultId))
-      }
-      const response = await postJson<SyncResponse>(
-        `http://${formatHost(peer.host)}:${peer.port}/v1/sync`,
-        request
-      )
       let message: SyncMessage
       try {
-        message = openJson<SyncMessage>(
-          vault.key,
-          response.payload,
-          AAD.syncResponse(vaultId, nonce)
-        )
-      } catch {
-        throw new Error('Device sent an invalid response')
+        message = await this.exchange(peer, vault.keyId, vault.key)
+      } catch (error) {
+        if (!(error instanceof PeerError && error.status === 401)) throw error
+        if (await this.forwardKey(peer)) {
+          throw new Error(
+            `${peer.name} still has the old master password. It was sent the new key: enter ` +
+              'the new master password there to finish.'
+          )
+        }
+        if (vault.retiredKeys().length > 0) {
+          throw new Error(`${peer.name} doesn't have the current vault key. Pair it again.`)
+        }
+        throw error
       }
       const received = await vault.applyRemote(message.entries, message.header)
+      const peerKeyId = message.header?.keyId
+      if (peerKeyId && peerKeyId !== vault.keyId && peerKeyId === vault.pendingKeyId) {
+        throw new Error(
+          `The master password was changed on ${peer.name}. Enter the new master password here ` +
+            'to keep syncing.'
+        )
+      }
       await this.updatePeer(peer.id, { lastSyncAt: Date.now(), lastError: null })
       return { peerId: peer.id, ok: true, error: null, received, sent }
     } catch (error) {
@@ -379,6 +418,50 @@ class SyncService extends EventEmitter<{ status: [] }> {
       await this.updatePeer(peer.id, { lastError: message })
       return { peerId: peer.id, ok: false, error: message, received: 0, sent: 0 }
     }
+  }
+
+  /** One request/response round trip, sealed with the given vault key. */
+  private async exchange(
+    peer: SyncPeer,
+    keyId: string,
+    key: Buffer,
+    entries?: VaultEntry[]
+  ): Promise<SyncMessage> {
+    const nonce = randomBytes(18).toString('base64url')
+    const vaultId = vault.vaultId
+    const request: SyncRequest = {
+      vaultId,
+      keyId,
+      nonce,
+      payload: sealJson(key, this.buildMessage(nonce, entries), AAD.syncRequest(vaultId))
+    }
+    const response = await postJson<SyncResponse>(
+      `http://${formatHost(peer.host)}:${peer.port}/v1/sync`,
+      request
+    )
+    try {
+      return openJson<SyncMessage>(key, response.payload, AAD.syncResponse(vaultId, nonce))
+    } catch {
+      throw new Error('Device sent an invalid response')
+    }
+  }
+
+  /**
+   * After a master password change, a peer still on the old key can't read our requests. Send it
+   * just the new header, sealed with the old key, so it can switch once the new password is
+   * entered there. Its reply is ignored, as the old key may be in someone else's hands.
+   */
+  private async forwardKey(peer: SyncPeer): Promise<boolean> {
+    const forwardable = vault.retiredKeys().filter((r) => !r.revoked)
+    for (const retired of forwardable.slice(0, 3)) {
+      try {
+        await this.exchange(peer, retired.keyId, retired.key, [])
+        return true
+      } catch (error) {
+        if (!(error instanceof PeerError && error.status === 401)) throw error
+      }
+    }
+    return false
   }
 
   private async updatePeer(id: string, patch: Partial<SyncPeer>): Promise<void> {

@@ -30,6 +30,9 @@ export interface InvokeApi {
   'vault:lock': () => VaultStatus
   'vault:change-master-password': (current: string, next: string) => void
   'vault:join': (host: string, port: number, code: string, masterPassword: string) => VaultStatus
+  'vault:adopt-pending-key': (masterPassword: string) => VaultStatus
+  'vault:discard-pending-key': () => VaultStatus
+  'vault:revoke-other-devices': (masterPassword: string) => void
 
   'entries:list': () => EntrySummary[]
   'entries:get': (id: string) => VaultEntry
@@ -79,6 +82,9 @@ export const INVOKE_CHANNELS = [
   'vault:lock',
   'vault:change-master-password',
   'vault:join',
+  'vault:adopt-pending-key',
+  'vault:discard-pending-key',
+  'vault:revoke-other-devices',
   'entries:list',
   'entries:get',
   'entries:create',

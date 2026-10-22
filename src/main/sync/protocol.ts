@@ -35,6 +35,8 @@ export interface PairResponse {
 /** POST /v1/sync. `payload` is sealed SyncMessage, AAD = pm:sync-req:v1:<vaultId> */
 export interface SyncRequest {
   vaultId: string
+  /** Which vault key sealed `payload` (keyIdOf). Requests without one are only tried with the current key. */
+  keyId?: string
   nonce: string
   payload: string
 }

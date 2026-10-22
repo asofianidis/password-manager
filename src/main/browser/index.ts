@@ -38,8 +38,9 @@ class BrowserBridge {
           detail:
             'The Password Manager extension is asking to connect. While your vault is unlocked, ' +
             'it can fill logins that match the site you are on.\n\n' +
-            'Only allow this if you just clicked "Connect" in your browser. You can revoke ' +
-            'access in Settings.'
+            'Only allow this if you just clicked "Connect" in your browser. The app can\'t ' +
+            'verify which program is asking, so an unexpected prompt may come from other ' +
+            'software on this computer. You can revoke access in Settings.'
         })
         return response === 0
       },

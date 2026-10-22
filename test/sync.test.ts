@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it, vi } from 'vitest'
-import { mkdtempSync, rmSync } from 'fs'
+import { randomBytes } from 'crypto'
+import { mkdtempSync, readFileSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import type { EntryInput } from '../src/shared/types'
@@ -91,13 +92,34 @@ describe('peer-to-peer sync', () => {
         .sort()
     ).toEqual(['github', 'mobile-only'])
 
-    // Master password change on A propagates to B
-    await a.vault.changeMasterPassword(MASTER, 'a brand new master password')
-    await b.sync.syncAll(peerA.id)
+    // Master password change on A rotates the key; B gets the new header but keeps working on the
+    // old one until the new password is entered there
+    const NEW_MASTER = 'a brand new master password'
+    const oldKeyId = a.vault.keyId
+    await a.vault.changeMasterPassword(MASTER, NEW_MASTER)
+    expect(a.vault.keyId).not.toBe(oldKeyId)
+    await b.vault.createEntry(input('made-before-switching', 'y'))
+    const [changed] = await b.sync.syncAll(peerA.id)
+    expect(changed).toMatchObject({ ok: false, error: expect.stringMatching(/changed on a/) })
+    // A didn't take B's entries from the old-key request
+    expect(a.vault.list().map((e) => e.title)).not.toContain('made-before-switching')
+    expect(b.vault.status().pendingKeyChange).toBe(true)
+    b.vault.lock()
+    // The old password still opens B, so a header B can't use never locks it out
+    await b.vault.unlock(MASTER)
+    expect(b.vault.status().pendingKeyChange).toBe(true)
+    b.vault.lock()
+    // The new password adopts the new header, using the retired key to read B's local data
+    await b.vault.unlock(NEW_MASTER)
+    expect(b.vault.status().pendingKeyChange).toBe(false)
+    expect(b.vault.keyId).toBe(a.vault.keyId)
+    expect(b.vault.list()).toHaveLength(3)
     b.vault.lock()
     await expect(b.vault.unlock(MASTER)).rejects.toThrow(/Incorrect/)
-    await b.vault.unlock('a brand new master password')
-    expect(b.vault.list()).toHaveLength(2)
+    await b.vault.unlock(NEW_MASTER)
+    const [after] = await b.sync.syncAll(peerA.id)
+    expect(after).toMatchObject({ ok: true })
+    expect(a.vault.list().map((e) => e.title)).toContain('made-before-switching')
 
     // A locked vault refuses to sync
     a.vault.lock()
@@ -106,6 +128,103 @@ describe('peer-to-peer sync', () => {
 
     await a.sync.stop()
     await b.sync.stop()
+  })
+
+  it('forwards a new key to a peer that is still on the old one', async () => {
+    const MASTER = 'first master password'
+    const a = await device('e', 47905)
+    await a.vault.create(MASTER)
+    await a.sync.reconcile()
+    const b = await device('f', 47906)
+    await b.sync.reconcile()
+    const { code } = (await a.sync.startPairing()).pairing!
+    const pairing = await b.sync.fetchPairing('127.0.0.1', 47905, code)
+    await b.vault.join(pairing.vaultId, pairing.header, MASTER)
+    const peerB = await a.sync.addPeer({ name: 'b', host: '127.0.0.1', port: 47906 })
+
+    await a.vault.changeMasterPassword(MASTER, 'second master password')
+    // A syncs to B: B can't read the new key, so A sends just the header under the old one
+    const [pushed] = await a.sync.syncAll(peerB.id)
+    expect(pushed).toMatchObject({ ok: false, error: expect.stringMatching(/old master password/) })
+    expect(b.vault.status().pendingKeyChange).toBe(true)
+    await b.vault.adoptPendingKey('second master password')
+    expect(b.vault.keyId).toBe(a.vault.keyId)
+    const [synced] = await a.sync.syncAll(peerB.id)
+    expect(synced).toMatchObject({ ok: true })
+
+    await a.sync.stop()
+    await b.sync.stop()
+  })
+
+  it('cuts off devices on a revoked key until they pair again', async () => {
+    const MASTER = 'first master password'
+    const a = await device('g', 47907)
+    await a.vault.create(MASTER)
+    await a.vault.createEntry(input('secret', 's3cret'))
+    await a.sync.reconcile()
+    const b = await device('h', 47908)
+    const { code } = (await a.sync.startPairing()).pairing!
+    const pairing = await b.sync.fetchPairing('127.0.0.1', 47907, code)
+    await b.vault.join(pairing.vaultId, pairing.header, MASTER)
+    const peerA = await b.sync.addPeer({ name: 'a', host: '127.0.0.1', port: 47907 })
+    await b.sync.syncAll(peerA.id)
+
+    // A copy of the vault file taken before revoking (e.g. on the lost device)
+    const stolen = JSON.parse(readFileSync(a.vault.path, 'utf8'))
+    await a.vault.revokeOtherDevices(MASTER)
+    await a.vault.createEntry(input('after', 'n3w'))
+
+    // The old key can't read anything saved since, even with the master password
+    const after = JSON.parse(readFileSync(a.vault.path, 'utf8'))
+    const { deriveKey, open, AAD } = await import('../src/main/vault/crypto')
+    const kek = await deriveKey(MASTER, stolen.key.kdf)
+    const oldKey = open(kek, stolen.key.wrappedKey, AAD.vaultKey(stolen.vaultId))
+    expect(() => open(oldKey, after.data, AAD.vaultData(after.vaultId))).toThrow()
+
+    // B (on the old key) is refused and not sent the new header
+    const [refused] = await b.sync.syncAll(peerA.id)
+    expect(refused).toMatchObject({ ok: false, error: expect.stringMatching(/removed/) })
+    expect(b.vault.status().pendingKeyChange).toBe(false)
+
+    // Pairing again with a code from A brings B onto the new key, keeping its data
+    const again = (await a.sync.startPairing()).pairing!
+    const repair = await b.sync.fetchPairing('127.0.0.1', 47907, again.code)
+    await b.vault.join(repair.vaultId, repair.header, MASTER)
+    expect(b.vault.keyId).toBe(a.vault.keyId)
+    const [ok] = await b.sync.syncAll(peerA.id)
+    expect(ok).toMatchObject({ ok: true })
+    expect(b.vault.list().map((e) => e.title)).toEqual(expect.arrayContaining(['secret', 'after']))
+
+    await a.sync.stop()
+    await b.sync.stop()
+  })
+
+  it('keeps a synced header pending so a bad one cannot lock the vault', async () => {
+    const MASTER = 'first master password'
+    const a = await device('i', 47909)
+    await a.vault.create(MASTER)
+    await a.vault.createEntry(input('kept', 'x'))
+    const header = a.vault.keyHeader
+    const bogus = { ...header, wrappedKey: randomBytes(60).toString('base64'), keyId: 'bogus' }
+
+    // Weaker KDF settings are never accepted from a peer
+    await a.vault.applyRemote([], {
+      ...bogus,
+      kdf: { ...header.kdf, memoryKiB: 19 * 1024, iterations: 2 },
+      updatedAt: Date.now() + 1000
+    })
+    expect(a.vault.status().pendingKeyChange).toBe(false)
+
+    // A well-formed header that no password opens is kept aside, not adopted
+    await a.vault.applyRemote([], { ...bogus, updatedAt: Date.now() + 1000 })
+    expect(a.vault.status().pendingKeyChange).toBe(true)
+    expect(a.vault.keyHeader).toEqual(header)
+    a.vault.lock()
+    await a.vault.unlock(MASTER)
+    expect(a.vault.list().map((e) => e.title)).toEqual(['kept'])
+    await expect(a.vault.adoptPendingKey(MASTER)).rejects.toThrow(/Incorrect/)
+    await a.vault.discardPendingKey()
+    expect(a.vault.status().pendingKeyChange).toBe(false)
   })
 
   it('rejects devices that do not hold the vault key', async () => {

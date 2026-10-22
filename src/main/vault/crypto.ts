@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto'
+import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'crypto'
 import { argon2id } from 'hash-wasm'
 
 export interface KdfParams {
@@ -19,6 +19,32 @@ export function newKdfParams(): KdfParams {
     iterations: 3,
     parallelism: 1
   }
+}
+
+/**
+ * The weakest KDF settings accepted from another device. A synced header is never allowed to
+ * lower the cost of guessing the master password, and the upper bounds stop a broken peer from
+ * making unlock hang or run out of memory.
+ */
+export const KDF_LIMITS = {
+  minMemoryKiB: 64 * 1024,
+  maxMemoryKiB: 1024 * 1024,
+  minIterations: 3,
+  maxIterations: 64,
+  maxParallelism: 16,
+  minSaltBytes: 16
+}
+
+export function isAcceptableKdf(kdf: KdfParams | undefined): boolean {
+  if (!kdf || kdf.algorithm !== 'argon2id' || typeof kdf.salt !== 'string') return false
+  const int = (n: unknown, min: number, max: number): boolean =>
+    Number.isInteger(n) && (n as number) >= min && (n as number) <= max
+  return (
+    Buffer.from(kdf.salt, 'base64').length >= KDF_LIMITS.minSaltBytes &&
+    int(kdf.memoryKiB, KDF_LIMITS.minMemoryKiB, KDF_LIMITS.maxMemoryKiB) &&
+    int(kdf.iterations, KDF_LIMITS.minIterations, KDF_LIMITS.maxIterations) &&
+    int(kdf.parallelism, 1, KDF_LIMITS.maxParallelism)
+  )
 }
 
 export async function deriveKey(password: string, params: KdfParams): Promise<Buffer> {
@@ -81,10 +107,20 @@ export function openJson<T>(key: Buffer, sealed: string, aad: string): T {
   return JSON.parse(open(key, sealed, aad).toString('utf8')) as T
 }
 
+/**
+ * A short public identifier for a vault key, so devices can tell which key a message is sealed
+ * with. It is an HMAC keyed by the vault key, so it reveals nothing about the key itself.
+ */
+export function keyIdOf(key: Buffer): string {
+  return createHmac('sha256', key).update('pm:key-id:v1').digest('base64url').slice(0, 22)
+}
+
 /** Associated-data labels. Any other implementation (e.g. Android) must use the same strings. */
 export const AAD = {
   vaultKey: (vaultId: string) => `pm:vault-key:v1:${vaultId}`,
   vaultData: (vaultId: string) => `pm:vault-data:v1:${vaultId}`,
+  previousKey: (vaultId: string, keyId: string, revoked: boolean) =>
+    `pm:prev-key:v1:${vaultId}:${keyId}:${revoked ? 'revoked' : 'forward'}`,
   exportData: 'pm:export:v1',
   syncRequest: (vaultId: string) => `pm:sync-req:v1:${vaultId}`,
   syncResponse: (vaultId: string, nonce: string) => `pm:sync-res:v1:${vaultId}:${nonce}`

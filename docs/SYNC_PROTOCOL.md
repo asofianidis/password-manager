@@ -42,10 +42,11 @@ writes a `vault.json` with no entries, and immediately syncs with that device.
 // request
 {
   "vaultId": "uuid",
+  "keyId": "key id of the vault key that sealed payload", // optional for old clients
   "nonce": "≥16 chars, random (base64url of 18 bytes)",
   "payload": "seal(vaultKey, SyncMessage, AAD = pm:sync-req:v1:<vaultId>)"
 }
-// response 200
+// response 200, sealed with the same key as the request
 { "payload": "seal(vaultKey, SyncMessage, AAD = pm:sync-res:v1:<vaultId>:<nonce>)" }
 ```
 
@@ -64,15 +65,25 @@ writes a `vault.json` with no entries, and immediately syncs with that device.
 The server:
 
 1. Returns `423` if its vault is locked, and `409` if `vaultId` differs.
-2. Opens the payload and returns `401` if decryption fails (the sender doesn't hold the vault key).
-3. Rejects the request if the inner `nonce` doesn't match the outer one, if `|now - sentAt| > 5 min`,
+2. Picks the key named by `keyId` (no `keyId`: its current key). If that is neither its
+   current key nor one of its retired keys, returns `409` when it matches its pending
+   header's key (the user hasn't entered the new password there yet), else `401`.
+3. Opens the payload and returns `401` if decryption fails (the sender doesn't hold that key).
+4. Rejects the request if the inner `nonce` doesn't match the outer one, if `|now - sentAt| > 5 min`,
    or if the nonce was seen in the last 10 minutes (replay).
-4. Merges `entries` into its vault (see the merge rule). It adopts `header` if
-   `header.updatedAt` is newer than its own; this is how a master-password change propagates.
-5. Responds with its full post-merge record set and header, bound to the request nonce.
+5. If the key is **retired**: returns `403` if it is revoked. Otherwise it ignores the
+   sender's entries (anyone with an old copy of the vault holds that key) and responds with
+   its header and **no** entries, so the sender can switch once the new password is entered.
+6. Otherwise merges `entries` into its vault (see the merge rule), and keeps `header` as
+   pending if it is newer (see [Headers from other devices](./VAULT_FORMAT.md#headers-from-other-devices)).
+7. Responds with its full post-merge record set and header, bound to the request nonce.
 
 The client merges the response in the same way. After one round trip both devices hold
 identical data.
+
+If the server answers `401` and the client has non-revoked retired keys, the server may
+still be on one of them. The client retries with each (newest first, up to 3), sending its
+header and no entries, and ignores the entries in the reply.
 
 ## Android implementation notes
 

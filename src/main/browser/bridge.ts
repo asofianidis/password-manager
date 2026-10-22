@@ -131,8 +131,11 @@ export function createBridgeHandler(deps: BridgeDeps) {
       const url = str(request.url)
       const entryId = str(request.entryId, 200)
       const entry = unlockedEntries().find((e) => e.id === entryId)
-      // The extension picked this login for a page; re-check it here so a confused or
-      // compromised extension can't pull credentials for some other site
+      // Catches an extension bug that would fill a login into the wrong site. It is not a
+      // security boundary: the caller supplies the URL, so anything holding a client token can
+      // name whatever site it likes and get any login. Tokens come from the pairing prompt,
+      // which can't tell which program is asking, so this trusts every program running as the
+      // user, the same as the vault file and the socket do.
       if (!entry || matchLevel(entry.url, url) === 0) throw new RequestError('no-match')
       deps.touchClient(client.id)
       return { username: entry.username, password: entry.password }
@@ -159,7 +162,8 @@ export function createBridgeHandler(deps: BridgeDeps) {
 /**
  * Listens on a local socket for native messaging hosts. On macOS and Linux it's a Unix socket in
  * the user-only app data folder; on Windows a named pipe, which only the same user can open for
- * writing.
+ * writing. That keeps other users out, but any program running as this user can connect and ask
+ * to pair; the user's approval is the only check.
  */
 export class BridgeServer {
   private server: Server | null = null

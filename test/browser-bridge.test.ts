@@ -27,6 +27,14 @@ describe('matchLevel', () => {
     expect(matchLevel('login.example.com', 'https://example.com')).toBe(0)
   })
 
+  it('does not match subdomains of a public suffix', () => {
+    expect(matchLevel('github.io', 'https://evil.github.io')).toBe(0)
+    expect(matchLevel('co.uk', 'https://example.co.uk')).toBe(0)
+    expect(matchLevel('me.github.io', 'https://login.me.github.io')).toBe(1)
+    expect(matchLevel('example.co.uk', 'https://login.example.co.uk')).toBe(1)
+    expect(matchLevel('github.io', 'https://github.io')).toBe(2)
+  })
+
   it('rejects lookalike and unrelated hosts', () => {
     expect(matchLevel('example.com', 'https://notexample.com')).toBe(0)
     expect(matchLevel('example.com', 'https://example.com.evil.io')).toBe(0)

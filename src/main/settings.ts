@@ -42,8 +42,45 @@ function defaults(): Settings {
   }
 }
 
-function clamp(value: number, min: number, max: number): number {
+/** Anything that isn't a finite number (NaN, null, a string) falls back, rather than slipping through. */
+function clamp(value: unknown, min: number, max: number, fallback: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback
   return Math.min(max, Math.max(min, Math.round(value)))
+}
+
+/**
+ * Brings every number into range. Without this, NaN (from a bad patch, or `null` in a
+ * hand-edited file) fails every comparison, so `autoLockMinutes > 0` is false and auto-lock is
+ * silently off.
+ */
+function sanitize(next: Settings, fallback: Settings): Settings {
+  const bool = (value: unknown, fallback: boolean): boolean =>
+    typeof value === 'boolean' ? value : fallback
+  return {
+    ...next,
+    autoLockMinutes: clamp(next.autoLockMinutes, 0, 24 * 60, fallback.autoLockMinutes),
+    lockOnSuspend: bool(next.lockOnSuspend, fallback.lockOnSuspend),
+    clipboardClearSeconds: clamp(
+      next.clipboardClearSeconds,
+      0,
+      600,
+      fallback.clipboardClearSeconds
+    ),
+    oldPasswordDays: clamp(next.oldPasswordDays, 30, 3650, fallback.oldPasswordDays),
+    generator: {
+      ...next.generator,
+      length: clamp(next.generator.length, 4, 128, fallback.generator.length),
+      words: clamp(next.generator.words, 3, 12, fallback.generator.words)
+    },
+    sync: {
+      ...next.sync,
+      port: clamp(next.sync.port, 1024, 65535, fallback.sync.port),
+      autoSyncMinutes: clamp(next.sync.autoSyncMinutes, 0, 24 * 60, fallback.sync.autoSyncMinutes)
+    },
+    deviceName:
+      (typeof next.deviceName === 'string' && next.deviceName.trim().slice(0, 64)) ||
+      fallback.deviceName
+  }
 }
 
 /** Non-secret app settings, stored as plain JSON next to the vault. */
@@ -61,13 +98,14 @@ class SettingsStore {
     const raw = await readFileIfExists(this.path)
     if (raw) {
       const stored = JSON.parse(raw) as Partial<Settings>
-      this.settings = {
+      const merged: Settings = {
         ...base,
         ...stored,
         generator: { ...base.generator, ...stored.generator },
         sync: { ...base.sync, ...stored.sync },
         browser: { ...base.browser, ...stored.browser }
       }
+      this.settings = sanitize(merged, { ...base, deviceId: merged.deviceId })
     } else {
       this.settings = base
       await this.save()
@@ -82,22 +120,17 @@ class SettingsStore {
 
   async update(patch: SettingsPatch): Promise<Settings> {
     const current = this.get()
-    const next: Settings = {
-      ...current,
-      ...patch,
-      deviceId: current.deviceId,
-      generator: { ...current.generator, ...patch.generator },
-      sync: { ...current.sync, ...patch.sync, peers: current.sync.peers },
-      browser: current.browser
-    }
-    next.autoLockMinutes = clamp(next.autoLockMinutes, 0, 24 * 60)
-    next.clipboardClearSeconds = clamp(next.clipboardClearSeconds, 0, 600)
-    next.oldPasswordDays = clamp(next.oldPasswordDays, 30, 3650)
-    next.generator.length = clamp(next.generator.length, 4, 128)
-    next.generator.words = clamp(next.generator.words, 3, 12)
-    next.sync.port = clamp(next.sync.port, 1024, 65535)
-    next.sync.autoSyncMinutes = clamp(next.sync.autoSyncMinutes, 0, 24 * 60)
-    next.deviceName = next.deviceName.trim().slice(0, 64) || current.deviceName
+    const next = sanitize(
+      {
+        ...current,
+        ...patch,
+        deviceId: current.deviceId,
+        generator: { ...current.generator, ...patch.generator },
+        sync: { ...current.sync, ...patch.sync, peers: current.sync.peers },
+        browser: current.browser
+      },
+      current
+    )
     this.settings = next
     await this.save()
     return next

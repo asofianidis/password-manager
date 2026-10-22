@@ -15,13 +15,14 @@ compatible with the desktop app. Reference implementation: `src/main/vault/`.
 Every sealed blob is bound to its purpose with GCM additional authenticated data (AAD),
 a UTF-8 string:
 
-| Blob                  | AAD                                |
-| --------------------- | ---------------------------------- |
-| Wrapped vault key     | `pm:vault-key:v1:<vaultId>`        |
-| Vault data            | `pm:vault-data:v1:<vaultId>`       |
-| Encrypted export      | `pm:export:v1`                     |
-| Sync request payload  | `pm:sync-req:v1:<vaultId>`         |
-| Sync response payload | `pm:sync-res:v1:<vaultId>:<nonce>` |
+| Blob                  | AAD                                                   |
+| --------------------- | ----------------------------------------------------- |
+| Wrapped vault key     | `pm:vault-key:v1:<vaultId>`                           |
+| Retired vault key     | `pm:prev-key:v1:<vaultId>:<keyId>:<revoked\|forward>` |
+| Vault data            | `pm:vault-data:v1:<vaultId>`                          |
+| Encrypted export      | `pm:export:v1`                                        |
+| Sync request payload  | `pm:sync-req:v1:<vaultId>`                            |
+| Sync response payload | `pm:sync-res:v1:<vaultId>:<nonce>`                    |
 
 On Android: Argon2id via `org.bouncycastle.crypto.generators.Argon2BytesGenerator`
 (or argon2kt), and AES-GCM via `javax.crypto.Cipher("AES/GCM/NoPadding")`, which
@@ -35,8 +36,24 @@ master password ──Argon2id(kdf)──▶ KEK ──AES-GCM unwrap──▶ v
                                                               └─AES-GCM──▶ vault data
 ```
 
-The **vault key** is created once and shared by every device of the vault. Changing
-the master password only re-wraps the vault key; the data is not re-encrypted.
+The **vault key** is shared by every device of the vault. It is **rotated** (replaced with
+32 new random bytes, and all data re-encrypted) whenever the master password changes, and
+when the user revokes a lost device. So an old `vault.json` or pairing header plus the old
+password can't read anything saved afterwards.
+
+Each key has a public **key id**: `base64url(HMAC-SHA256(key = vault key, "pm:key-id:v1"))`,
+first 22 characters. Sync uses it to tell which key a message is sealed with.
+
+### Rotation
+
+1. Generate a new vault key and wrap it with the (new) master password and fresh KDF params.
+2. Seal each retired key (the previous header's `previousKeys` plus the key being replaced)
+   with the **new** vault key. Keep at most 32, oldest first.
+   - After a master password change, they keep their `revoked` flag (normally `false`).
+     Devices still on them are sent the new header, which needs the new password.
+   - After revoking a device, every retired key gets `revoked: true`. Devices still on them
+     are refused and must pair again.
+3. Set `updatedAt = max(now, previous.updatedAt + 1)` and re-seal `data` with the new key.
 
 ## `vault.json`
 
@@ -57,15 +74,36 @@ on macOS).
       "parallelism": 1
     },
     "wrappedKey": "sealed vault key",
-    "updatedAt": 1739999999999 // ms epoch; when the master password last changed
+    "updatedAt": 1739999999999, // ms epoch; when the key or master password last changed
+    "keyId": "key id of the vault key", // absent on headers from before rotation existed
+    "previousKeys": [
+      // optional; retired keys, oldest first
+      { "keyId": "…", "wrappedKey": "seal(vault key, old key, AAD above)", "revoked": false }
+    ]
   },
-  "data": "sealed JSON { entries: VaultEntry[] }",
+  "pendingKey": {/* optional; a newer header from another device, see below */},
+  "data": "sealed JSON { entries: VaultEntry[] }", // always sealed with `key`'s vault key
   "savedAt": 1739999999999
 }
 ```
 
 The `key` object is the **key header**. It is safe to share with paired devices,
 because it is useless without the master password.
+
+### Headers from other devices
+
+A header received over sync is **never** written over `key` directly, since a buggy peer
+could send one the user's password can't open. Instead:
+
+1. Reject it unless it is well-formed and its KDF is at least as strong as the defaults:
+   Argon2id, salt ≥ 16 bytes, `memoryKiB` 65536–1048576, `iterations` 3–64,
+   `parallelism` 1–16.
+2. Keep it as `pendingKey` if its `updatedAt` is newer than both `key` and any existing
+   `pendingKey`.
+3. On unlock, try the password on both `key` and `pendingKey`. If `pendingKey` opens, make
+   it `key` and re-seal `data` with its vault key. If only `pendingKey` opens, find the key
+   `data` is sealed with among its `previousKeys`. If only `key` opens, unlock as usual and
+   leave `pendingKey` for the user to enter the new password later (or dismiss).
 
 ## `VaultEntry`
 

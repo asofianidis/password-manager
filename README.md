@@ -108,7 +108,12 @@ How it works:
 - Each approved browser gets a random token; the app stores only its SHA-256 hash.
 - The extension only receives titles and usernames for the menu. A password is sent only when you
   pick a login, and only if that login's domain matches the frame being filled (subdomains of the
-  saved domain count). A login saved as https is never filled into a plain http page.
+  saved domain count, unless it is a public suffix such as `github.io`). A login saved as https is
+  never filled into a plain http page.
+- The URL check guards against extension bugs, not against other programs: the page URL comes
+  from the caller, and the approval prompt can't tell which program is asking. Any program running
+  as your user that you approve, or that steals a token, can request any login. As with the vault
+  file itself, programs running as your user are trusted.
 - Nothing is filled while the vault is locked; the menu offers to open the app instead.
 - Browsers installed as Snap or Flatpak packages on Linux can't run native messaging hosts.
 

@@ -13,7 +13,7 @@ import {
   Trash2,
   X
 } from 'lucide-react'
-import type { SettingsPatch, TailscalePeer } from '@shared/types'
+import type { SettingsPatch, SyncPeer, TailscalePeer } from '@shared/types'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
 import { timeAgo } from '@renderer/lib/format'
@@ -30,6 +30,7 @@ import {
   Input,
   Modal,
   PageHeader,
+  PasswordInput,
   Select
 } from '@renderer/components/ui'
 
@@ -54,6 +55,7 @@ function SyncPage(): React.JSX.Element {
   const { data: settings } = useSuspenseQuery(queries.settings())
   const { data: status } = useSuspenseQuery(queries.syncStatus())
   const [adding, setAdding] = useState(false)
+  const [removing, setRemoving] = useState<SyncPeer | null>(null)
 
   const update = useMutation({
     mutationFn: (patch: SettingsPatch) => api.invoke('settings:update', patch),
@@ -67,12 +69,6 @@ function SyncPage(): React.JSX.Element {
   const syncNow = useMutation({
     mutationFn: (peerId?: string) => runSync(peerId),
     onSettled: () => queryClient.invalidateQueries()
-  })
-
-  const removePeer = useMutation({
-    mutationFn: (id: string) => api.invoke('sync:remove-peer', id),
-    onSuccess: () => queryClient.invalidateQueries(queries.settings()),
-    onError: toastError
   })
 
   const { sync } = settings
@@ -154,10 +150,7 @@ function SyncPage(): React.JSX.Element {
                     size="icon"
                     variant="ghost"
                     title="Remove device"
-                    onClick={() => {
-                      log('cmd', `Removed ${peer.name}`)
-                      removePeer.mutate(peer.id)
-                    }}
+                    onClick={() => setRemoving(peer)}
                   >
                     <Trash2 className="size-3.5" />
                   </Button>
@@ -265,6 +258,7 @@ function SyncPage(): React.JSX.Element {
       </div>
 
       {adding && <AddDeviceModal defaultPort={sync.port} onClose={() => setAdding(false)} />}
+      {removing && <RemoveDeviceModal peer={removing} onClose={() => setRemoving(null)} />}
     </div>
   )
 }
@@ -418,6 +412,9 @@ function AddDeviceModal({
   const [name, setName] = useState('')
   const [host, setHost] = useState('')
   const [port, setPort] = useState(String(defaultPort))
+  const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
+  const pairing = code.trim() !== ''
 
   const tailscale = useQuery({
     queryKey: ['sync', 'tailscale'],
@@ -434,6 +431,18 @@ function AddDeviceModal({
       onClose()
     }
   })
+  // For a device that was removed from the vault, or is too far behind to catch up on its own
+  const pair = useMutation({
+    mutationFn: () => api.invoke('vault:join', host.trim(), Number(port), code, password),
+    onSuccess: async () => {
+      log('ok', `Paired again with ${host.trim()}`)
+      await queryClient.invalidateQueries()
+      toast('Paired again')
+      onClose()
+    },
+    onError: () => setPassword('')
+  })
+  const submit = pairing ? pair : add
 
   const choose = (peer: TailscalePeer): void => {
     setName(peer.name)
@@ -450,7 +459,7 @@ function AddDeviceModal({
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault()
-          add.mutate()
+          submit.mutate()
         }}
       >
         <div className="overflow-hidden rounded-xl border border-line">
@@ -511,13 +520,116 @@ function AddDeviceModal({
             />
           </Field>
         </div>
-        <ErrorText error={add.error} />
+        <Field
+          label="Pairing code"
+          hint="Only needed if this device was removed from the vault. Start pairing on the other device."
+        >
+          <Input
+            className="font-mono tracking-[0.3em]"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="optional"
+            inputMode="numeric"
+          />
+        </Field>
+        {pairing && (
+          <Field label="Master password">
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} />
+          </Field>
+        )}
+        <ErrorText error={submit.error} />
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={!host.trim() || add.isPending}>
-            Add device
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={!host.trim() || submit.isPending || (pairing && !password)}
+          >
+            {pairing ? (pair.isPending ? 'Pairing…' : 'Pair again') : 'Add device'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  )
+}
+
+function RemoveDeviceModal({
+  peer,
+  onClose
+}: {
+  peer: SyncPeer
+  onClose: () => void
+}): React.JSX.Element {
+  const queryClient = useQueryClient()
+  const [revoke, setRevoke] = useState(false)
+  const [password, setPassword] = useState('')
+
+  const remove = useMutation({
+    mutationFn: async () => {
+      // Rotate first: if the password is wrong, the device stays listed
+      if (revoke) await api.invoke('vault:revoke-other-devices', password)
+      await api.invoke('sync:remove-peer', peer.id)
+    },
+    onSuccess: async () => {
+      log('cmd', revoke ? `Removed ${peer.name} and rotated the vault key` : `Removed ${peer.name}`)
+      await queryClient.invalidateQueries()
+      toast(revoke ? 'Vault key rotated. Pair your other devices again.' : `Removed ${peer.name}`)
+      onClose()
+    },
+    onError: () => setPassword('')
+  })
+
+  return (
+    <Modal
+      title={`Remove ${peer.name}?`}
+      description="This device stops syncing with it."
+      onClose={onClose}
+    >
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!remove.isPending && (!revoke || password)) remove.mutate()
+        }}
+      >
+        <Checkbox
+          label="Also revoke its access"
+          description={
+            'Use this for a lost or stolen device. Rotates the vault key and re-encrypts ' +
+            'everything, so any device still on the old key can no longer sync. Your other ' +
+            'devices will need to pair again.'
+          }
+          checked={revoke}
+          onChange={setRevoke}
+        />
+        {revoke && (
+          <>
+            <Field label="Master password">
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoFocus
+              />
+            </Field>
+            <p className="rounded-lg bg-warn/[0.07] px-3 py-2 text-xs text-warn/90 ring-1 ring-warn/20 ring-inset">
+              If the device may have been unlocked, or someone could know your master password,
+              change the master password in Settings as well.
+            </p>
+          </>
+        )}
+        <ErrorText error={remove.error} />
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant={revoke ? 'danger' : 'primary'}
+            type="submit"
+            disabled={remove.isPending || (revoke && !password)}
+          >
+            {remove.isPending ? 'Removing…' : revoke ? 'Remove and revoke' : 'Remove device'}
           </Button>
         </div>
       </form>

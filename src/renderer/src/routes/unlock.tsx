@@ -82,6 +82,7 @@ function useOnUnlocked(): () => Promise<void> {
 }
 
 function Unlock(): React.JSX.Element {
+  const [pairing, setPairing] = useState(false)
   const [password, setPassword] = useState('')
   const onUnlocked = useOnUnlocked()
   const unlock = useMutation({
@@ -89,6 +90,21 @@ function Unlock(): React.JSX.Element {
     onSuccess: onUnlocked,
     onError: () => setPassword('')
   })
+
+  if (pairing) {
+    return (
+      <div className="space-y-4">
+        <Join />
+        <button
+          type="button"
+          className="w-full text-center text-xs text-muted hover:text-fg"
+          onClick={() => setPairing(false)}
+        >
+          Back to unlock
+        </button>
+      </div>
+    )
+  }
 
   return (
     <form
@@ -116,6 +132,13 @@ function Unlock(): React.JSX.Element {
           Unlock
         </Button>
       )}
+      <button
+        type="button"
+        className="w-full text-center text-xs text-muted hover:text-fg"
+        onClick={() => setPairing(true)}
+      >
+        Removed from the vault? Pair this device again
+      </button>
     </form>
   )
 }

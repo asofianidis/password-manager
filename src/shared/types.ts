@@ -46,6 +46,8 @@ export type VaultState = 'no-vault' | 'locked' | 'unlocked'
 export interface VaultStatus {
   state: VaultState
   vaultId: string | null
+  /** Another device changed the master password, and it hasn't been entered here yet */
+  pendingKeyChange: boolean
 }
 
 export interface StrengthResult {
