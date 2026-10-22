@@ -93,6 +93,15 @@ export interface SyncPeer {
   lastError: string | null
 }
 
+/** A browser extension the user approved to fill logins. Only a hash of its token is stored. */
+export interface BrowserClient {
+  id: string
+  name: string
+  tokenHash: string
+  createdAt: number
+  lastUsedAt: number | null
+}
+
 export interface Settings {
   deviceId: string
   deviceName: string
@@ -108,9 +117,14 @@ export interface Settings {
     autoSyncMinutes: number
     peers: SyncPeer[]
   }
+  browser: {
+    clients: BrowserClient[]
+  }
 }
 
-export type SettingsPatch = Partial<Omit<Settings, 'deviceId' | 'generator' | 'sync'>> & {
+export type SettingsPatch = Partial<
+  Omit<Settings, 'deviceId' | 'generator' | 'sync' | 'browser'>
+> & {
   generator?: Partial<GeneratorOptions>
   sync?: Partial<Omit<Settings['sync'], 'peers'>>
 }
@@ -179,6 +193,14 @@ export interface ImportPreview {
 }
 
 export type ExportFormat = 'pm-encrypted' | 'pm-json' | 'csv'
+
+export interface BrowserBridgeStatus {
+  /** Socket the native messaging host connects to; null if it failed to start */
+  listening: boolean
+  error: string | null
+  /** Browsers the native messaging host was registered with on this launch */
+  registered: string[]
+}
 
 /** Events pushed from the main process to the renderer. */
 export type VaultEvent = 'locked' | 'changed' | 'sync-status' | 'update-status'

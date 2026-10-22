@@ -16,8 +16,48 @@ Sync is peer-to-peer (ideally over Tailscale) with no cloud server.
   Bitwarden (CSV/JSON), 1Password (CSV/1PUX), LastPass, KeePass/KeePassXC, Proton Pass, and
   generic CSV. The format is auto-detected and duplicates are skipped.
 - **Export**: an encrypted backup (`.pmbackup`), CSV, or JSON.
+- **Browser fill**: right-click a login field in Chrome, Edge, Brave, Arc, Vivaldi, or Firefox
+  and pick a saved login to fill it (see [Browser extension](#browser-extension)).
 - **Sync**: pair devices with a 6-digit code, then sync directly. All sync messages are
   end-to-end encrypted with the vault key.
+
+## Browser extension
+
+The extension in `extension/` adds a **Password Manager** submenu when you right-click an input
+field. It lists the saved logins that match the site; picking one fills the username and password.
+
+```bash
+npm run build:extension   # writes extension/dist/chrome and extension/dist/firefox
+```
+
+- **Chrome, Edge, Brave, Arc, Vivaldi**: open `chrome://extensions`, turn on Developer mode, click
+  **Load unpacked**, and pick `extension/dist/chrome`.
+- **Firefox**: each release has a Mozilla-signed `…-firefox.xpi`; open it in Firefox to install
+  it permanently. For a local build, open `about:debugging#/runtime/this-firefox`, click **Load
+  Temporary Add-on**, and pick `extension/dist/firefox/manifest.json` (removed when Firefox
+  restarts).
+
+CI signs the Firefox add-on as unlisted on addons.mozilla.org using the `AMO_JWT_ISSUER` and
+`AMO_JWT_SECRET` repository secrets, and signs the Chrome `.crx` with `CHROME_EXTENSION_KEY`.
+
+Open the desktop app at least once afterwards: on each launch it registers its native messaging
+host with every browser it finds. Then right-click a login field and choose **Password Manager →
+Connect**; the app asks you to approve the browser. Connected browsers are listed under
+**Settings → Browser**, where you can revoke them.
+
+How it works:
+
+- The browser starts the native messaging host (`src/main/browser/native-host.ts`), which is the
+  app's own binary run in Node mode. It relays messages to the running app over a Unix socket in
+  the app data folder (a named pipe on Windows), so no network port is opened.
+- Only the extension's ID may start the host. The Chrome ID is pinned by the `key` in the manifest
+  so it is the same for every unpacked install.
+- Each approved browser gets a random token; the app stores only its SHA-256 hash.
+- The extension only receives titles and usernames for the menu. A password is sent only when you
+  pick a login, and only if that login's domain matches the frame being filled (subdomains of the
+  saved domain count). A login saved as https is never filled into a plain http page.
+- Nothing is filled while the vault is locked; the menu offers to open the app instead.
+- Browsers installed as Snap or Flatpak packages on Linux can't run native messaging hosts.
 
 ## Keyboard shortcuts
 
@@ -47,22 +87,26 @@ npm run build:mac  # or build:win / build:linux
 ## CI and releases
 
 `.github/workflows/build.yml` lints, typechecks, and tests every push and pull request. It then
-packages the app on native runners:
+builds only what the changed files affect:
 
-| Platform | Artifacts                           |
-| -------- | ----------------------------------- |
-| macOS    | `.dmg` and `.zip` for x64 and arm64 |
-| Windows  | NSIS installer `.exe` (x64)         |
-| Linux    | `.AppImage` and `.deb` (x64)        |
+- **Desktop app** (`src/`, `build/`, `resources/`, build config): packaged on native runners.
+- **Browser extension** (`extension/`, its build scripts, `src/shared/browser-protocol.ts`):
+  built, the `.crx` signed, and on releases the Firefox add-on signed by Mozilla.
+- `package.json`, `package-lock.json`, and the workflow itself rebuild both. Tag pushes, manual
+  runs, and new branches also build both. Changes elsewhere (docs, tests) only run the checks.
 
-Download the builds from the run's **Artifacts** section. To publish a release, push a version tag:
+| Platform          | Artifacts                                           |
+| ----------------- | --------------------------------------------------- |
+| macOS             | `.dmg` and `.zip` for x64 and arm64                 |
+| Windows           | NSIS installer `.exe` (x64)                         |
+| Linux             | `.AppImage` and `.deb` (x64)                        |
+| Browser extension | Chrome `.crx` and `.zip`, Firefox `.xpi` and `.zip` |
 
-```bash
-git tag v1.0.0 && git push origin v1.0.0
-```
-
-The version in the tag is stamped into the app, and a **draft** GitHub release is created with every
-installer attached. Review it, then publish.
+Download the builds from the run's **Artifacts** section. Every push to `main` that changes the app
+or the extension publishes a GitHub release: the version is `package.json`'s if it's ahead of the
+latest tag, otherwise the latest tag with the patch bumped. Pushing a `v*` tag releases that
+version. A release that only changed the extension is titled "(browser extension)" and not marked
+**Latest**, so the app's updater and the install script keep using the last desktop release.
 
 Each release also carries the `latest*.yml` update feeds. Installed apps check GitHub releases on
 launch and every 4 hours (or via **Check for Updates** in the command palette). When a newer
@@ -94,9 +138,11 @@ src/
   main/           Electron main process: all crypto, storage, and sync live here
     vault/        Vault file, key wrapping, AES-GCM/Argon2id
     sync/         Peer-to-peer HTTP sync server/client, Tailscale discovery
+    browser/      Browser extension bridge: native messaging host, socket server, host registration
   preload/        Exposes a typed, allow-listed `window.api` to the renderer
   renderer/       React UI (TanStack Router file routes in src/routes)
   shared/         Types, IPC contract, CSV/importers, sync merge (pure, portable)
+extension/        Browser extension (Chrome-family and Firefox), built by scripts/build-extension.mjs
 docs/             Vault format and sync protocol for other clients (Android)
 test/             Vitest suites
 ```

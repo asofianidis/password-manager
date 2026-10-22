@@ -17,6 +17,7 @@ import {
 import { sync } from './sync/sync'
 import { listTailscalePeers } from './sync/tailscale'
 import { updater } from './updater'
+import { browserBridge } from './browser'
 
 type Handlers = {
   [C in InvokeChannel]: (
@@ -76,7 +77,10 @@ const handlers: Handlers = {
 
   'update:status': () => updater.status(),
   'update:check': () => updater.check(),
-  'update:install': () => updater.install()
+  'update:install': () => updater.install(),
+
+  'browser:status': () => browserBridge.status(),
+  'browser:revoke': (_, id) => browserBridge.revoke(id)
 }
 
 function requireUnlocked(): void {

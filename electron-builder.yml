@@ -9,6 +9,7 @@ files:
   - '!src/*'
   - '!test/*'
   - '!docs/*'
+  - '!extension/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!vitest.config.{js,ts,mjs,cjs}'
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'

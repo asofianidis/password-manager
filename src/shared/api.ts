@@ -1,4 +1,5 @@
 import type {
+  BrowserBridgeStatus,
   EntryInput,
   EntrySummary,
   ExportFormat,
@@ -62,6 +63,9 @@ export interface InvokeApi {
   'update:status': () => UpdateStatus
   'update:check': () => UpdateStatus
   'update:install': () => void
+
+  'browser:status': () => BrowserBridgeStatus
+  'browser:revoke': (id: string) => void
 }
 
 export type InvokeChannel = keyof InvokeApi
@@ -99,7 +103,9 @@ export const INVOKE_CHANNELS = [
   'sync:tailscale-peers',
   'update:status',
   'update:check',
-  'update:install'
+  'update:install',
+  'browser:status',
+  'browser:revoke'
 ] as const satisfies readonly InvokeChannel[]
 
 /** IPC handlers wrap results so error messages survive the process boundary intact. */

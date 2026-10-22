@@ -5,7 +5,17 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
-  main: {},
+  main: {
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve('src/main/index.ts'),
+          // Run by browsers as the native messaging host (see src/main/browser/install.ts)
+          'native-host': resolve('src/main/browser/native-host.ts')
+        }
+      }
+    }
+  },
   preload: {},
   renderer: {
     resolve: {

@@ -1,10 +1,19 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { Download, FileUp, HardDriveDownload, Search, Settings2, ShieldCheck } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import {
+  Download,
+  FileUp,
+  Globe,
+  HardDriveDownload,
+  Search,
+  Settings2,
+  ShieldCheck
+} from 'lucide-react'
 import type { ExportFormat, Settings, SettingsPatch } from '@shared/types'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
+import { timeAgo } from '@renderer/lib/format'
 import { toast, toastError } from '@renderer/lib/toast'
 import {
   Button,
@@ -17,18 +26,20 @@ import {
 } from '@renderer/components/ui'
 import { ImportModal } from '@renderer/components/ImportModal'
 
-const SECTIONS = ['general', 'security', 'data'] as const
+const SECTIONS = ['general', 'security', 'browser', 'data'] as const
 type SectionId = (typeof SECTIONS)[number]
 
 const SECTION_LABELS: Record<SectionId, string> = {
   general: 'General',
   security: 'Security',
+  browser: 'Browser',
   data: 'Import & Export'
 }
 
 const SECTION_ICONS: Record<SectionId, typeof Settings2> = {
   general: Settings2,
   security: ShieldCheck,
+  browser: Globe,
   data: HardDriveDownload
 }
 
@@ -165,6 +176,15 @@ const DEFS: SettingDef[] = [
       'Re-wraps the vault key with a new password. Synced devices pick it up on their next sync.',
     stacked: true,
     render: () => <ChangeMasterPassword />
+  },
+  {
+    id: 'browserExtension',
+    section: 'browser',
+    title: 'Browser extension',
+    description:
+      'Right-click a login field and pick a saved login to fill it. Works in Chrome, Edge, Brave, Arc, Vivaldi, and Firefox.',
+    stacked: true,
+    render: ({ settings }) => <BrowserSetting clients={settings.browser.clients} />
   },
   {
     id: 'import',
@@ -373,6 +393,64 @@ function ImportSetting(): React.JSX.Element {
         />
       )}
     </>
+  )
+}
+
+function BrowserSetting({
+  clients
+}: {
+  clients: Settings['browser']['clients']
+}): React.JSX.Element {
+  const queryClient = useQueryClient()
+  const { data: status } = useQuery({
+    queryKey: ['browser', 'status'],
+    queryFn: () => api.invoke('browser:status')
+  })
+  const revoke = useMutation({
+    mutationFn: (id: string) => api.invoke('browser:revoke', id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queries.settings().queryKey }),
+    onError: toastError
+  })
+
+  return (
+    <div className="max-w-xl space-y-3">
+      {status && (
+        <p className={cn('text-xs', status.error ? 'text-warn' : 'text-muted')}>
+          {status.error
+            ? `Browser connection unavailable: ${status.error}`
+            : status.registered.length > 0
+              ? `Ready for ${status.registered.join(', ')}.`
+              : 'No supported browsers found on this computer.'}
+        </p>
+      )}
+      {clients.length > 0 ? (
+        <div className="divide-y divide-line rounded-lg ring-1 ring-line ring-inset">
+          {clients.map((client) => (
+            <div key={client.id} className="flex items-center justify-between gap-4 px-3 py-2">
+              <div className="min-w-0">
+                <p className="truncate text-bright">{client.name}</p>
+                <p className="text-xs text-muted">
+                  Connected {timeAgo(client.createdAt)} · last filled {timeAgo(client.lastUsedAt)}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="danger"
+                disabled={revoke.isPending}
+                onClick={() => revoke.mutate(client.id)}
+              >
+                Revoke
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-lg bg-canvas px-3 py-2 text-xs text-muted ring-1 ring-line ring-inset">
+          No browsers connected. Install the extension, right-click any login field, and choose
+          Password Manager → Connect. You&apos;ll be asked to approve it here.
+        </p>
+      )}
+    </div>
   )
 }
 

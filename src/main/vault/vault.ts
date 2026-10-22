@@ -66,7 +66,7 @@ function sanitizeInput(input: EntryInput): EntryInput {
   }
 }
 
-class VaultService extends EventEmitter<{ locked: []; changed: [] }> {
+class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] }> {
   private file: VaultFile | null = null
   private session: Session | null = null
   private writeQueue: Promise<void> = Promise.resolve()
@@ -116,6 +116,7 @@ class VaultService extends EventEmitter<{ locked: []; changed: [] }> {
     this.session = { key, entries: new Map() }
     this.file = { format: 'pm-vault', version: 1, vaultId, key: header, data: '', savedAt: 0 }
     await this.persist()
+    this.emit('unlocked')
     return this.status()
   }
 
@@ -130,6 +131,7 @@ class VaultService extends EventEmitter<{ locked: []; changed: [] }> {
     this.session = { key, entries: new Map() }
     this.file = { format: 'pm-vault', version: 1, vaultId, key: header, data: '', savedAt: 0 }
     await this.persist()
+    this.emit('unlocked')
     return this.status()
   }
 
@@ -141,6 +143,7 @@ class VaultService extends EventEmitter<{ locked: []; changed: [] }> {
       ? openJson<VaultPayload>(key, this.file.data, AAD.vaultData(this.file.vaultId))
       : { entries: [] }
     this.session = { key, entries: new Map(payload.entries.map((e) => [e.id, e])) }
+    this.emit('unlocked')
     return this.status()
   }
 

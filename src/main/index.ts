@@ -8,6 +8,7 @@ import { settingsStore } from './settings'
 import { sync } from './sync/sync'
 import { startAutoLock } from './auto-lock'
 import { updater } from './updater'
+import { browserBridge } from './browser'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -57,6 +58,17 @@ function createWindow(): void {
   }
 }
 
+/** Brings the window to the front, recreating it if it was closed (macOS keeps running). */
+function showWindow(): BrowserWindow {
+  if (!mainWindow) createWindow()
+  const window = mainWindow!
+  if (window.isMinimized()) window.restore()
+  window.show()
+  window.focus()
+  if (process.platform === 'darwin') app.focus({ steal: true })
+  return window
+}
+
 // Two instances writing the same vault file would corrupt it
 if (!app.requestSingleInstanceLock()) {
   app.quit()
@@ -89,6 +101,7 @@ if (!app.requestSingleInstanceLock()) {
 
     createWindow()
     updater.start()
+    void browserBridge.start(showWindow)
 
     app.on('activate', function () {
       // On macOS it's common to re-create a window in the app when the
@@ -100,6 +113,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on('before-quit', () => {
     vault.lock()
     void sync.stop()
+    void browserBridge.stop()
   })
 }
 

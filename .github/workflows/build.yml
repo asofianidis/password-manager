@@ -1,4 +1,4 @@
-name: Build desktop app
+name: Build
 
 on:
   push:
@@ -15,6 +15,54 @@ permissions:
   contents: read
 
 jobs:
+  # Decides what to build: the desktop app, the browser extension, or both. Tag pushes and manual
+  # runs build everything; pushes and pull requests build only what their changed files affect.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      desktop: ${{ steps.diff.outputs.desktop }}
+      extension: ${{ steps.diff.outputs.extension }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        name: Compare with the previous commit
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          everything() {
+            echo "Building everything: $1"
+            echo "desktop=true" >> "$GITHUB_OUTPUT"
+            echo "extension=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+          [[ "$GITHUB_REF" == refs/tags/* ]] && everything "tag push"
+          case "$GITHUB_EVENT_NAME" in
+            push) base="$BEFORE" ;;
+            pull_request) base="$PR_BASE" ;;
+            *) everything "$GITHUB_EVENT_NAME run" ;;
+          esac
+          # New branches report an all-zero "before", and force pushes can drop it from history
+          if [[ -z "$base" || "$base" =~ ^0+$ ]] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            everything "no earlier commit to compare with"
+          fi
+
+          files="$(git diff --name-only "$base" "$GITHUB_SHA")"
+          echo "Changed files:"
+          echo "$files" | sed 's/^/  /'
+          affects() { grep -qE "$1" <<< "$files" && echo true || echo false; }
+          # Dependencies and this workflow affect both
+          shared='^(package\.json|package-lock\.json|\.github/workflows/build\.yml)$'
+          desktop="$(affects "$shared|^src/(main|preload|renderer|shared)/|^(build|resources)/|^electron-builder\.yml$|^electron\.vite\.config\.ts$|^tsconfig[^/]*\.json$")"
+          extension="$(affects "$shared|^extension/|^scripts/(build|pack)-extension\.mjs$|^src/shared/browser-protocol\.ts$")"
+          echo "Desktop app: $desktop, browser extension: $extension"
+          echo "desktop=$desktop" >> "$GITHUB_OUTPUT"
+          echo "extension=$extension" >> "$GITHUB_OUTPUT"
+
   check:
     name: Lint, typecheck, test
     runs-on: ubuntu-latest
@@ -31,6 +79,7 @@ jobs:
 
   version:
     name: Resolve release version
+    needs: changes
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.resolve.outputs.tag }}
@@ -41,10 +90,12 @@ jobs:
       - id: resolve
         name: Pick tag
         shell: bash
+        env:
+          CHANGED: ${{ needs.changes.outputs.desktop == 'true' || needs.changes.outputs.extension == 'true' }}
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             tag="$GITHUB_REF_NAME"
-          elif [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main ]]; then
+          elif [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main && "$CHANGED" == true ]]; then
             # Use package.json's version if it's ahead of the latest tag, otherwise bump the patch
             pkg="$(node -p "require('./package.json').version")"
             latest="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
@@ -63,7 +114,8 @@ jobs:
 
   build:
     name: Build (${{ matrix.name }})
-    needs: [check, version]
+    needs: [changes, check, version]
+    if: needs.changes.outputs.desktop == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -115,10 +167,69 @@ jobs:
             dist/*.blockmap
             dist/latest*.yml
 
+  extension:
+    name: Build browser extension
+    needs: [changes, check, version]
+    if: needs.changes.outputs.extension == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Set version from tag
+        if: needs.version.outputs.tag != ''
+        shell: bash
+        env:
+          TAG: ${{ needs.version.outputs.tag }}
+        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
+
+      - run: npm run build:extension
+
+      - name: Pack and sign
+        run: npm run pack:extension
+        env:
+          # Signs the .crx. Must be the key whose ID is CHROME_EXTENSION_ID; the script checks
+          CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
+
+      # Mozilla only installs signed add-ons permanently. "unlisted" signs it without publishing it
+      # on addons.mozilla.org. Each version can only be signed once, so this runs for releases only.
+      # A failure here shouldn't block the desktop release; the unsigned zip is still attached.
+      - name: Sign Firefox extension
+        if: needs.version.outputs.tag != ''
+        continue-on-error: true
+        shell: bash
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          if [[ -z "$WEB_EXT_API_KEY" || -z "$WEB_EXT_API_SECRET" ]]; then
+            echo "::warning::AMO_JWT_ISSUER/AMO_JWT_SECRET not set; skipping Firefox signing"
+            exit 0
+          fi
+          npx --yes web-ext@8 sign \
+            --source-dir extension/dist/firefox \
+            --channel unlisted \
+            --artifacts-dir extension/signed
+          mv extension/signed/*.xpi "extension/release/password-manager-extension-${TAG#v}-firefox.xpi"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: password-manager-extension
+          if-no-files-found: error
+          path: extension/release/*
+
   release:
     name: Publish GitHub release
-    if: needs.version.outputs.tag != ''
-    needs: [version, build]
+    # Run when whichever builds were needed succeeded; a skipped build is fine
+    if: >-
+      always() && needs.version.outputs.tag != '' &&
+      !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    needs: [changes, check, version, build, extension]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -131,10 +242,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.version.outputs.tag }}
+          DESKTOP: ${{ needs.changes.outputs.desktop }}
         run: |
+          # The app's updater and install-mac.sh read the release marked Latest, so only a release
+          # with desktop builds may take that spot. Extension-only releases are published beside it.
+          if [[ "$DESKTOP" == true ]]; then
+            latest=true
+            title="$TAG"
+          else
+            latest=false
+            title="$TAG (browser extension)"
+          fi
           # Creates the tag at this commit if it doesn't exist yet
           gh release create "$TAG" artifacts/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "$TAG" \
+            --title "$title" \
+            --latest="$latest" \
             --generate-notes

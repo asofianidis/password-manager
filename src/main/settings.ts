@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { randomUUID } from 'crypto'
 import { hostname } from 'os'
 import { join } from 'path'
-import type { Settings, SettingsPatch, SyncPeer } from '../shared/types'
+import type { BrowserClient, Settings, SettingsPatch, SyncPeer } from '../shared/types'
 import { readFileIfExists, writeFileAtomic } from './fs-utils'
 
 export const DEFAULT_SYNC_PORT = 47821
@@ -34,6 +34,9 @@ function defaults(): Settings {
       port: DEFAULT_SYNC_PORT,
       autoSyncMinutes: 0,
       peers: []
+    },
+    browser: {
+      clients: []
     }
   }
 }
@@ -61,7 +64,8 @@ class SettingsStore {
         ...base,
         ...stored,
         generator: { ...base.generator, ...stored.generator },
-        sync: { ...base.sync, ...stored.sync }
+        sync: { ...base.sync, ...stored.sync },
+        browser: { ...base.browser, ...stored.browser }
       }
     } else {
       this.settings = base
@@ -82,7 +86,8 @@ class SettingsStore {
       ...patch,
       deviceId: current.deviceId,
       generator: { ...current.generator, ...patch.generator },
-      sync: { ...current.sync, ...patch.sync, peers: current.sync.peers }
+      sync: { ...current.sync, ...patch.sync, peers: current.sync.peers },
+      browser: current.browser
     }
     next.autoLockMinutes = clamp(next.autoLockMinutes, 0, 24 * 60)
     next.clipboardClearSeconds = clamp(next.clipboardClearSeconds, 0, 600)
@@ -100,6 +105,15 @@ class SettingsStore {
   async setPeers(update: (peers: SyncPeer[]) => SyncPeer[]): Promise<Settings> {
     const current = this.get()
     this.settings = { ...current, sync: { ...current.sync, peers: update(current.sync.peers) } }
+    await this.save()
+    return this.settings
+  }
+
+  async setBrowserClients(
+    update: (clients: BrowserClient[]) => BrowserClient[]
+  ): Promise<Settings> {
+    const current = this.get()
+    this.settings = { ...current, browser: { clients: update(current.browser.clients) } }
     await this.save()
     return this.settings
   }
