@@ -13,6 +13,16 @@ const getBrowserInfo = (ext.runtime as { getBrowserInfo?: () => Promise<{ name: 
 
 const client = new NativeClient(() => void refreshActiveTab())
 
+/**
+ * Firefox only exposes contextMenus with the "contextMenus" permission; we request "menus" there,
+ * which adds onShown/refresh so the menu can match the frame that was right-clicked
+ */
+type MenusApi = typeof chrome.contextMenus & {
+  onShown?: { addListener(fn: (info: { frameUrl?: string; pageUrl?: string }) => void): void }
+  refresh?: () => Promise<void>
+}
+const menus: MenusApi = (ext as { menus?: MenusApi }).menus ?? ext.contextMenus
+
 async function getToken(): Promise<string | null> {
   const stored = await ext.storage.local.get(TOKEN_KEY)
   return typeof stored[TOKEN_KEY] === 'string' ? (stored[TOKEN_KEY] as string) : null
@@ -99,18 +109,18 @@ async function refresh(url: string | undefined): Promise<void> {
   }
   if (current !== generation) return
 
-  await ext.contextMenus.removeAll()
-  ext.contextMenus.create({ id: ROOT, title: 'Password Manager', contexts: ['editable'] })
+  await menus.removeAll()
+  menus.create({ id: ROOT, title: 'Password Manager', contexts: ['editable'] })
   items.forEach((item, index) => {
     if ('separator' in item) {
-      ext.contextMenus.create({
+      menus.create({
         id: `${ROOT}:sep:${index}`,
         parentId: ROOT,
         type: 'separator',
         contexts: ['editable']
       })
     } else {
-      ext.contextMenus.create({
+      menus.create({
         id: item.id,
         parentId: ROOT,
         title: item.title,
@@ -178,7 +188,7 @@ async function fill(
   await ext.tabs.sendMessage(tab.id, message, { frameId: info.frameId ?? 0 })
 }
 
-ext.contextMenus.onClicked.addListener((info, tab) => {
+menus.onClicked.addListener((info, tab) => {
   const id = String(info.menuItemId)
   if (id === `${ROOT}:connect`) void pair()
   else if (id === `${ROOT}:show`) void client.request({ type: 'show' })
@@ -196,16 +206,8 @@ ext.runtime.onStartup.addListener(() => void refreshActiveTab())
 ext.runtime.onInstalled.addListener(() => void refreshActiveTab())
 
 // Firefox can update a menu while it's open, using the frame that was right-clicked
-const menus = (
-  ext as unknown as {
-    menus?: {
-      onShown: { addListener(fn: (info: { frameUrl?: string; pageUrl?: string }) => void): void }
-      refresh(): Promise<void>
-    }
-  }
-).menus
-menus?.onShown.addListener((info) => {
-  void refresh(info.frameUrl ?? info.pageUrl).then(() => menus.refresh())
+menus.onShown?.addListener((info) => {
+  void refresh(info.frameUrl ?? info.pageUrl).then(() => menus.refresh?.())
 })
 
 void refreshActiveTab()
