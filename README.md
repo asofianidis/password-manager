@@ -57,6 +57,9 @@ offer updates themselves; see [CI and releases](#ci-and-releases).
 - **Export**: an encrypted backup (`.pmbackup`), CSV, or JSON.
 - **Browser fill**: right-click a login field in Chrome, Edge, Brave, Arc, Vivaldi, or Firefox
   and pick a saved login to fill it (see [Browser extension](#browser-extension)).
+- **Runs in the background**: on Windows and macOS, closing the window keeps the app running in
+  the system tray / menu bar so the browser can still fill logins. Quit from the tray icon's menu
+  (or Cmd+Q on macOS).
 - **Sync**: pair devices with a 6-digit code, then sync directly. All sync messages are
   end-to-end encrypted with the vault key.
 

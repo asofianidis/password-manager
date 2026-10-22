@@ -9,8 +9,11 @@ import { sync } from './sync/sync'
 import { startAutoLock } from './auto-lock'
 import { updater } from './updater'
 import { browserBridge } from './browser'
+import { createTray, notifyRunningInTray, runsInBackground } from './tray'
 
 let mainWindow: BrowserWindow | null = null
+/** Set once the app is really quitting, so closing the window stops hiding it */
+let quitting = false
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -36,6 +39,20 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  // Keep running in the tray / menu bar so the browser extension can still fill logins
+  mainWindow.on('close', (event) => {
+    if (quitting || !runsInBackground) return
+    event.preventDefault()
+    mainWindow?.hide()
+    // Live in the menu bar only, until the window is opened again
+    if (process.platform === 'darwin') app.dock?.hide()
+    notifyRunningInTray()
+  })
+  // Windows shutdown / sign-out doesn't emit before-quit; don't let the hidden window block it
+  mainWindow.on('query-session-end', () => {
+    quitting = true
+  })
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })
@@ -58,8 +75,9 @@ function createWindow(): void {
   }
 }
 
-/** Brings the window to the front, recreating it if it was closed (macOS keeps running). */
+/** Brings the window to the front, recreating it if it was closed. */
 function showWindow(): BrowserWindow {
+  if (process.platform === 'darwin') void app.dock?.show()
   if (!mainWindow) createWindow()
   const window = mainWindow!
   if (window.isMinimized()) window.restore()
@@ -73,11 +91,9 @@ function showWindow(): BrowserWindow {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
+  // Launching the app again (e.g. from the Start menu) opens the window hidden in the tray
   app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
-    }
+    showWindow()
   })
 
   app.whenReady().then(async () => {
@@ -100,28 +116,25 @@ if (!app.requestSingleInstanceLock()) {
     await sync.reconcile()
 
     createWindow()
+    createTray(() => void showWindow())
     updater.start()
     void browserBridge.start(showWindow)
 
-    app.on('activate', function () {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    // macOS: clicking the dock icon or opening the app from Finder while it runs in the menu bar
+    app.on('activate', () => {
+      showWindow()
     })
   })
 
   app.on('before-quit', () => {
+    quitting = true
     vault.lock()
     void sync.stop()
     void browserBridge.stop()
   })
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// Only reached where closing the window doesn't hide it to the tray (Linux)
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (!runsInBackground) app.quit()
 })
