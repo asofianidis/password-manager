@@ -161,6 +161,8 @@ or the extension publishes a GitHub release: the version is `package.json`'s if 
 latest tag, otherwise the latest tag with the patch bumped. Pushing a `v*` tag releases that
 version. A release that only changed the extension is titled "(browser extension)" and not marked
 **Latest**, so the app's updater and the install script keep using the last desktop release.
+Releases that include a Mac build start their notes with the [macOS install](#macos) section of
+this README, followed by the generated changelog.
 
 Each release also carries the `latest*.yml` update feeds. Installed apps check GitHub releases on
 launch and every 4 hours (or via **Check for Updates** in the command palette). When a newer

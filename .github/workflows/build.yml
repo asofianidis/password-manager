@@ -238,6 +238,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Only the README is needed, for the macOS install instructions in the release notes
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: README.md
+          sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -257,12 +262,23 @@ jobs:
             latest=false
             title="$TAG (browser extension)"
           fi
+          # Releases with a Mac build start with the README's macOS install section; the generated
+          # notes follow it
+          : > notes.md
+          if compgen -G 'artifacts/*.dmg' > /dev/null; then
+            {
+              echo '## Install on macOS'
+              awk '/^### macOS$/ { found = 1; next } found && /^##?#? / { exit } found' README.md
+              echo
+            } > notes.md
+          fi
           # Creates the tag at this commit if it doesn't exist yet
           gh release create "$TAG" artifacts/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "$title" \
             --latest="$latest" \
+            --notes-file notes.md \
             --generate-notes
 
       # The app downloads Chromium extension updates from extension.json, and Firefox reads
