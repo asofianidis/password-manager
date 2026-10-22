@@ -185,6 +185,10 @@ const DEFS: SettingDef[] = [
   }
 ]
 
+function scrollToSection(id: SectionId): void {
+  document.getElementById(`section-${id}`)?.scrollIntoView({ block: 'start' })
+}
+
 function SettingsPage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const { data: settings } = useSuspenseQuery(queries.settings())
@@ -201,8 +205,9 @@ function SettingsPage(): React.JSX.Element {
     onError: toastError
   })
 
+  // Section links pass resetScroll: false, otherwise the router scrolls #main back to the top
   useEffect(() => {
-    if (section) document.getElementById(`section-${section}`)?.scrollIntoView({ block: 'start' })
+    if (section) scrollToSection(section)
   }, [section])
 
   const term = query.trim().toLowerCase()
@@ -237,7 +242,11 @@ function SettingsPage(): React.JSX.Element {
             return (
               <button
                 key={id}
-                onClick={() => void navigate({ search: { section: id }, replace: true })}
+                onClick={() => {
+                  // Scroll here too: clicking the already-selected section doesn't change the URL
+                  scrollToSection(id)
+                  void navigate({ search: { section: id }, replace: true, resetScroll: false })
+                }}
                 disabled={count === 0}
                 className={cn(
                   'flex h-8 w-full items-center gap-2.5 rounded-lg px-2.5 text-left transition-colors hover:bg-hover disabled:opacity-40',
@@ -355,7 +364,11 @@ function ImportSetting(): React.JSX.Element {
           onClose={() => {
             setOpen(false)
             if (action)
-              void navigate({ search: (prev) => ({ ...prev, action: undefined }), replace: true })
+              void navigate({
+                search: (prev) => ({ ...prev, action: undefined }),
+                replace: true,
+                resetScroll: false
+              })
           }}
         />
       )}

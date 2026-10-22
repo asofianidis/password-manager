@@ -264,7 +264,7 @@ function EmptyVault(): React.JSX.Element {
             New password
           </Button>
         </Link>
-        <Link to="/settings" search={{ section: 'data', action: 'import' }}>
+        <Link to="/settings" search={{ section: 'data', action: 'import' }} resetScroll={false}>
           <Button>
             <FileUp className="size-3.5" />
             Import from Dashlane, Chrome, Bitwarden…

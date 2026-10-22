@@ -124,19 +124,26 @@ export function useAppCommands(): AppCommand[] {
         id: 'import',
         category: 'File',
         label: 'Import Passwords…',
-        run: () => void navigate({ to: '/settings', search: { section: 'data', action: 'import' } })
+        run: () =>
+          void navigate({
+            to: '/settings',
+            search: { section: 'data', action: 'import' },
+            resetScroll: false
+          })
       },
       {
         id: 'export',
         category: 'File',
         label: 'Export Passwords…',
-        run: () => void navigate({ to: '/settings', search: { section: 'data' } })
+        run: () =>
+          void navigate({ to: '/settings', search: { section: 'data' }, resetScroll: false })
       },
       {
         id: 'master',
         category: 'Vault',
         label: 'Change Master Password',
-        run: () => void navigate({ to: '/settings', search: { section: 'security' } })
+        run: () =>
+          void navigate({ to: '/settings', search: { section: 'security' }, resetScroll: false })
       },
       {
         id: 'lock',
