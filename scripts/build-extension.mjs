@@ -48,6 +48,9 @@ const targets = {
       gecko: {
         id: 'password-manager@asofianidis',
         strict_min_version: '128.0',
+        // Firefox checks this for new signed versions (EXTENSION_CHANNEL_URL in browser-protocol.ts)
+        update_url:
+          'https://github.com/asofianidis/password-manager/releases/download/extension-latest/updates.json',
         // Logins go only to the local desktop app; nothing is sent anywhere else
         data_collection_permissions: { required: ['none'] }
       }

@@ -17,6 +17,10 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+# The Chromium extension, copied by the app into the folder users load it from (extension-files.ts)
+extraResources:
+  - from: extension/dist/chrome
+    to: browser-extension/chrome
 win:
   executableName: password-manager
   target:

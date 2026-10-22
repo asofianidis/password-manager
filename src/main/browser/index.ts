@@ -1,17 +1,23 @@
-import { dialog, type BrowserWindow } from 'electron'
+import { dialog, shell, type BrowserWindow } from 'electron'
 import type { BrowserBridgeStatus } from '../../shared/types'
 import { settingsStore } from '../settings'
 import { vault } from '../vault/vault'
 import { BridgeServer, createBridgeHandler } from './bridge'
+import { extensionFiles } from './extension-files'
 import { bridgeSocketPath, registerNativeHost } from './install'
 
 /** Lets the browser extension fill logins: see src/shared/browser-protocol.ts */
 class BrowserBridge {
   private server: BridgeServer | null = null
-  private state: BrowserBridgeStatus = { listening: false, error: null, registered: [] }
+  private state: Omit<BrowserBridgeStatus, 'extension'> = {
+    listening: false,
+    error: null,
+    registered: []
+  }
 
   async start(showWindow: () => BrowserWindow): Promise<void> {
     if (this.server) return
+    void extensionFiles.start()
     const handle = createBridgeHandler({
       vault,
       clients: () => settingsStore.get().browser.clients,
@@ -37,7 +43,8 @@ class BrowserBridge {
         })
         return response === 0
       },
-      showApp: () => void showWindow()
+      showApp: () => void showWindow(),
+      extensionVersion: () => extensionFiles.status().version
     })
 
     const socketPath = bridgeSocketPath()
@@ -54,6 +61,8 @@ class BrowserBridge {
     for (const event of ['locked', 'unlocked', 'changed'] as const) {
       vault.on(event, () => server.notify())
     }
+    // New extension files: tell the extension so it can reload itself
+    extensionFiles.on('changed', () => server.notify())
 
     try {
       this.state = { ...this.state, registered: await registerNativeHost(socketPath) }
@@ -63,7 +72,17 @@ class BrowserBridge {
   }
 
   status(): BrowserBridgeStatus {
-    return this.state
+    return { ...this.state, extension: extensionFiles.status() }
+  }
+
+  async checkExtension(): Promise<BrowserBridgeStatus> {
+    await extensionFiles.check()
+    return this.status()
+  }
+
+  async revealExtension(): Promise<void> {
+    const error = await shell.openPath(extensionFiles.dir)
+    if (error) throw new Error(error)
   }
 
   async revoke(id: string): Promise<void> {

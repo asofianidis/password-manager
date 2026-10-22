@@ -66,6 +66,8 @@ export interface InvokeApi {
 
   'browser:status': () => BrowserBridgeStatus
   'browser:revoke': (id: string) => void
+  'browser:check-extension': () => BrowserBridgeStatus
+  'browser:reveal-extension': () => void
 }
 
 export type InvokeChannel = keyof InvokeApi
@@ -105,7 +107,9 @@ export const INVOKE_CHANNELS = [
   'update:check',
   'update:install',
   'browser:status',
-  'browser:revoke'
+  'browser:revoke',
+  'browser:check-extension',
+  'browser:reveal-extension'
 ] as const satisfies readonly InvokeChannel[]
 
 /** IPC handlers wrap results so error messages survive the process boundary intact. */

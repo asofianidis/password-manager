@@ -11,6 +11,23 @@ export const NATIVE_HOST_NAME = 'com.password_manager.host'
 export const CHROME_EXTENSION_ID = 'mefnjmeinnpfdccbohalohcenfhjkmkb'
 export const FIREFOX_EXTENSION_ID = 'password-manager@asofianidis'
 
+/**
+ * A rolling pre-release that CI updates whenever the extension is released. It holds
+ * extension.json (read by the app, see ExtensionChannel) and updates.json (read by Firefox).
+ * Being a pre-release, it never becomes the "Latest" release the app's own updater reads.
+ */
+export const EXTENSION_CHANNEL_URL =
+  'https://github.com/asofianidis/password-manager/releases/download/extension-latest'
+
+/** Downloads must come from this repo's releases */
+export const RELEASE_DOWNLOAD_PREFIX =
+  'https://github.com/asofianidis/password-manager/releases/download/'
+
+export interface ExtensionChannel {
+  version: string
+  chrome: { url: string; sha256: string }
+}
+
 export type BridgeRequest =
   /** `token` is optional so an unpaired extension can still see whether the vault is unlocked */
   | { type: 'status'; token?: string }
@@ -34,6 +51,11 @@ export type BridgeError =
 export interface BridgeStatus {
   state: 'no-vault' | 'locked' | 'unlocked'
   paired: boolean
+  /**
+   * Version of the Chromium extension in the folder the app manages. When it's newer than the
+   * running extension, the extension reloads itself to pick up the new files.
+   */
+  extensionVersion: string | null
 }
 
 export interface BridgeLogin {
@@ -68,4 +90,18 @@ export type BridgeReply = { id: number } & BridgeResponse
  */
 export interface BridgeEvent {
   event: 'status' | 'connected' | 'disconnected'
+}
+
+/** Compares dotted numeric versions ("1.0.10" > "1.0.9"); a missing version is the oldest. */
+export function compareVersions(a: string | null, b: string | null): number {
+  if (a === b) return 0
+  if (a === null) return -1
+  if (b === null) return 1
+  const pa = a.split('.').map(Number)
+  const pb = b.split('.').map(Number)
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const diff = (pa[i] || 0) - (pb[i] || 0)
+    if (diff !== 0) return Math.sign(diff)
+  }
+  return 0
 }

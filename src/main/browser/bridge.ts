@@ -23,6 +23,7 @@ export interface BridgeDeps {
   clients(): BrowserClient[]
   addClient(client: BrowserClient): Promise<void>
   touchClient(id: string): void
+  extensionVersion(): string | null
   /** Asks the user whether to let this browser connect */
   confirmPair(browser: string): Promise<boolean>
   showApp(): void
@@ -76,7 +77,8 @@ export function createBridgeHandler(deps: BridgeDeps) {
   } = {
     status: (request): BridgeStatus => ({
       state: deps.vault.status().state,
-      paired: findClient(deps.clients(), request.token) !== null
+      paired: findClient(deps.clients(), request.token) !== null,
+      extensionVersion: deps.extensionVersion()
     }),
 
     show: () => {

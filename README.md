@@ -26,19 +26,30 @@ Sync is peer-to-peer (ideally over Tailscale) with no cloud server.
 The extension in `extension/` adds a **Password Manager** submenu when you right-click an input
 field. It lists the saved logins that match the site; picking one fills the username and password.
 
-```bash
-npm run build:extension   # writes extension/dist/chrome and extension/dist/firefox
-```
+- **Chrome, Edge, Brave, Arc, Vivaldi**: in the app, open **Settings → Browser** and click **Open
+  folder**. In the browser, open `chrome://extensions`, turn on Developer mode, click **Load
+  unpacked**, and pick that folder. Chrome only installs `.crx` files from the Chrome Web Store, so
+  there is no installer to download.
+- **Firefox**: install the Mozilla-signed
+  [add-on](https://github.com/asofianidis/password-manager/releases/download/extension-latest/password-manager-extension-firefox.xpi)
+  (the link on **Settings → Browser** goes to the same file).
 
-- **Chrome, Edge, Brave, Arc, Vivaldi**: open `chrome://extensions`, turn on Developer mode, click
-  **Load unpacked**, and pick `extension/dist/chrome`.
-- **Firefox**: each release has a Mozilla-signed `…-firefox.xpi`; open it in Firefox to install
-  it permanently. For a local build, open `about:debugging#/runtime/this-firefox`, click **Load
-  Temporary Add-on**, and pick `extension/dist/firefox/manifest.json` (removed when Firefox
-  restarts).
+**Updates.** Chrome doesn't update unpacked extensions, so the app does: the folder starts with the
+copy bundled in the app, and the app checks GitHub every 4 hours (or on **Check for updates**) for
+a newer one. It downloads it, checks its SHA-256, and swaps the folder; the extension then sees the
+newer version on disk and reloads itself. If it ever doesn't, click the reload icon on the
+extension's card in `chrome://extensions`. Firefox updates the signed add-on itself through its
+`update_url`.
 
-CI signs the Firefox add-on as unlisted on addons.mozilla.org using the `AMO_JWT_ISSUER` and
-`AMO_JWT_SECRET` repository secrets, and signs the Chrome `.crx` with `CHROME_EXTENSION_KEY`.
+Both read the `extension-latest` release, a pre-release that CI updates whenever the extension is
+released. It holds `extension.json` (version, Chromium zip URL, and hash, read by the app),
+`updates.json` (Firefox's update manifest), and fixed-name copies of the latest zip and `.xpi`.
+Being a pre-release, it never becomes the **Latest** release the app's own updater reads.
+
+For development, `npm run build:extension` writes `extension/dist/chrome` and
+`extension/dist/firefox`; load the first unpacked, or the second as a temporary add-on from
+`about:debugging#/runtime/this-firefox`. CI signs the Firefox add-on as unlisted on
+addons.mozilla.org using the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` repository secrets.
 
 Open the desktop app at least once afterwards: on each launch it registers its native messaging
 host with every browser it finds. Then right-click a login field and choose **Password Manager →
@@ -91,16 +102,17 @@ builds only what the changed files affect:
 
 - **Desktop app** (`src/`, `build/`, `resources/`, build config): packaged on native runners.
 - **Browser extension** (`extension/`, its build scripts, `src/shared/browser-protocol.ts`):
-  built, the `.crx` signed, and on releases the Firefox add-on signed by Mozilla.
+  built, and on releases the Firefox add-on signed by Mozilla and the `extension-latest` update
+  feed refreshed. Every desktop build also bundles the current extension.
 - `package.json`, `package-lock.json`, and the workflow itself rebuild both. Tag pushes, manual
   runs, and new branches also build both. Changes elsewhere (docs, tests) only run the checks.
 
-| Platform          | Artifacts                                           |
-| ----------------- | --------------------------------------------------- |
-| macOS             | `.dmg` and `.zip` for x64 and arm64                 |
-| Windows           | NSIS installer `.exe` (x64)                         |
-| Linux             | `.AppImage` and `.deb` (x64)                        |
-| Browser extension | Chrome `.crx` and `.zip`, Firefox `.xpi` and `.zip` |
+| Platform          | Artifacts                                  |
+| ----------------- | ------------------------------------------ |
+| macOS             | `.dmg` and `.zip` for x64 and arm64        |
+| Windows           | NSIS installer `.exe` (x64)                |
+| Linux             | `.AppImage` and `.deb` (x64)               |
+| Browser extension | Chromium `.zip`, Firefox `.xpi` and `.zip` |
 
 Download the builds from the run's **Artifacts** section. Every push to `main` that changes the app
 or the extension publishes a GitHub release: the version is `package.json`'s if it's ahead of the

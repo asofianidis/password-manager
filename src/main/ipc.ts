@@ -80,7 +80,9 @@ const handlers: Handlers = {
   'update:install': () => updater.install(),
 
   'browser:status': () => browserBridge.status(),
-  'browser:revoke': (_, id) => browserBridge.revoke(id)
+  'browser:revoke': (_, id) => browserBridge.revoke(id),
+  'browser:check-extension': () => browserBridge.checkExtension(),
+  'browser:reveal-extension': () => browserBridge.revealExtension()
 }
 
 function requireUnlocked(): void {

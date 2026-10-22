@@ -125,7 +125,8 @@ function setup(options: { state?: VaultState; approve?: boolean } = {}): {
       fake.prompts++
       return options.approve ?? true
     },
-    showApp: () => fake.shown++
+    showApp: () => fake.shown++,
+    extensionVersion: () => '1.2.3'
   })
   return { fake, handle }
 }
@@ -149,7 +150,7 @@ describe('bridge handler', () => {
     expect(JSON.stringify(fake.clients)).not.toContain(token)
     expect(await handle({ type: 'status', token })).toEqual({
       ok: true,
-      result: { state: 'unlocked', paired: true }
+      result: { state: 'unlocked', paired: true, extensionVersion: '1.2.3' }
     })
   })
 
@@ -163,7 +164,7 @@ describe('bridge handler', () => {
     const { handle } = setup()
     expect(await handle({ type: 'status' })).toEqual({
       ok: true,
-      result: { state: 'unlocked', paired: false }
+      result: { state: 'unlocked', paired: false, extensionVersion: '1.2.3' }
     })
     for (const request of [
       { type: 'logins', token: 'nope', url: 'https://example.com' },

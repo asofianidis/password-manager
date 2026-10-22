@@ -148,6 +148,10 @@ jobs:
       - name: Bundle with electron-vite
         run: npx electron-vite build
 
+      # Shipped inside the app as the starting copy of the Chromium extension
+      - name: Build browser extension
+        run: npm run build:extension
+
       - name: Package with electron-builder
         run: npx electron-builder ${{ matrix.platform }} --publish never
         env:
@@ -189,11 +193,7 @@ jobs:
 
       - run: npm run build:extension
 
-      - name: Pack and sign
-        run: npm run pack:extension
-        env:
-          # Signs the .crx. Must be the key whose ID is CHROME_EXTENSION_ID; the script checks
-          CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
+      - run: npm run pack:extension
 
       # Mozilla only installs signed add-ons permanently. "unlisted" signs it without publishing it
       # on addons.mozilla.org. Each version can only be signed once, so this runs for releases only.
@@ -260,3 +260,45 @@ jobs:
             --title "$title" \
             --latest="$latest" \
             --generate-notes
+
+      # The app downloads Chromium extension updates from extension.json, and Firefox reads
+      # updates.json (the add-on's update_url). Both live on a rolling pre-release, which never
+      # becomes Latest, so they always point at the newest extension whatever else is released.
+      - name: Update extension channel
+        if: needs.extension.result == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          version="${TAG#v}"
+          download="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG"
+          chrome="password-manager-extension-$version-chrome.zip"
+          firefox="password-manager-extension-$version-firefox.xpi"
+          sha256() { sha256sum "$1" | cut -d' ' -f1; }
+          mkdir channel
+
+          cp "artifacts/$chrome" channel/password-manager-extension-chrome.zip
+          jq -n --arg version "$version" --arg url "$download/$chrome" --arg sha "$(sha256 "artifacts/$chrome")" \
+            '{version: $version, chrome: {url: $url, sha256: $sha}}' > channel/extension.json
+
+          # Signing can fail without failing the release; Firefox then keeps the previous version
+          if [[ -f "artifacts/$firefox" ]]; then
+            cp "artifacts/$firefox" channel/password-manager-extension-firefox.xpi
+            jq -n --arg version "$version" --arg url "$download/$firefox" --arg sha "$(sha256 "artifacts/$firefox")" \
+              '{addons: {"password-manager@asofianidis": {updates: [{version: $version, update_link: $url, update_hash: ("sha256:" + $sha)}]}}}' \
+              > channel/updates.json
+          fi
+
+          if ! gh release view extension-latest --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create extension-latest \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --prerelease \
+              --latest=false \
+              --title "Browser extension (latest)" \
+              --notes "Update feed for the browser extension. Download installers from the versioned releases."
+          fi
+          gh release upload extension-latest channel/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit extension-latest --repo "$GITHUB_REPOSITORY" \
+            --notes "Update feed for the browser extension. Currently $TAG; see that release for details."

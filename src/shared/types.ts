@@ -194,12 +194,21 @@ export interface ImportPreview {
 
 export type ExportFormat = 'pm-encrypted' | 'pm-json' | 'csv'
 
+/** The Chromium extension folder the app keeps up to date */
+export interface ExtensionFilesStatus {
+  path: string
+  version: string | null
+  checking: boolean
+  error: string | null
+}
+
 export interface BrowserBridgeStatus {
   /** Socket the native messaging host connects to; null if it failed to start */
   listening: boolean
   error: string | null
   /** Browsers the native messaging host was registered with on this launch */
   registered: string[]
+  extension: ExtensionFilesStatus
 }
 
 /** Events pushed from the main process to the renderer. */

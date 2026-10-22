@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tansta
 import {
   Download,
   FileUp,
+  FolderOpen,
   Globe,
   HardDriveDownload,
   Search,
@@ -14,6 +15,7 @@ import type { ExportFormat, Settings, SettingsPatch } from '@shared/types'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
 import { timeAgo } from '@renderer/lib/format'
+import { EXTENSION_CHANNEL_URL } from '@shared/browser-protocol'
 import { toast, toastError } from '@renderer/lib/toast'
 import {
   Button,
@@ -411,9 +413,61 @@ function BrowserSetting({
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queries.settings().queryKey }),
     onError: toastError
   })
+  const checkExtension = useMutation({
+    mutationFn: () => api.invoke('browser:check-extension'),
+    onSuccess: (next) => {
+      queryClient.setQueryData(['browser', 'status'], next)
+      if (next.extension.error) toastError(new Error(next.extension.error))
+      else toast(`Extension is up to date (${next.extension.version ?? 'none'})`)
+    },
+    onError: toastError
+  })
+  const extension = status?.extension
 
   return (
     <div className="max-w-xl space-y-3">
+      {extension && (
+        <div className="space-y-2 rounded-lg bg-canvas px-3 py-2.5 text-xs text-muted ring-1 ring-line ring-inset">
+          <p>
+            <span className="text-fg">Chrome, Edge, Brave, Arc, Vivaldi:</span> open the
+            browser&apos;s extensions page, turn on Developer mode, click Load unpacked, and pick
+            this folder. The app keeps it updated and the extension reloads itself.
+          </p>
+          <p className="font-mono break-all text-fg">{extension.path}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => void api.invoke('browser:reveal-extension').catch(toastError)}
+            >
+              <FolderOpen className="size-3.5" />
+              Open folder
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={checkExtension.isPending}
+              onClick={() => checkExtension.mutate()}
+            >
+              {checkExtension.isPending ? 'Checking…' : 'Check for updates'}
+            </Button>
+            <span className="ml-auto">
+              {extension.version ? `Version ${extension.version}` : 'Not downloaded yet'}
+            </span>
+          </div>
+          <p>
+            <span className="text-fg">Firefox:</span>{' '}
+            <a
+              href={`${EXTENSION_CHANNEL_URL}/password-manager-extension-firefox.xpi`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent hover:underline"
+            >
+              install the signed add-on
+            </a>
+            ; Firefox keeps it updated.
+          </p>
+        </div>
+      )}
       {status && (
         <p className={cn('text-xs', status.error ? 'text-warn' : 'text-muted')}>
           {status.error

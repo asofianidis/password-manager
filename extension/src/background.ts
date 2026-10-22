@@ -1,10 +1,15 @@
-import type { BridgeLogin } from '../../src/shared/browser-protocol'
+import { compareVersions, type BridgeLogin } from '../../src/shared/browser-protocol'
 import { NativeClient, ext, type ClientError } from './native'
 import type { FillMessage } from './content'
 
 const ROOT = 'pm'
 const PAIR_TIMEOUT_MS = 2 * 60 * 1000
 const TOKEN_KEY = 'token'
+const RELOADED_FOR_KEY = 'reloadedFor'
+
+/** Firefox-only API; also how we tell the browsers apart */
+const getBrowserInfo = (ext.runtime as { getBrowserInfo?: () => Promise<{ name: string }> })
+  .getBrowserInfo
 
 const client = new NativeClient(() => void refreshActiveTab())
 
@@ -69,6 +74,7 @@ async function menuFor(url: string | undefined): Promise<MenuItem[]> {
     await setToken(null)
     return [{ id: `${ROOT}:connect`, title: 'Connect to Password Manager…' }]
   }
+  await reloadIfUpdated(status.result.extensionVersion)
   if (status.result.state === 'locked') return errorItems('locked')
   if (status.result.state === 'no-vault') return errorItems('no-vault')
 
@@ -120,10 +126,21 @@ async function refreshActiveTab(): Promise<void> {
   await refresh(tab?.url)
 }
 
+/**
+ * Chromium won't update an unpacked extension, so the app replaces the files in the folder it was
+ * loaded from. Reloading picks them up. Firefox updates the signed add-on itself (update_url).
+ */
+async function reloadIfUpdated(onDisk: string | null): Promise<void> {
+  if (getBrowserInfo || compareVersions(onDisk, ext.runtime.getManifest().version) <= 0) return
+  // Once per version: if this copy was loaded from some other folder, reloading changes nothing
+  const stored = await ext.storage.local.get(RELOADED_FOR_KEY)
+  if (stored[RELOADED_FOR_KEY] === onDisk) return
+  await ext.storage.local.set({ [RELOADED_FOR_KEY]: onDisk })
+  ext.runtime.reload()
+}
+
 async function browserName(): Promise<string> {
-  const firefox = (ext.runtime as { getBrowserInfo?: () => Promise<{ name: string }> })
-    .getBrowserInfo
-  if (firefox) return (await firefox()).name
+  if (getBrowserInfo) return (await getBrowserInfo()).name
   const brands =
     (navigator as { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands ?? []
   const brand = brands.find((b) => !/chromium|not.?a.?brand/i.test(b.brand))?.brand
