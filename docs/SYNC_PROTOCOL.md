@@ -87,13 +87,17 @@ header and no entries, and ignores the entries in the reply.
 
 ## Android implementation notes
 
-- A phone usually can't keep a listener running, so act as a **client only**: pair, then
+The Android app (`android/`, reference: `sync/SyncClient.kt`) follows these:
+
+- A phone usually can't keep a listener running, so it acts as a **client only**: pair, then
   `POST /v1/sync` to a desktop on the tailnet. The desktop must have **Accept sync
   connections** on and be unlocked.
 - Use the Tailscale Android app for connectivity; address the desktop by its
   `100.x.y.z` IP or MagicDNS name.
-- Android blocks cleartext HTTP by default. Allow it for the tailnet
-  (`network_security_config` with `cleartextTrafficPermitted` for your MagicDNS domain,
-  or for `100.64.0.0/10` addresses). Confidentiality comes from the vault-key encryption
-  plus WireGuard, not from TLS.
+- Android blocks cleartext HTTP by default, and `network_security_config` can't allow an IP
+  range such as `100.64.0.0/10`, so the app allows cleartext everywhere (it makes no other
+  requests). Confidentiality comes from the vault-key encryption plus WireGuard, not from TLS.
+- The merge tie-break compares `JSON.stringify` output, so a client in another language must
+  serialize entries with the desktop's key order and JavaScript's string escaping
+  (`canonicalJson` in `vault/Merge.kt`).
 - Keep device clocks synced (the 5-minute window).

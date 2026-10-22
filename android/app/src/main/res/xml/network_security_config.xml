@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sync talks plain HTTP to computers on your tailnet or LAN (100.x.y.z, 192.168.x.y, *.ts.net),
+  which a domain list can't express. Every sync payload is AES-256-GCM sealed with the vault key,
+  and Tailscale adds WireGuard; see docs/SYNC_PROTOCOL.md. The app makes no other requests.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -43,6 +43,12 @@ Download the installer (`.exe`), `.AppImage`, or `.deb` from the
 [latest release](https://github.com/asofianidis/password-manager/releases/latest). Installed apps
 offer updates themselves; see [CI and releases](#ci-and-releases).
 
+### Android
+
+Download `password-manager-<version>.apk` from the
+[releases](https://github.com/asofianidis/password-manager/releases) and open it on your phone
+(allow your browser to install apps when asked). Then see [Android app](#android-app).
+
 ## Features
 
 - **Encrypted vault**: Argon2id + AES-256-GCM, unlocked with a master password. It auto-locks
@@ -62,6 +68,8 @@ offer updates themselves; see [CI and releases](#ci-and-releases).
   (or Cmd+Q on macOS).
 - **Sync**: pair devices with a 6-digit code, then sync directly. All sync messages are
   end-to-end encrypted with the vault key.
+- **Android app**: fills logins in apps and browsers, including from the keyboard's suggestion
+  strip (see [Android app](#android-app)).
 
 ## Browser extension
 
@@ -117,6 +125,65 @@ How it works:
 - Nothing is filled while the vault is locked; the menu offers to open the app instead.
 - Browsers installed as Snap or Flatpak packages on Linux can't run native messaging hosts.
 
+## Android app
+
+The app in `android/` (Kotlin, Jetpack Compose) holds a copy of the same vault and syncs it with
+your computers. It can't create a vault: you pair it with the desktop app, which keeps the vault
+key.
+
+**Setup.** On the computer, open **Sync** and click **Pair a new device** (this also turns on
+listening for the 5-minute window). On the phone, enter one of the addresses it shows, the port,
+the 6-digit code, and your master password. The phone has to reach the computer: the same Wi-Fi,
+or Tailscale on both (use the `100.x.y.z` address or MagicDNS name). To keep syncing afterwards,
+turn on **Accept sync connections** on the computer.
+
+**Autofill.** Under **Settings → Autofill**, tap **Turn on autofill** and pick Password Manager.
+That one setting covers both apps and browsers; there is no keyboard to install.
+
+- Tapping a login field shows matching logins in the autofill dropdown, or, on Android 11+ with a
+  keyboard that supports it (Gboard, Samsung Keyboard), in the keyboard's suggestion strip. When
+  the vault is locked it offers **Unlock to fill**, and fills straight away if one login matches.
+- **Search vault…** picks any login. Filling one that wasn't saved for that site or app asks for
+  confirmation first. For apps, you can have it offered there from then on (kept on the phone).
+- Typing a new login offers to save it; changing a saved password offers to update it.
+- **Chrome** (135+) needs **Settings → Autofill services → Autofill using another service**, then
+  a restart. Firefox uses the autofill service directly; other browsers vary.
+
+**Which logins match.** Websites use the same rules as the browser extension (same host, or a
+subdomain of it unless it's a public suffix; an https login never fills a plain http page). The
+page's domain is only trusted from known browsers: any app can claim any domain, so a login form
+in another app (or its WebView) only gets logins saved for that app (`androidapp://<package>`, the
+URL the app saves them under) or ones you chose for it before.
+
+**Locking.** Unlock with the master password or, after turning it on, a fingerprint or face. The
+vault key is then sealed by an Android Keystore key that needs a strong biometric and is destroyed
+when a new one is enrolled. The vault locks after inactivity (5 minutes by default), optionally
+when the screen turns off, and whenever Android stops the app. The app is excluded from
+screenshots and backups, and from other autofill services, so they can't save your master password.
+
+**Sync.** The phone is a client only: it syncs with every computer you added when you unlock it,
+shortly after each change, and from the sync button. A master password change or device revoke on
+a computer reaches the phone on its next sync; it then asks for the new master password.
+
+### Building
+
+Open `android/` in Android Studio, or with JDK 17 and the Android SDK:
+
+```bash
+cd android
+./gradlew :app:testDebugUnitTest   # unit tests, including checks against the desktop's own output
+./gradlew :app:assembleDebug       # app/build/outputs/apk/debug/app-debug.apk
+```
+
+The debug build installs as `com.asofianidis.passwordmanager.debug`, next to a release install.
+`app/src/test/resources/interop.json` is written by the desktop code; after changing the vault
+format, the merge rule, or URL matching, regenerate it with
+`npx vitest run --config android/scripts/vitest.config.ts fixtures`. To try pairing and sync
+against a real desktop without the GUI, run
+`npx vitest run --config android/scripts/vitest.config.ts desktop-peer`. It serves a demo vault on
+port 47999 (from an emulator, the computer is `10.0.2.2`) and writes the pairing code to
+`pm-desktop-peer.log` in the temp folder.
+
 ## Keyboard shortcuts
 
 | Shortcut       | Action                                  |
@@ -151,6 +218,7 @@ builds only what the changed files affect:
 - **Browser extension** (`extension/`, its build scripts, `src/shared/browser-protocol.ts`):
   built, and on releases the Firefox add-on signed by Mozilla and the `extension-latest` update
   feed refreshed. Every desktop build also bundles the current extension.
+- **Android app** (`android/`): unit tests, then an APK. Releases need the signing secrets below.
 - `package.json`, `package-lock.json`, and the workflow itself rebuild both. Tag pushes, manual
   runs, and new branches also build both. Changes elsewhere (docs, tests) only run the checks.
 
@@ -160,12 +228,14 @@ builds only what the changed files affect:
 | Windows           | NSIS installer `.exe` (x64)                |
 | Linux             | `.AppImage` and `.deb` (x64)               |
 | Browser extension | Chromium `.zip`, Firefox `.xpi` and `.zip` |
+| Android           | `.apk`                                     |
 
 Download the builds from the run's **Artifacts** section. Every push to `main` that changes the app
 or the extension publishes a GitHub release: the version is `package.json`'s if it's ahead of the
 latest tag, otherwise the latest tag with the patch bumped. Pushing a `v*` tag releases that
-version. A release that only changed the extension is titled "(browser extension)" and not marked
-**Latest**, so the app's updater and the install script keep using the last desktop release.
+version. A release without desktop changes is titled "(browser extension)", "(Android)", or both, and not
+marked **Latest**, so the app's updater and the install script keep using the last desktop
+release.
 Releases that include a Mac build start their notes with the [macOS install](#macos) section of
 this README, followed by the generated changelog.
 
@@ -187,6 +257,13 @@ will also warn on first launch. To sign properly, add electron-builder's signing
 notarization), pass them to the package step, remove `CSC_IDENTITY_AUTO_DISCOVERY: false`, and drop
 `identity: '-'` from `electron-builder.yml`.
 
+Android only installs an update signed with the same key as the installed app. Create a keystore
+once (`keytool -genkeypair -v -keystore release.jks -keyalg RSA -keysize 4096 -validity 10000 -alias pm`),
+keep it safe, and add the repository secrets `ANDROID_KEYSTORE_BASE64` (`base64 -w0 release.jks`),
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` if it differs from the
+keystore password. Without them CI builds a debug APK signed with a throwaway key, which can't
+update an earlier install.
+
 ## Layout
 
 ```
@@ -199,16 +276,22 @@ src/
   renderer/       React UI (TanStack Router file routes in src/routes)
   shared/         Types, IPC contract, CSV/importers, sync merge (pure, portable)
 extension/        Browser extension (Chrome-family and Firefox), built by scripts/build-extension.mjs
-docs/             Vault format and sync protocol for other clients (Android)
+android/          Android app (Kotlin, Compose)
+  app/src/main/java/com/asofianidis/passwordmanager/
+    vault/        Vault file and crypto, a port of src/main/vault
+    sync/         Sync client (the phone never listens)
+    match/        Which logins belong to a site or app
+    autofill/     Android autofill service and its unlock/pick/save screen
+    ui/           Compose screens
+  scripts/        Desktop-side helpers: interop fixtures and a headless sync peer
+docs/             Vault format and sync protocol for other clients
 test/             Vitest suites
 ```
 
 The renderer never holds the vault key. It receives entry summaries for lists and fetches
 an entry's secrets only when it is opened.
 
-## Building the Android app
+## Other clients
 
-See [docs/VAULT_FORMAT.md](docs/VAULT_FORMAT.md) and
-[docs/SYNC_PROTOCOL.md](docs/SYNC_PROTOCOL.md). The logic in `src/shared/` is plain
-TypeScript with no Node or Electron dependencies, so a React Native app can reuse the
-importers and merge logic directly.
+[docs/VAULT_FORMAT.md](docs/VAULT_FORMAT.md) and [docs/SYNC_PROTOCOL.md](docs/SYNC_PROTOCOL.md)
+describe everything another client needs; the Android app is one.

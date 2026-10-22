@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed icon (Android 13+): the shield with its keyhole cut out -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <group android:pivotX="512" android:pivotY="522" android:scaleX="0.95" android:scaleY="0.95" android:translateY="-10">
+        <path android:fillColor="#FF000000" android:fillType="evenOdd" android:pathData="M512,250 L716,326 V500 C716,646 630,742 512,794 C394,742 308,646 308,500 V326 Z M450,468 A62,62 0 1,0 574,468 A62,62 0 1,0 450,468 Z M479.7,529 L462,648 Q460,662 474,662 H550 Q564,662 562,648 L544.3,529 Z" />
+    </group>
+</vector>
