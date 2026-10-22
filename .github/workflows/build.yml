@@ -207,6 +207,10 @@ jobs:
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
           TAG: ${{ needs.version.outputs.tag }}
         run: |
+          # A newline pasted into a secret breaks the JWT signature ("Error decoding signature")
+          WEB_EXT_API_KEY="$(tr -d '[:space:]' <<< "$WEB_EXT_API_KEY")"
+          WEB_EXT_API_SECRET="$(tr -d '[:space:]' <<< "$WEB_EXT_API_SECRET")"
+          export WEB_EXT_API_KEY WEB_EXT_API_SECRET
           if [[ -z "$WEB_EXT_API_KEY" || -z "$WEB_EXT_API_SECRET" ]]; then
             echo "::warning::AMO_JWT_ISSUER/AMO_JWT_SECRET not set; skipping Firefox signing"
             exit 0
