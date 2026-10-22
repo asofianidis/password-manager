@@ -4,6 +4,45 @@ A local-first password manager built with Electron, React, TanStack Router, TanS
 and Tailwind CSS. Your vault is encrypted on disk and never leaves your devices.
 Sync is peer-to-peer (ideally over Tailscale) with no cloud server.
 
+## Install
+
+### macOS
+
+Install or update to the latest release with one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/asofianidis/password-manager/main/scripts/install-mac.sh | bash
+```
+
+Run the same command again to update. It downloads the right build for your Mac (Apple Silicon
+or Intel), quits the app if it's running, replaces `/Applications/Password Manager.app`, and
+opens it. Your vault and settings live in `~/Library/Application Support/password-manager`, so
+updating never touches them.
+
+From a clone of this repo, the same script works without `curl`:
+
+```bash
+bash scripts/install-mac.sh
+```
+
+The script downloads with `curl`, which doesn't mark the app as quarantined, so Gatekeeper
+doesn't block it even though builds aren't notarized. To keep a copy of your vault before an
+update:
+
+```bash
+cp ~/Library/Application\ Support/password-manager/vault.json ~/vault-backup.json
+```
+
+The first time you sync, macOS asks to let Password Manager find devices on your local network;
+click **Allow**. If sync fails with `EHOSTUNREACH`, turn Password Manager on in **System Settings
+→ Privacy & Security → Local Network**.
+
+### Windows and Linux
+
+Download the installer (`.exe`), `.AppImage`, or `.deb` from the
+[latest release](https://github.com/asofianidis/password-manager/releases/latest). Installed apps
+offer updates themselves; see [CI and releases](#ci-and-releases).
+
 ## Features
 
 - **Encrypted vault**: Argon2id + AES-256-GCM, unlocked with a master password. It auto-locks
@@ -126,13 +165,8 @@ version exists, an update button appears in the bottom-left corner. On Windows a
 downloads the update and then offers to restart and install it. On macOS, Squirrel.Mac only
 installs signed builds, so the button opens the release page until signing is set up.
 
-Builds are **not notarized**. On macOS the easiest way to install is from the terminal. It
-downloads the latest release with `curl`, which (unlike a browser) doesn't mark the app as
-quarantined, so Gatekeeper doesn't block it:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/asofianidis/password-manager/main/scripts/install-mac.sh | bash
-```
+Builds are **not notarized**. On macOS the easiest way to install is the one-line script under
+[Install](#macos).
 
 If you download the `.dmg` in a browser instead, the app is ad-hoc signed, so on first launch macOS
 will say it can't verify the developer: open **System Settings → Privacy & Security** and click
