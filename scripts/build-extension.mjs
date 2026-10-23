@@ -1,4 +1,5 @@
-// Builds the browser extension into extension/dist/chrome and extension/dist/firefox.
+// Builds the browser extension into extension/dist/chrome, extension/dist/chrome-store (for the
+// Chrome Web Store), and extension/dist/firefox.
 // Load the folder unpacked: chrome://extensions (Developer mode) or about:debugging in Firefox.
 import { build } from 'esbuild'
 import { cp, mkdir, readFile, rm, writeFile } from 'fs/promises'
@@ -31,14 +32,17 @@ const base = {
   ]
 }
 
+const chrome = {
+  ...base,
+  minimum_chrome_version: '116',
+  permissions: ['contextMenus', 'nativeMessaging', 'storage'],
+  background: { service_worker: 'background.js' }
+}
+
 const targets = {
-  chrome: {
-    ...base,
-    key: CHROME_KEY,
-    minimum_chrome_version: '116',
-    permissions: ['contextMenus', 'nativeMessaging', 'storage'],
-    background: { service_worker: 'background.js' }
-  },
+  chrome: { ...chrome, key: CHROME_KEY },
+  // The Chrome Web Store rejects a manifest with a key and assigns its own ID
+  'chrome-store': chrome,
   firefox: {
     ...base,
     // "menus" adds onShown/refresh, so the menu can match the frame that was right-clicked
@@ -67,7 +71,7 @@ for (const [name, manifest] of Object.entries(targets)) {
     outdir,
     bundle: true,
     format: 'iife',
-    target: name === 'chrome' ? 'chrome116' : 'firefox128',
+    target: name === 'firefox' ? 'firefox128' : 'chrome116',
     logLevel: 'warning'
   })
   await cp(join(ext, 'icons'), join(outdir, 'icons'), { recursive: true })

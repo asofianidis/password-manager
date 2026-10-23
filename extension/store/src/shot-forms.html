@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.page { background: #fbfaf7; }
+.top { height: 56px; border-bottom: 1px solid #ece8df; display: flex; align-items: center; padding: 0 40px; font-weight: 700; font-size: 17px; gap: 10px; }
+.top i { width: 24px; height: 24px; border-radius: 50%; background: #e0773b; display: block; }
+.form { position: absolute; left: 40px; top: 84px; width: 440px; }
+.form h2 { font-size: 22px; font-weight: 650; margin-bottom: 18px; }
+.row { display: flex; gap: 14px; } .row .field { flex: 1; }
+.btn2 { height: 44px; border-radius: 8px; background: #1d2433; color: #fff; font-weight: 600; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; margin-top: 8px; }
+.sum { position: absolute; right: 40px; top: 84px; width: 300px; border: 1px solid #ece8df; border-radius: 12px; padding: 20px; background: #fff; font-size: 14px; color: #3b4458; }
+.sum div { display: flex; justify-content: space-between; margin-bottom: 10px; } .sum b { color: #1d2433; }
+</style></head><body>
+<div class="head"><img src="icon.svg"><div><h1>Cards, IDs and notes fill forms too</h1>
+<p>Fill a whole checkout or address form at once, or insert a single field.</p></div></div>
+<div class="win">
+  <div class="tabs"><div class="tab"><span class="fav" style="background:#e0773b"></span>Checkout – Example Shop</div>
+    <div class="dots"><span>—</span><span>☐</span><span>✕</span></div></div>
+  <div class="bar"><span class="nav">←</span><span class="nav">→</span><span class="nav">↻</span>
+    <div class="url"><span class="lock"></span>shop.example.com/checkout</div></div>
+  <div class="page site">
+    <div class="top"><i></i>Example Shop</div>
+    <div class="form">
+      <h2>Payment</h2>
+      <div class="field"><label>Name on card</label><div class="in"><span class="ph">Full name</span></div></div>
+      <div class="field"><label>Card number</label><div class="in focus"><span class="caret"></span></div></div>
+      <div class="row"><div class="field"><label>Expiry</label><div class="in"><span class="ph">MM / YY</span></div></div>
+        <div class="field"><label>Security code</label><div class="in"><span class="ph">CVC</span></div></div></div>
+      <div class="btn2">Pay $48.00</div>
+    </div>
+    <div class="sum"><div><span>Order summary</span></div><div><span>Subtotal</span><b>$42.00</b></div>
+      <div><span>Shipping</span><b>$6.00</b></div><div style="margin:0"><span>Total</span><b>$48.00</b></div></div>
+  </div>
+</div>
+<div class="menu" style="left:250px; top:404px; width:250px">
+  <div class="mi"><span>Emoji</span><span class="k">Win+Period</span></div>
+  <div class="sep"></div>
+  <div class="mi dis"><span>Cut</span><span class="k">Ctrl+X</span></div>
+  <div class="mi dis"><span>Copy</span><span class="k">Ctrl+C</span></div>
+  <div class="mi"><span>Paste</span><span class="k">Ctrl+V</span></div>
+  <div class="mi"><span>Paste as plain text</span><span class="k">Ctrl+Shift+V</span></div>
+  <div class="mi dis"><span>Select all</span><span class="k">Ctrl+A</span></div>
+  <div class="sep"></div>
+  <div class="mi on has"><img class="ic" src="icon.svg"><span>Password Manager</span><span class="arr">▶</span>
+    <div class="menu sub" style="width:250px">
+      <div class="mi dis">No logins for shop.example.com</div>
+      <div class="sep"></div>
+      <div class="mi on has"><span>Notes, cards &amp; IDs</span><span class="arr">▶</span>
+        <div class="menu sub" style="width:220px; top:-47px">
+          <div class="mi on has"><span>Everyday card (Card)</span><span class="arr">▶</span>
+            <div class="menu sub" style="width:230px">
+              <div class="mi on">Fill matching fields</div>
+              <div class="sep"></div>
+              <div class="mi">Insert Cardholder name</div>
+              <div class="mi">Insert Card number</div>
+              <div class="mi">Insert Expiry</div>
+              <div class="mi">Insert Security code</div>
+            </div></div>
+          <div class="mi"><span>Home address (Note)</span><span class="arr">▶</span></div>
+          <div class="mi"><span>Passport (ID)</span><span class="arr">▶</span></div>
+        </div></div>
+      <div class="sep"></div>
+      <div class="mi">Open Password Manager</div>
+    </div>
+  </div>
+  <div class="sep"></div>
+  <div class="mi"><span>Inspect</span></div>
+</div>
+</body></html>

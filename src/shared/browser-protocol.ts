@@ -12,6 +12,8 @@ export const NATIVE_HOST_NAME = 'com.password_manager.host'
 
 /** Pinned with the `key` in the extension manifest, so unpacked installs get the same ID */
 export const CHROME_EXTENSION_ID = 'mefnjmeinnpfdccbohalohcenfhjkmkb'
+/** Assigned by the Chrome Web Store, which won't accept a manifest with a `key` */
+export const CHROME_STORE_EXTENSION_ID = 'mkjahdipmeoophagaligpclkaklfjekj'
 export const FIREFOX_EXTENSION_ID = 'password-manager@asofianidis'
 
 /**

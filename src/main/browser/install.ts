@@ -7,6 +7,7 @@ import { join } from 'path'
 import { promisify } from 'util'
 import {
   CHROME_EXTENSION_ID,
+  CHROME_STORE_EXTENSION_ID,
   FIREFOX_EXTENSION_ID,
   NATIVE_HOST_NAME
 } from '../../shared/browser-protocol'
@@ -153,7 +154,12 @@ function manifest(kind: Kind, wrapper: string): string {
   }
   return JSON.stringify(
     kind === 'chromium'
-      ? { ...base, allowed_origins: [`chrome-extension://${CHROME_EXTENSION_ID}/`] }
+      ? {
+          ...base,
+          allowed_origins: [CHROME_EXTENSION_ID, CHROME_STORE_EXTENSION_ID].map(
+            (id) => `chrome-extension://${id}/`
+          )
+        }
       : { ...base, allowed_extensions: [FIREFOX_EXTENSION_ID] },
     null,
     2

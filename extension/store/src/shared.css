@@ -1,0 +1,49 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1280px; height: 800px; overflow: hidden; }
+body {
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  background: radial-gradient(900px 500px at 85% -10%, rgba(196,240,66,0.16), transparent 60%),
+              radial-gradient(700px 500px at -10% 110%, rgba(196,240,66,0.08), transparent 60%), #0a0b0a;
+  color: #eef1ea; position: relative;
+}
+.head { position: absolute; left: 80px; top: 54px; right: 80px; display: flex; align-items: center; gap: 22px; }
+.head img { width: 64px; height: 64px; }
+.head h1 { font-size: 40px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.1; }
+.head p { font-size: 19px; color: #a9b0a4; margin-top: 6px; }
+.win { position: absolute; left: 80px; top: 170px; width: 1120px; height: 600px; border-radius: 12px; overflow: hidden;
+  background: #fff; box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08); }
+.tabs { height: 40px; background: #dfe3e8; display: flex; align-items: flex-end; padding: 0 12px; gap: 6px; }
+.tab { height: 32px; width: 230px; background: #fff; border-radius: 9px 9px 0 0; display: flex; align-items: center;
+  gap: 8px; padding: 0 12px; font-size: 12.5px; color: #202124; }
+.fav { width: 16px; height: 16px; border-radius: 4px; }
+.dots { margin-left: auto; display: flex; gap: 18px; align-self: center; color: #444; font-size: 14px; padding-right: 6px; }
+.bar { height: 44px; background: #fff; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid #e3e5e8; }
+.nav { color: #5f6368; font-size: 16px; width: 18px; text-align: center; }
+.url { flex: 1; height: 32px; border-radius: 16px; background: #eef0f3; display: flex; align-items: center; padding: 0 14px;
+  font-size: 14px; color: #202124; gap: 10px; }
+.url .lock { width: 12px; height: 12px; border: 2px solid #5f6368; border-radius: 3px; }
+.page { position: absolute; top: 84px; left: 0; right: 0; bottom: 0; }
+/* Chromium context menu, Windows 11 style */
+.menu { position: absolute; background: #fff; border-radius: 8px; padding: 6px 0; min-width: 236px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.10); font-size: 13.5px; color: #1f1f1f; z-index: 5; }
+.mi { height: 30px; display: flex; align-items: center; padding: 0 14px 0 14px; gap: 10px; white-space: nowrap; }
+.mi .ic { width: 16px; height: 16px; flex: none; }
+.mi .gap { width: 16px; flex: none; }
+.mi .k { margin-left: auto; color: #6b6b6b; padding-left: 28px; font-size: 12.5px; }
+.mi .arr { margin-left: auto; padding-left: 28px; color: #444; font-size: 11px; }
+.mi.dis { color: #a0a0a0; }
+.mi.on { background: #e8eaed; }
+.sep { height: 1px; background: #e2e2e2; margin: 5px 0; }
+.cursor { position: absolute; width: 0; height: 0; z-index: 9; }
+.mi.has { position: relative; }
+.sub { position: absolute; left: calc(100% - 2px); top: -6px; }
+.site { font-family: 'Segoe UI', system-ui, sans-serif; color: #1d2433; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: #3b4458; margin-bottom: 6px; }
+.field .in { height: 42px; border: 1px solid #c9cfda; border-radius: 8px; background: #fff; display: flex; align-items: center;
+  padding: 0 12px; font-size: 15px; color: #1d2433; }
+.field .in.focus { border-color: #3d6df2; box-shadow: 0 0 0 3px rgba(61,109,242,0.18); }
+.field .in .ph { color: #9aa2b1; }
+.field { margin-bottom: 16px; }
+.btn { height: 42px; border-radius: 8px; background: #3d6df2; color: #fff; font-weight: 600; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; }
+.caret { width: 1px; height: 20px; background: #1d2433; margin-left: 1px; }

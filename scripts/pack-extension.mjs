@@ -13,7 +13,7 @@ const { version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 
 rmSync(out, { recursive: true, force: true })
 mkdirSync(out, { recursive: true })
-for (const target of ['chrome', 'firefox']) {
+for (const target of ['chrome', 'chrome-store', 'firefox']) {
   const file = join(out, `password-manager-extension-${version}-${target}.zip`)
   execFileSync('zip', ['-qr', file, '.'], { cwd: join(dist, target) })
   console.log(`Packed ${file}`)
