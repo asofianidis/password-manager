@@ -135,8 +135,10 @@ How it works:
 - The browser starts the native messaging host (`src/main/browser/native-host.ts`), which is the
   app's own binary run in Node mode. It relays messages to the running app over a Unix socket in
   the app data folder (a named pipe on Windows), so no network port is opened.
-- Only the extension's ID may start the host. The Chrome ID is pinned by the `key` in the manifest
-  so it is the same for every unpacked install.
+- Only the extension's IDs may start the host. The Chrome Web Store assigns its own; unpacked
+  installs get the one pinned by the `key` in the manifest, so it is the same for every unpacked
+  install. The store build (`extension/dist/chrome-store`) leaves the `key` out, as the store
+  requires.
 - Each approved browser gets a random token; the app stores only its SHA-256 hash.
 - The extension only receives titles and usernames for the menu. A password is sent only when you
   pick a login, and only if that login's domain matches the frame being filled (subdomains of the
@@ -260,13 +262,13 @@ builds only what the changed files affect:
 - `package.json`, `package-lock.json`, and the workflow itself rebuild both. Tag pushes, manual
   runs, and new branches also build both. Changes elsewhere (docs, tests) only run the checks.
 
-| Platform          | Artifacts                                  |
-| ----------------- | ------------------------------------------ |
-| macOS             | `.dmg` and `.zip` for x64 and arm64        |
-| Windows           | NSIS installer `.exe` (x64)                |
-| Linux             | `.AppImage` and `.deb` (x64)               |
-| Browser extension | Chromium `.zip`, Firefox `.xpi` and `.zip` |
-| Android           | `.apk`                                     |
+| Platform          | Artifacts                                                                  |
+| ----------------- | -------------------------------------------------------------------------- |
+| macOS             | `.dmg` and `.zip` for x64 and arm64                                        |
+| Windows           | NSIS installer `.exe` (x64)                                                |
+| Linux             | `.AppImage` and `.deb` (x64)                                               |
+| Browser extension | Chromium `.zip` (unpacked and Web Store builds), Firefox `.xpi` and `.zip` |
+| Android           | `.apk`                                                                     |
 
 Download the builds from the run's **Artifacts** section. Every push to `main` that changes the app
 or the extension publishes a GitHub release: the version is `package.json`'s if it's ahead of the

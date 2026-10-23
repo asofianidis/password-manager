@@ -192,10 +192,14 @@ async function refreshActiveTab(): Promise<void> {
 
 /**
  * Chromium won't update an unpacked extension, so the app replaces the files in the folder it was
- * loaded from. Reloading picks them up. Firefox updates the signed add-on itself (update_url).
+ * loaded from. Reloading picks them up. Firefox updates the signed add-on itself (update_url), and
+ * Chromium updates a Chrome Web Store install, whose manifest the store gives an update_url.
  */
 async function reloadIfUpdated(onDisk: string | null): Promise<void> {
-  if (getBrowserInfo || compareVersions(onDisk, ext.runtime.getManifest().version) <= 0) return
+  const manifest = ext.runtime.getManifest()
+  if (getBrowserInfo || manifest.update_url || compareVersions(onDisk, manifest.version) <= 0) {
+    return
+  }
   // Once per version: if this copy was loaded from some other folder, reloading changes nothing
   const stored = await ext.storage.local.get(RELOADED_FOR_KEY)
   if (stored[RELOADED_FOR_KEY] === onDisk) return
