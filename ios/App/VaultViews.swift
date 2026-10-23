@@ -237,7 +237,7 @@ private struct PendingKeyBanner: View {
         let attempt = password
         password = ""
         Task {
-            let failure: String? = await Task.detached {
+            let failure = await Task.detached { () -> String? in
                 do {
                     try vault.adoptPendingKey(attempt)
                     return nil

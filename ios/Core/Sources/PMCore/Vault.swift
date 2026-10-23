@@ -11,6 +11,13 @@ public struct VaultStatus: Equatable, Sendable {
     public var pendingKeyChange: Bool
     /** Bumped on every change, so observers can refresh */
     public var revision: Int
+
+    public init(state: VaultState, vaultId: String?, pendingKeyChange: Bool, revision: Int) {
+        self.state = state
+        self.vaultId = vaultId
+        self.pendingKeyChange = pendingKeyChange
+        self.revision = revision
+    }
 }
 
 public struct RetiredKey: Sendable {

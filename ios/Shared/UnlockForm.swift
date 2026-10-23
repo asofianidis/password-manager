@@ -69,7 +69,7 @@ struct UnlockForm: View {
         let attempt = password
         Task {
             // Argon2 takes a moment; keep it off the main thread
-            let failure: String? = await Task.detached { [vault] in
+            let failure = await Task.detached { [vault] () -> String? in
                 do {
                     try vault.unlock(attempt)
                     return nil
