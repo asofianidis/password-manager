@@ -13,11 +13,18 @@ import { AAD, DecryptionError, openJson, sealJson } from '../vault/crypto'
 import { vault } from '../vault/vault'
 import { settingsStore } from '../settings'
 import {
+  ATTACHMENT_BATCH_BYTES,
+  MAX_CHECK,
   MAX_CLOCK_SKEW_MS,
   MAX_PAIRING_ATTEMPTS,
+  MAX_WANT,
   PAIRING_DURATION_MS,
   PROTOCOL_VERSION,
   formatHost,
+  type AttachmentBlob,
+  type AttachmentEnvelope,
+  type AttachmentRequest,
+  type AttachmentResponse,
   type HelloResponse,
   type PairRequest,
   type PairResponse,
@@ -28,6 +35,8 @@ import {
 
 const MAX_BODY_BYTES = 25 * 1024 * 1024
 const REQUEST_TIMEOUT_MS = 20_000
+/** Attachment messages can carry several megabytes */
+const ATTACHMENT_TIMEOUT_MS = 120_000
 
 class HttpError extends Error {
   constructor(
@@ -82,14 +91,14 @@ class PeerError extends Error {
   }
 }
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
+async function postJson<T>(url: string, body: unknown, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
   let response: Response
   try {
     response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      signal: AbortSignal.timeout(timeoutMs)
     })
   } catch (error) {
     const cause = (error as { cause?: { code?: string } }).cause?.code
@@ -111,6 +120,9 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   }
   return json
 }
+
+const stringList = (value: unknown, max: number): string[] =>
+  Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string').slice(0, max) : []
 
 function isTailscaleAddress(address: string): boolean {
   const [a, b] = address.split('.').map(Number)
@@ -175,7 +187,7 @@ class SyncService extends EventEmitter<{ status: [] }> {
   private startServer(host: string, port: number): Promise<void> {
     return new Promise((resolve) => {
       const server = createServer((req, res) => void this.handle(req, res))
-      server.requestTimeout = REQUEST_TIMEOUT_MS
+      server.requestTimeout = ATTACHMENT_TIMEOUT_MS
       server.once('error', (error: NodeJS.ErrnoException) => {
         this.serverError =
           error.code === 'EADDRINUSE' ? `Port ${port} is already in use` : error.message
@@ -223,6 +235,10 @@ class SyncService extends EventEmitter<{ status: [] }> {
       }
       if (req.method === 'POST' && url.pathname === '/v1/sync') {
         return sendJson(res, 200, await this.handleSync(await readJson<SyncRequest>(req)))
+      }
+      if (req.method === 'POST' && url.pathname === '/v1/attachments') {
+        const body = await readJson<AttachmentEnvelope>(req)
+        return sendJson(res, 200, await this.handleAttachments(body))
       }
       throw new HttpError(404, 'Not found')
     } catch (error) {
@@ -280,14 +296,7 @@ class SyncService extends EventEmitter<{ status: [] }> {
       throw error
     }
 
-    const now = Date.now()
-    this.pruneNonces(now)
-    if (message.nonce !== body.nonce) throw new HttpError(400, 'Nonce mismatch')
-    if (Math.abs(now - message.sentAt) > MAX_CLOCK_SKEW_MS) {
-      throw new HttpError(400, 'Device clocks differ by more than 5 minutes')
-    }
-    if (this.seenNonces.has(body.nonce)) throw new HttpError(409, 'Replayed request')
-    this.seenNonces.set(body.nonce, now)
+    this.checkFresh(body.nonce, message)
 
     if (retired) {
       if (retired.revoked) {
@@ -304,6 +313,72 @@ class SyncService extends EventEmitter<{ status: [] }> {
 
     const reply: SyncMessage = this.buildMessage(body.nonce)
     return { payload: sealJson(key, reply, AAD.syncResponse(vault.vaultId, body.nonce)) }
+  }
+
+  /**
+   * Exchanges attachment files with a client that just synced. Only files that live entries refer
+   * to are sent, accepted, or asked for, and only with the current key: a device on an old key
+   * gets no entries, so it has nothing to ask for.
+   */
+  private async handleAttachments(body: AttachmentEnvelope): Promise<{ payload: string }> {
+    if (!vault.isUnlocked) throw new HttpError(423, 'Vault is locked on that device')
+    if (body.vaultId !== vault.vaultId)
+      throw new HttpError(409, 'That device has a different vault')
+    if (typeof body.nonce !== 'string' || body.nonce.length < 16)
+      throw new HttpError(400, 'Bad nonce')
+    if (body.keyId !== vault.keyId) throw new HttpError(401, 'Not authorized for this vault')
+
+    let request: AttachmentRequest
+    try {
+      request = openJson<AttachmentRequest>(
+        vault.key,
+        body.payload,
+        AAD.attachmentRequest(vault.vaultId)
+      )
+    } catch (error) {
+      if (error instanceof DecryptionError)
+        throw new HttpError(401, 'Not authorized for this vault')
+      throw error
+    }
+    this.checkFresh(body.nonce, request)
+
+    const want = stringList(request.want, MAX_WANT)
+    const check = stringList(request.check, MAX_CHECK)
+    const put = Array.isArray(request.put) ? request.put : []
+
+    for (const blob of put) await vault.storeAttachmentBlob(blob?.id, blob?.data)
+
+    const refs = vault.attachmentRefs()
+    const reply: AttachmentResponse = { attachments: [], missing: [], need: [] }
+    let size = 0
+    for (const id of want) {
+      const data = refs.has(id) ? await vault.attachmentBlob(id) : null
+      if (data === null) {
+        reply.missing.push(id)
+        continue
+      }
+      if (reply.attachments.length > 0 && size + data.length > ATTACHMENT_BATCH_BYTES) continue
+      reply.attachments.push({ id, data })
+      size += data.length
+    }
+    for (const id of check) {
+      if (refs.has(id) && !(await vault.hasAttachmentBlob(id))) reply.need.push(id)
+    }
+    return {
+      payload: sealJson(vault.key, reply, AAD.attachmentResponse(vault.vaultId, body.nonce))
+    }
+  }
+
+  /** Rejects stale and replayed requests. */
+  private checkFresh(nonce: string, message: { nonce: string; sentAt: number }): void {
+    const now = Date.now()
+    this.pruneNonces(now)
+    if (message.nonce !== nonce) throw new HttpError(400, 'Nonce mismatch')
+    if (Math.abs(now - message.sentAt) > MAX_CLOCK_SKEW_MS) {
+      throw new HttpError(400, 'Device clocks differ by more than 5 minutes')
+    }
+    if (this.seenNonces.has(nonce)) throw new HttpError(409, 'Replayed request')
+    this.seenNonces.set(nonce, now)
   }
 
   private pruneNonces(now: number): void {
@@ -411,6 +486,12 @@ class SyncService extends EventEmitter<{ status: [] }> {
             'to keep syncing.'
         )
       }
+      try {
+        await this.exchangeAttachments(peer)
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error)
+        throw new Error(`Synced entries, but files couldn't be transferred: ${reason}`)
+      }
       await this.updatePeer(peer.id, { lastSyncAt: Date.now(), lastError: null })
       return { peerId: peer.id, ok: true, error: null, received, sent }
     } catch (error) {
@@ -443,6 +524,92 @@ class SyncService extends EventEmitter<{ status: [] }> {
       return openJson<SyncMessage>(key, response.payload, AAD.syncResponse(vaultId, nonce))
     } catch {
       throw new Error('Device sent an invalid response')
+    }
+  }
+
+  /** Fetches the attachment files this device lacks from a peer, and sends the ones it lacks. */
+  private async exchangeAttachments(peer: SyncPeer): Promise<void> {
+    const ids = [...vault.attachmentRefs().keys()]
+    const have = await Promise.all(ids.map((id) => vault.hasAttachmentBlob(id)))
+    let want = ids.filter((_, i) => !have[i])
+    const check = ids.filter((_, i) => have[i])
+    if (want.length === 0 && check.length === 0) return
+
+    const first = await this.attachmentRound(peer, { want: want.slice(0, MAX_WANT), check })
+    if (first === null) return // The peer predates attachments
+    for (let reply: AttachmentResponse | null = first; reply;) {
+      for (const blob of reply.attachments) await vault.storeAttachmentBlob(blob.id, blob.data)
+      const done = new Set([...reply.attachments.map((b) => b.id), ...reply.missing])
+      want = want.filter((id) => !done.has(id))
+      // Stop if the peer sent nothing, so a misbehaving one can't keep us looping
+      reply =
+        want.length > 0 && reply.attachments.length > 0
+          ? await this.attachmentRound(peer, { want: want.slice(0, MAX_WANT) })
+          : null
+    }
+
+    let batch: AttachmentBlob[] = []
+    let size = 0
+    const flush = async (): Promise<void> => {
+      if (batch.length > 0) await this.attachmentRound(peer, { put: batch })
+      batch = []
+      size = 0
+    }
+    for (const id of first.need) {
+      const data = await vault.attachmentBlob(id)
+      if (data === null) continue
+      if (batch.length > 0 && size + data.length > ATTACHMENT_BATCH_BYTES) await flush()
+      batch.push({ id, data })
+      size += data.length
+    }
+    await flush()
+  }
+
+  /** One attachment request/response round trip. Returns null if the peer doesn't support it. */
+  private async attachmentRound(
+    peer: SyncPeer,
+    parts: Partial<Pick<AttachmentRequest, 'want' | 'check' | 'put'>>
+  ): Promise<AttachmentResponse | null> {
+    const nonce = randomBytes(18).toString('base64url')
+    const vaultId = vault.vaultId
+    const request: AttachmentRequest = {
+      nonce,
+      sentAt: Date.now(),
+      want: parts.want ?? [],
+      check: parts.check ?? [],
+      put: parts.put ?? []
+    }
+    const envelope: AttachmentEnvelope = {
+      vaultId,
+      keyId: vault.keyId,
+      nonce,
+      payload: sealJson(vault.key, request, AAD.attachmentRequest(vaultId))
+    }
+    let response: SyncResponse
+    try {
+      response = await postJson<SyncResponse>(
+        `http://${formatHost(peer.host)}:${peer.port}/v1/attachments`,
+        envelope,
+        ATTACHMENT_TIMEOUT_MS
+      )
+    } catch (error) {
+      if (error instanceof PeerError && error.status === 404) return null
+      throw error
+    }
+    let reply: AttachmentResponse
+    try {
+      reply = openJson<AttachmentResponse>(
+        vault.key,
+        response.payload,
+        AAD.attachmentResponse(vaultId, nonce)
+      )
+    } catch {
+      throw new Error('Device sent an invalid response')
+    }
+    return {
+      attachments: Array.isArray(reply.attachments) ? reply.attachments : [],
+      missing: stringList(reply.missing, MAX_WANT),
+      need: stringList(reply.need, MAX_CHECK)
     }
   }
 

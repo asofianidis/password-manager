@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, dialog, ipcMain } from 'electron'
 import type { InvokeApi, InvokeChannel, IpcResult } from '../shared/api'
 import { EVENT_CHANNEL } from '../shared/api'
 import type { VaultEvent } from '../shared/types'
@@ -19,6 +19,8 @@ import { listTailscalePeers } from './sync/tailscale'
 import { updater } from './updater'
 import { browserBridge } from './browser'
 import { setOpenAtLogin } from './login-item'
+import { writeFileAtomic } from './fs-utils'
+import { primarySecret } from '../shared/entries'
 
 type Handlers = {
   [C in InvokeChannel]: (
@@ -50,7 +52,29 @@ const handlers: Handlers = {
   'entries:create': (_, input) => vault.createEntry(input),
   'entries:update': (_, id, input) => vault.updateEntry(id, input),
   'entries:delete': (_, id) => vault.deleteEntry(id),
-  'entries:copy': (_, id, field) => copySecret(vault.get(id)[field]),
+  'entries:copy': (_, id, field) => {
+    const entry = vault.get(id)
+    copySecret(field === 'primary' ? primarySecret(entry) : entry[field])
+  },
+
+  'attachments:add': (_, name, mime, data) => vault.addAttachment(name, mime, Buffer.from(data)),
+  'attachments:read': (_, entryId, attachmentId) => vault.readAttachment(entryId, attachmentId),
+  'attachments:save': async (window, entryId, attachmentId) => {
+    const attachment = vault.get(entryId).attachments?.find((a) => a.id === attachmentId)
+    if (!attachment) throw new Error('Attachment not found')
+    const data = await vault.readAttachment(entryId, attachmentId)
+    const options: Electron.SaveDialogOptions = { defaultPath: attachment.name }
+    const result = window
+      ? await dialog.showSaveDialog(window, options)
+      : await dialog.showSaveDialog(options)
+    if (result.canceled || !result.filePath) return null
+    await writeFileAtomic(result.filePath, data)
+    return result.filePath
+  },
+  'attachments:present': async (_, ids) => {
+    const present = await Promise.all(ids.map((id) => vault.hasAttachmentBlob(id)))
+    return ids.filter((_, i) => present[i])
+  },
 
   'health:report': () => healthReport(vault.list(), settingsStore.get().oldPasswordDays),
   'strength:check': (_, password) => checkStrength(password),

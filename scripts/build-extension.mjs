@@ -18,7 +18,7 @@ const base = {
   manifest_version: 3,
   name: 'Password Manager',
   version,
-  description: 'Fill logins from the Password Manager desktop app.',
+  description: 'Fill logins and forms from the Password Manager desktop app.',
   icons: {
     16: 'icons/icon-16.png',
     32: 'icons/icon-32.png',

@@ -8,20 +8,33 @@ import { hostOf } from '@renderer/lib/format'
 import { MOD, SHIFT, isMod } from '@renderer/lib/keys'
 import { toast, toastError } from '@renderer/lib/toast'
 import { closePalette, paletteStore } from '@renderer/lib/workspace'
+import type { EntryType } from '@shared/types'
+import { ENTRY_TYPE_LABELS } from '@shared/entries'
 import { useAppCommands, type AppCommand } from './commands'
-import { Kbd, Monogram } from './ui'
+import { EntryIcon } from './EntryIcon'
+import { Kbd } from './ui'
 
 type Item =
   | { kind: 'command'; command: AppCommand }
   | {
       kind: 'entry'
       id: string
+      type: EntryType
       title: string
       url: string
       detail: string
       favorite: boolean
       weak: boolean
     }
+
+/** What Mod+Enter copies for each type */
+const COPY_LABELS: Record<EntryType, string> = {
+  login: 'password',
+  card: 'card number',
+  identity: 'ID number',
+  note: 'note',
+  document: 'notes'
+}
 
 function score(text: string, query: string): number {
   const haystack = text.toLowerCase()
@@ -63,7 +76,10 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
     const matchedEntries = entries
       .map((e) => ({
         e,
-        s: Math.max(score(e.title, term) * 2, score(`${e.username} ${e.url} ${e.folder}`, term))
+        s: Math.max(
+          score(e.title, term) * 2,
+          score(`${e.username} ${e.detail} ${e.url} ${e.folder}`, term)
+        )
       }))
       .filter((m) => m.s > 0)
       .sort((a, b) => b.s - a.s || a.e.title.localeCompare(b.e.title))
@@ -71,9 +87,13 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
       .map(({ e }): Item => ({
         kind: 'entry',
         id: e.id,
+        type: e.type,
         title: e.title,
         url: e.url,
-        detail: [e.username, hostOf(e.url)].filter(Boolean).join(' · '),
+        detail:
+          e.type === 'login'
+            ? [e.username, hostOf(e.url)].filter(Boolean).join(' · ')
+            : [ENTRY_TYPE_LABELS[e.type].one, e.detail].filter(Boolean).join(' · '),
         favorite: e.favorite,
         weak: e.hasPassword && e.score <= 2
       }))
@@ -97,8 +117,8 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
     }
     if (copy) {
       try {
-        await api.invoke('entries:copy', item.id, 'password')
-        toast(`Copied password for ${item.title}`)
+        await api.invoke('entries:copy', item.id, 'primary')
+        toast(`Copied ${COPY_LABELS[item.type]} for ${item.title}`)
       } catch (error) {
         toastError(error)
       }
@@ -156,7 +176,7 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
               onKeyDown(e)
             }}
             placeholder={
-              commandMode ? 'Run a command…' : 'Search passwords, or type > for commands'
+              commandMode ? 'Run a command…' : 'Search your vault, or type > for commands'
             }
             className="h-14 w-full bg-transparent text-[15px] text-bright placeholder:text-faint focus:outline-none"
             spellCheck={false}
@@ -189,7 +209,7 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
               >
                 {item.kind === 'entry' ? (
                   <>
-                    <Monogram title={item.title} url={item.url} size="sm" />
+                    <EntryIcon type={item.type} title={item.title} url={item.url} size="sm" />
                     <span className="truncate">{item.title}</span>
                     {item.favorite && <Star className="size-3 shrink-0 fill-warn text-warn" />}
                     {item.weak && <span className="size-1.5 shrink-0 rounded-full bg-danger" />}
@@ -224,7 +244,7 @@ function Palette({ initialQuery }: { initialQuery: string }): React.JSX.Element 
           {items.length === 0 && (
             <li className="px-3 py-8 text-center text-xs text-muted">
               {entries.length === 0 && !commandMode
-                ? `No passwords yet. Type > for commands, or press ${MOD}N.`
+                ? `Your vault is empty. Type > for commands, or press ${MOD}N.`
                 : 'No matching results'}
             </li>
           )}

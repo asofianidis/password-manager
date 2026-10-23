@@ -123,5 +123,8 @@ export const AAD = {
     `pm:prev-key:v1:${vaultId}:${keyId}:${revoked ? 'revoked' : 'forward'}`,
   exportData: 'pm:export:v1',
   syncRequest: (vaultId: string) => `pm:sync-req:v1:${vaultId}`,
-  syncResponse: (vaultId: string, nonce: string) => `pm:sync-res:v1:${vaultId}:${nonce}`
+  syncResponse: (vaultId: string, nonce: string) => `pm:sync-res:v1:${vaultId}:${nonce}`,
+  attachment: (attachmentId: string) => `pm:attachment:v1:${attachmentId}`,
+  attachmentRequest: (vaultId: string) => `pm:att-req:v1:${vaultId}`,
+  attachmentResponse: (vaultId: string, nonce: string) => `pm:att-res:v1:${vaultId}:${nonce}`
 }

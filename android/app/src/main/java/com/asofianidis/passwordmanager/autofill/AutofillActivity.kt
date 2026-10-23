@@ -168,7 +168,7 @@ class AutofillActivity : FragmentActivity() {
 
     @Composable
     private fun PickScreen(form: LoginForm) {
-        val all = remember { pm.vault.list().sortedBy { it.title.lowercase() } }
+        val all = remember { pm.vault.logins().sortedBy { it.title.lowercase() } }
         val matches = remember { Responses.matches(this, form) }
         val suggested = remember {
             if (form.pageUrl == null) UrlMatch.suggestionsForApp(all, form.packageName) - matches.toSet() else emptyList()
@@ -245,7 +245,7 @@ class AutofillActivity : FragmentActivity() {
     private fun SaveScreen(save: PendingSave) {
         val origin = remember { save.pageUrl?.substringAfter("://") ?: appLabel(save.packageName) }
         val existing = remember {
-            val entries = pm.vault.list()
+            val entries = pm.vault.logins()
             val candidates = if (save.pageUrl != null) UrlMatch.forPage(entries, save.pageUrl)
             else UrlMatch.forApp(entries, save.packageName, pm.settings.linkedEntries(save.packageName))
             candidates.firstOrNull { it.username == save.username }

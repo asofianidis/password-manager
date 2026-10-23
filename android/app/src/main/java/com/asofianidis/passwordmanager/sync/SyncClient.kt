@@ -49,6 +49,36 @@ data class SyncMessage(
     val entries: List<VaultEntry>,
 )
 
+/** POST /v1/attachments. `payload` is sealed [AttachmentRequest], AAD = pm:att-req:v1:<vaultId> */
+@Serializable
+data class AttachmentEnvelope(val vaultId: String, val keyId: String, val nonce: String, val payload: String)
+
+/** An attachment file's contents: the attachment sealed with its own key, base64 */
+@Serializable
+data class AttachmentBlob(val id: String, val data: String)
+
+@Serializable
+data class AttachmentRequest(
+    val nonce: String,
+    val sentAt: Long,
+    /** Files this device lacks and wants */
+    val want: List<String> = emptyList(),
+    /** Files this device has; the reply lists the ones the desktop lacks */
+    val check: List<String> = emptyList(),
+    /** Files the desktop asked for */
+    val put: List<AttachmentBlob> = emptyList(),
+)
+
+/** Response `payload` is sealed AttachmentResponse, AAD = pm:att-res:v1:<vaultId>:<nonce> */
+@Serializable
+data class AttachmentResponse(
+    val attachments: List<AttachmentBlob> = emptyList(),
+    /** Wanted ids that can't be sent; wanted ids in neither list were held back for size */
+    val missing: List<String> = emptyList(),
+    /** Checked ids the desktop lacks */
+    val need: List<String> = emptyList(),
+)
+
 /** A peer answered with an error status. */
 class PeerException(val status: Int, message: String) : Exception(message)
 
@@ -62,6 +92,9 @@ class SyncClient(
     private val deviceName: () -> String,
     private val http: OkHttpClient = defaultHttpClient(),
 ) {
+    /** Attachment messages can carry several megabytes */
+    private val attachmentHttp: OkHttpClient = http.newBuilder().callTimeout(120, TimeUnit.SECONDS).build()
+
     fun hello(host: String, port: Int): HelloResponse =
         VaultJson.decodeFromString(HelloResponse.serializer(), request(url(host, port, "/v1/hello"), null))
 
@@ -97,7 +130,88 @@ class SyncClient(
                 "The master password was changed on $peerName. Enter the new master password here to keep syncing.",
             )
         }
+        try {
+            exchangeAttachments(host, port)
+        } catch (e: Exception) {
+            val reason = e.message ?: e.javaClass.simpleName
+            throw SyncException("Synced entries, but files couldn't be transferred: $reason")
+        }
         return SyncOutcome(received, sent)
+    }
+
+    /** Fetches the attachment files this phone lacks from a desktop, and sends the ones it lacks. */
+    private fun exchangeAttachments(host: String, port: Int) {
+        val ids = vault.attachmentRefs().keys.toList()
+        var want = ids.filter { !vault.hasAttachmentBlob(it) }
+        val check = ids.filter { vault.hasAttachmentBlob(it) }
+        if (ids.isEmpty()) return
+
+        // A desktop that predates attachments answers 404
+        val first = attachmentRound(host, port, want = want.take(MAX_WANT), check = check) ?: return
+        var reply: AttachmentResponse? = first
+        while (reply != null) {
+            for (blob in reply.attachments) vault.storeAttachmentBlob(blob.id, blob.data)
+            val done = reply.attachments.map { it.id }.toSet() + reply.missing
+            want = want.filter { it !in done }
+            // Stop if the desktop sent nothing, so a misbehaving one can't keep us looping
+            reply = if (want.isNotEmpty() && reply.attachments.isNotEmpty()) {
+                attachmentRound(host, port, want = want.take(MAX_WANT))
+            } else {
+                null
+            }
+        }
+
+        var batch = mutableListOf<AttachmentBlob>()
+        var size = 0L
+        for (id in first.need) {
+            val data = vault.attachmentBlob(id) ?: continue
+            if (batch.isNotEmpty() && size + data.length > ATTACHMENT_BATCH_BYTES) {
+                attachmentRound(host, port, put = batch)
+                batch = mutableListOf()
+                size = 0
+            }
+            batch += AttachmentBlob(id, data)
+            size += data.length
+        }
+        if (batch.isNotEmpty()) attachmentRound(host, port, put = batch)
+    }
+
+    /** One attachment round trip, sealed with the current vault key. Null if the desktop doesn't support it. */
+    private fun attachmentRound(
+        host: String,
+        port: Int,
+        want: List<String> = emptyList(),
+        check: List<String> = emptyList(),
+        put: List<AttachmentBlob> = emptyList(),
+    ): AttachmentResponse? {
+        val nonce = Crypto.nonce()
+        val vaultId = vault.vaultId
+        val key = vault.key
+        val message = AttachmentRequest(nonce, System.currentTimeMillis(), want, check, put)
+        val payload = Crypto.sealString(
+            key,
+            VaultJson.encodeToString(AttachmentRequest.serializer(), message),
+            Aad.attachmentRequest(vaultId),
+        )
+        val body = VaultJson.encodeToString(
+            AttachmentEnvelope.serializer(),
+            AttachmentEnvelope(vaultId, vault.keyId, nonce, payload),
+        )
+        val text = try {
+            request(url(host, port, "/v1/attachments"), body, attachmentHttp)
+        } catch (e: PeerException) {
+            if (e.status == 404) return null
+            throw e
+        }
+        val response = VaultJson.decodeFromString(SyncResponse.serializer(), text)
+        return try {
+            VaultJson.decodeFromString(
+                AttachmentResponse.serializer(),
+                Crypto.openString(key, response.payload, Aad.attachmentResponse(vaultId, nonce)),
+            )
+        } catch (e: Exception) {
+            throw SyncException("Device sent an invalid response")
+        }
     }
 
     /** One request/response round trip, sealed with the given vault key. */
@@ -141,11 +255,11 @@ class SyncClient(
         return false
     }
 
-    private fun request(url: String, jsonBody: String?): String {
+    private fun request(url: String, jsonBody: String?, client: OkHttpClient = http): String {
         val builder = Request.Builder().url(url)
         if (jsonBody != null) builder.post(jsonBody.toRequestBody(JSON))
         try {
-            http.newCall(builder.build()).execute().use { response ->
+            client.newCall(builder.build()).execute().use { response ->
                 val text = response.body.string()
                 if (!response.isSuccessful) {
                     val error = runCatching {
@@ -162,6 +276,10 @@ class SyncClient(
 
     companion object {
         private val JSON = "application/json".toMediaType()
+
+        /** Files in one attachment message stop once their total passes this (one file always goes) */
+        private const val ATTACHMENT_BATCH_BYTES = 12L * 1024 * 1024
+        private const val MAX_WANT = 1000
 
         fun defaultHttpClient(): OkHttpClient = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)

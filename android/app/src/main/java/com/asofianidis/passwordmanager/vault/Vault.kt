@@ -47,6 +47,12 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
     private val _status = MutableStateFlow(VaultStatus(VaultState.NO_VAULT, null, false, 0))
     val status: StateFlow<VaultStatus> = _status.asStateFlow()
 
+    /** Each attachment is a file named by its id, holding the blob sealed with the attachment's key. */
+    val attachmentsDir = File(file.parentFile, "attachments")
+
+    /** Attachments added this session that no saved entry refers to yet; spared from cleanup */
+    private val staged = HashSet<String>()
+
     init {
         if (file.exists()) {
             val parsed = VaultJson.decodeFromString(VaultFile.serializer(), file.readText())
@@ -151,6 +157,7 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
             session = Session(current!!, entries)
             publish()
         }
+        collectGarbage()
     }
 
     /**
@@ -171,6 +178,7 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
         session = Session(OpenedKey(key.copyOf(), keyId, openPreviousKeys(file.key, key, file.vaultId)), entries)
         sessionNumber++
         publish()
+        collectGarbage()
         return true
     }
 
@@ -180,6 +188,7 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
             it.opened.wipe()
             it.entries.clear()
             session = null
+            staged.clear()
             publish()
         }
     }
@@ -190,6 +199,7 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
         lock()
         vaultFile = null
         file.delete()
+        attachmentsDir.deleteRecursively()
         publish()
     }
 
@@ -227,6 +237,10 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
     @Synchronized
     fun list(): List<VaultEntry> = requireSession().entries.values.filter { !it.isDeleted }
 
+    /** Live logins, the only entries autofill offers. */
+    @Synchronized
+    fun logins(): List<VaultEntry> = list().filter { it.isLogin }
+
     /** All entries including tombstones, for sync. */
     @Synchronized
     fun allRecords(): List<VaultEntry> = requireSession().entries.values.toList()
@@ -241,21 +255,7 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
     fun createEntry(input: EntryInput): VaultEntry {
         val s = requireSession()
         val now = clock()
-        val clean = input.sanitized()
-        val entry = VaultEntry(
-            id = UUID.randomUUID().toString(),
-            title = clean.title,
-            username = clean.username,
-            password = clean.password,
-            url = clean.url,
-            notes = clean.notes,
-            totp = clean.totp,
-            folder = clean.folder,
-            favorite = clean.favorite,
-            createdAt = now,
-            updatedAt = now,
-            passwordUpdatedAt = now,
-        )
+        val entry = input.sanitized().compose(UUID.randomUUID().toString(), now, now, now)
         s.entries[entry.id] = entry
         persist()
         return entry
@@ -267,15 +267,9 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
         val existing = get(id)
         val clean = input.sanitized()
         val now = clock()
-        val updated = existing.copy(
-            title = clean.title,
-            username = clean.username,
-            password = clean.password,
-            url = clean.url,
-            notes = clean.notes,
-            totp = clean.totp,
-            folder = clean.folder,
-            favorite = clean.favorite,
+        val updated = clean.compose(
+            id = id,
+            createdAt = existing.createdAt,
             updatedAt = maxOf(now, existing.updatedAt + 1),
             passwordUpdatedAt = if (clean.password != existing.password) now else existing.passwordUpdatedAt,
         )
@@ -290,6 +284,92 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
         val existing = get(id)
         s.entries[id] = toTombstone(existing, maxOf(clock(), existing.updatedAt + 1))
         persist()
+    }
+
+    /**
+     * Encrypts a file with a new random key and stores it. It stays unreferenced (and is cleaned
+     * up on the next unlock) until an entry saved with it in `attachments` refers to it.
+     */
+    @Synchronized
+    fun addAttachment(name: String, mime: String, data: ByteArray): Attachment {
+        requireSession()
+        require(data.size <= Attachment.MAX_BYTES) { "Files must be ${Attachment.MAX_BYTES / 1024 / 1024} MB or smaller" }
+        val id = UUID.randomUUID().toString()
+        val key = Crypto.randomBytes(32)
+        val attachment = Attachment(
+            id = id,
+            name = name.trim().take(255).ifEmpty { "file" },
+            mime = mime.trim().take(100).ifEmpty { "application/octet-stream" },
+            size = data.size.toLong(),
+            key = Crypto.b64encode(key),
+            createdAt = clock(),
+        )
+        try {
+            writeAtomic(File(attachmentsDir, id), Crypto.seal(key, data, Aad.attachment(id)))
+        } finally {
+            key.fill(0)
+        }
+        staged += id
+        return attachment
+    }
+
+    /** Decrypts an attachment of a live entry, or returns null if this device doesn't have its file yet. */
+    fun readAttachment(entryId: String, attachmentId: String): ByteArray? {
+        val attachment = synchronized(this) { get(entryId).attachments?.find { it.id == attachmentId } }
+            ?: throw NoSuchElementException("Attachment not found")
+        return decryptAttachment(attachment)
+    }
+
+    /**
+     * Decrypts an attachment, including one added in an editor that isn't saved yet. Returns null
+     * if this device doesn't have its file.
+     */
+    fun decryptAttachment(attachment: Attachment): ByteArray? {
+        val blob = attachmentBlob(attachment.id) ?: return null
+        return openAttachment(attachment, blob)
+    }
+
+    /** Attachments of live entries, by id. Sync transfers only these. */
+    @Synchronized
+    fun attachmentRefs(): Map<String, Attachment> {
+        val refs = LinkedHashMap<String, Attachment>()
+        for (entry in list()) entry.attachments?.forEach { refs[it.id] = it }
+        return refs
+    }
+
+    /** The stored (sealed) blob of an attachment, or null if this device doesn't have it. */
+    fun attachmentBlob(id: String): String? {
+        if (!Attachment.isValidId(id)) return null
+        val f = File(attachmentsDir, id)
+        return if (f.exists()) f.readText() else null
+    }
+
+    fun hasAttachmentBlob(id: String): Boolean = Attachment.isValidId(id) && File(attachmentsDir, id).exists()
+
+    /**
+     * Stores a blob received from a peer, if a live entry refers to it and it opens with that
+     * entry's key. Returns whether it was stored.
+     */
+    fun storeAttachmentBlob(id: String, blob: String): Boolean {
+        val attachment = attachmentRefs()[id] ?: return false
+        try {
+            openAttachment(attachment, blob)
+        } catch (e: DecryptionException) {
+            return false
+        }
+        writeAtomic(File(attachmentsDir, id), blob)
+        return true
+    }
+
+    /** Deletes attachment files that no live entry refers to. */
+    @Synchronized
+    fun collectGarbage() {
+        if (session == null) return
+        val refs = attachmentRefs()
+        // Temp files from writes in progress don't look like ids
+        attachmentsDir.listFiles()?.forEach { f ->
+            if (Attachment.isValidId(f.name) && f.name !in refs && f.name !in staged) f.delete()
+        }
     }
 
     /**
@@ -336,6 +416,7 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
             savedAt = clock(),
         )
         persistFile()
+        collectGarbage()
     }
 
     /** Writes header changes without re-sealing the data, so it also works while locked. */
@@ -407,6 +488,15 @@ class Vault(private val file: File, private val clock: () -> Long = System::curr
                 (header.keyId == null || header.keyId.length <= 64) &&
                 (previous == null || (previous.size <= MAX_PREVIOUS_KEYS &&
                     previous.all { it.keyId.length <= 64 && isSealedKey(it.wrappedKey) }))
+        }
+
+        private fun openAttachment(attachment: Attachment, blob: String): ByteArray {
+            val key = runCatching { Crypto.b64decode(attachment.key) }.getOrNull() ?: throw DecryptionException()
+            try {
+                return Crypto.open(key, blob, Aad.attachment(attachment.id))
+            } finally {
+                key.fill(0)
+            }
         }
 
         private fun writeAtomic(target: File, text: String) {

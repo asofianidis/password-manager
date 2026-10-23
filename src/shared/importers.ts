@@ -1,7 +1,21 @@
-import type { EntryInput, ImportFormat } from './types'
+import type { CardDetails, EntryInput, IdentityDetails, ImportFormat } from './types'
+import { ENTRY_TYPES } from './types'
 import { parseCsvRecords } from './csv'
+import { cleanCard, cleanIdentity } from './entries'
 
-export type ImportedEntry = EntryInput & { createdAt?: number; updatedAt?: number }
+/** A file carried inside an export, base64 */
+export interface ExportedFile {
+  name: string
+  mime: string
+  data: string
+}
+
+export type ImportedEntry = Omit<EntryInput, 'attachments'> & {
+  createdAt?: number
+  updatedAt?: number
+  /** Files to attach on import (this app's own exports only) */
+  files?: ExportedFile[]
+}
 
 export interface ParsedImport {
   entries: ImportedEntry[]
@@ -394,8 +408,22 @@ export function parsePmJson(text: string): ParsedImport {
   return { entries: json.entries.map(normalizeImported), warnings: [] }
 }
 
-export function normalizeImported(raw: Partial<ImportedEntry>): ImportedEntry {
+export function normalizeImported(
+  raw: Partial<ImportedEntry> & { attachments?: unknown }
+): ImportedEntry {
+  const type = ENTRY_TYPES.includes(raw.type!) ? raw.type : undefined
+  const files = Array.isArray(raw.attachments)
+    ? (raw.attachments as Partial<ExportedFile>[])
+        .filter((f) => typeof f?.data === 'string')
+        .map((f) => ({ name: String(f.name ?? 'file'), mime: String(f.mime ?? ''), data: f.data! }))
+    : []
   return finalize({
+    ...(type && type !== 'login' && { type }),
+    ...(type === 'card' && { card: cleanCard(raw.card as Partial<CardDetails>) }),
+    ...(type === 'identity' && {
+      identity: cleanIdentity(raw.identity as Partial<IdentityDetails>)
+    }),
+    ...(files.length > 0 && { files }),
     title: String(raw.title ?? ''),
     username: String(raw.username ?? ''),
     password: String(raw.password ?? ''),
@@ -427,7 +455,26 @@ export function parseImport(
 }
 
 /** Key used to detect duplicates between imported and existing entries. */
-export function duplicateKey(entry: { url: string; username: string; password: string }): string {
+export function duplicateKey(entry: {
+  url: string
+  username: string
+  password: string
+  type?: EntryInput['type']
+  title?: string
+  notes?: string
+  card?: CardDetails
+  identity?: IdentityDetails
+}): string {
+  if (entry.type && entry.type !== 'login') {
+    // Other types have no site or username; tell them apart by what they hold
+    return [
+      entry.type,
+      (entry.title ?? '').toLowerCase(),
+      entry.card?.number ?? '',
+      entry.identity?.number ?? '',
+      entry.notes ?? ''
+    ].join('\u0000')
+  }
   return [titleFromUrl(entry.url).toLowerCase(), entry.username.toLowerCase(), entry.password].join(
     '\u0000'
   )

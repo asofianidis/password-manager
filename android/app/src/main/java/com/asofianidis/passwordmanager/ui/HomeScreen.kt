@@ -24,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import com.asofianidis.passwordmanager.vault.EntryType
 import com.asofianidis.passwordmanager.vault.VaultStatus
 
 /** A screen in the app's back stack. */
@@ -34,6 +35,9 @@ data class Route(val kind: String, val id: String? = null) {
         const val SETTINGS = "settings"
         const val ENTRY = "entry"
         const val EDIT = "edit"
+
+        /** A new entry; `id` is the EntryType name */
+        const val NEW = "new"
     }
 }
 
@@ -105,6 +109,7 @@ fun HomeScreen(status: VaultStatus) {
                     Route.SETTINGS -> SettingsScreen()
                     Route.ENTRY -> EntryScreen(route.id!!, status)
                     Route.EDIT -> EditScreen(route.id)
+                    Route.NEW -> EditScreen(null, route.id?.let { runCatching { EntryType.valueOf(it) }.getOrNull() } ?: EntryType.LOGIN)
                 }
             }
         }

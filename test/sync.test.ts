@@ -248,3 +248,81 @@ describe('peer-to-peer sync', () => {
     await a.sync.stop()
   })
 })
+
+describe('attachment sync', () => {
+  it('fetches files a device lacks, sends the ones its peer lacks, and drops orphans', async () => {
+    const MASTER = 'correct horse battery staple'
+    const a = await device('att-a', 47911)
+    await a.vault.create(MASTER)
+    await a.sync.reconcile()
+    const b = await device('att-b', 47912)
+    await b.sync.reconcile()
+    const { code } = (await a.sync.startPairing()).pairing!
+    const pairing = await b.sync.fetchPairing('127.0.0.1', 47911, code)
+    await b.vault.join(pairing.vaultId, pairing.header, MASTER)
+    const peerA = await b.sync.addPeer({ name: 'a', host: '127.0.0.1', port: 47911 })
+
+    // A photo ID saved on a, pulled by b
+    const front = randomBytes(300_000)
+    const photo = await a.vault.addAttachment('front.jpg', 'image/jpeg', front)
+    const passport = await a.vault.createEntry({
+      ...input('passport', ''),
+      type: 'identity',
+      identity: {
+        kind: 'passport',
+        fullName: 'Jo',
+        number: 'X1',
+        issuer: '',
+        issuedOn: '',
+        expiresOn: '',
+        birthDate: ''
+      },
+      attachments: [photo]
+    })
+    expect((await b.sync.syncAll(peerA.id))[0]).toMatchObject({ ok: true })
+    expect(b.vault.get(passport.id).identity?.number).toBe('X1')
+    expect((await b.vault.readAttachment(passport.id, photo.id)).equals(front)).toBe(true)
+
+    // A document saved on b (the client) is pushed to a; one big file per batch
+    const big = randomBytes(9 * 1024 * 1024)
+    const small = randomBytes(10)
+    const files = [
+      await b.vault.addAttachment('big.pdf', 'application/pdf', big),
+      await b.vault.addAttachment('small.txt', 'text/plain', small)
+    ]
+    const lease = await b.vault.createEntry({
+      ...input('lease', ''),
+      type: 'document',
+      attachments: files
+    })
+    expect((await b.sync.syncAll(peerA.id))[0]).toMatchObject({ ok: true })
+    expect((await a.vault.readAttachment(lease.id, files[0].id)).equals(big)).toBe(true)
+    expect((await a.vault.readAttachment(lease.id, files[1].id)).equals(small)).toBe(true)
+
+    // A file that doesn't open with its entry's key is refused
+    expect(await a.vault.storeAttachmentBlob(photo.id, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')).toBe(
+      false
+    )
+
+    // Deleting the entry on a removes its file on both devices
+    await a.vault.deleteEntry(passport.id)
+    expect((await b.sync.syncAll(peerA.id))[0]).toMatchObject({ ok: true })
+    await a.vault.collectGarbage()
+    await b.vault.collectGarbage()
+    expect(await a.vault.hasAttachmentBlob(photo.id)).toBe(false)
+    expect(await b.vault.hasAttachmentBlob(photo.id)).toBe(false)
+    expect(await b.vault.hasAttachmentBlob(files[0].id)).toBe(true)
+
+    // Unsaved files survive cleanup until the vault locks
+    const draft = await b.vault.addAttachment('draft.txt', 'text/plain', small)
+    await b.vault.collectGarbage()
+    expect(await b.vault.hasAttachmentBlob(draft.id)).toBe(true)
+    b.vault.lock()
+    await b.vault.unlock(MASTER)
+    await b.vault.collectGarbage()
+    expect(await b.vault.hasAttachmentBlob(draft.id)).toBe(false)
+
+    await a.sync.stop()
+    await b.sync.stop()
+  }, 60_000)
+})

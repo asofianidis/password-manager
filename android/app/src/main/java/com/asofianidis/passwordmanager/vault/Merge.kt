@@ -59,6 +59,39 @@ fun canonicalJson(e: VaultEntry): String = buildString {
     append(",\"createdAt\":").append(e.createdAt)
     append(",\"updatedAt\":").append(e.updatedAt)
     append(",\"passwordUpdatedAt\":").append(e.passwordUpdatedAt)
+    if (e.type != null) append(",\"type\":").appendJsString(e.type)
+    e.card?.let { c ->
+        append(",\"card\":{\"cardholder\":").appendJsString(c.cardholder)
+        append(",\"number\":").appendJsString(c.number)
+        append(",\"expiry\":").appendJsString(c.expiry)
+        append(",\"cvv\":").appendJsString(c.cvv)
+        append(",\"pin\":").appendJsString(c.pin)
+        append('}')
+    }
+    e.identity?.let { i ->
+        append(",\"identity\":{\"kind\":").appendJsString(i.kind)
+        append(",\"fullName\":").appendJsString(i.fullName)
+        append(",\"number\":").appendJsString(i.number)
+        append(",\"issuer\":").appendJsString(i.issuer)
+        append(",\"issuedOn\":").appendJsString(i.issuedOn)
+        append(",\"expiresOn\":").appendJsString(i.expiresOn)
+        append(",\"birthDate\":").appendJsString(i.birthDate)
+        append('}')
+    }
+    e.attachments?.let { list ->
+        append(",\"attachments\":[")
+        list.forEachIndexed { index, a ->
+            if (index > 0) append(',')
+            append("{\"id\":").appendJsString(a.id)
+            append(",\"name\":").appendJsString(a.name)
+            append(",\"mime\":").appendJsString(a.mime)
+            append(",\"size\":").append(a.size)
+            append(",\"key\":").appendJsString(a.key)
+            append(",\"createdAt\":").append(a.createdAt)
+            append('}')
+        }
+        append(']')
+    }
     if (e.deleted != null) append(",\"deleted\":").append(e.deleted)
     append('}')
 }

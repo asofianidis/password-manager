@@ -1,3 +1,6 @@
+import type { FillField } from './fill'
+import type { EntryType } from './types'
+
 /**
  * Messages between the browser extension and the desktop app. The browser launches the native
  * messaging host (src/main/browser/native-host.ts), which relays these as JSON over a local
@@ -37,6 +40,9 @@ export type BridgeRequest =
   | { type: 'pair'; browser: string }
   | { type: 'logins'; token: string; url: string }
   | { type: 'fill'; token: string; url: string; entryId: string }
+  /** Notes, cards, and IDs that can fill forms on any site, with their field labels */
+  | { type: 'fillables'; token: string }
+  | { type: 'fill-fields'; token: string; entryId: string }
 
 export type BridgeError =
   | 'not-running'
@@ -64,6 +70,14 @@ export interface BridgeLogin {
   username: string
 }
 
+/** An entry that can fill forms. Only labels are listed; values come with fill-fields. */
+export interface BridgeFillable {
+  id: string
+  type: EntryType
+  title: string
+  labels: string[]
+}
+
 export interface BridgeCredentials {
   username: string
   password: string
@@ -75,6 +89,8 @@ export interface BridgeResults {
   pair: { token: string }
   logins: BridgeLogin[]
   fill: BridgeCredentials
+  fillables: BridgeFillable[]
+  'fill-fields': FillField[]
 }
 
 export type BridgeResponse<T = unknown> =

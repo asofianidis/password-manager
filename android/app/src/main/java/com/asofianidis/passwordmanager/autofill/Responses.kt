@@ -31,7 +31,7 @@ object Responses {
 
     /** Logins that belong to the form's site or app, best first. */
     fun matches(context: Context, form: LoginForm): List<VaultEntry> {
-        val entries = context.pm.vault.list()
+        val entries = context.pm.vault.logins()
         val page = form.pageUrl
         return if (page != null) {
             UrlMatch.forPage(entries, page)

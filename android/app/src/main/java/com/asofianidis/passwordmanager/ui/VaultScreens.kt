@@ -2,9 +2,8 @@
 
 package com.asofianidis.passwordmanager.ui
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,37 +11,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Autorenew
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,31 +41,23 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asofianidis.passwordmanager.Biometrics
-import com.asofianidis.passwordmanager.Generator
 import com.asofianidis.passwordmanager.pm
-import com.asofianidis.passwordmanager.vault.EntryInput
+import com.asofianidis.passwordmanager.vault.EntryType
 import com.asofianidis.passwordmanager.vault.IncorrectPasswordException
 import com.asofianidis.passwordmanager.vault.VaultStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.DateFormat
-import java.util.Date
 
 private val barColors @Composable get() = TopAppBarDefaults.topAppBarColors(containerColor = Palette.canvas)
 
@@ -94,16 +72,21 @@ fun VaultListScreen(status: VaultStatus) {
     val entries = remember(status.revision) { pm.vault.list().sortedBy { it.title.lowercase() } }
     var query by rememberSaveable { mutableStateOf("") }
     var favorites by rememberSaveable { mutableStateOf(false) }
+    /** null shows every type */
+    var typeFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    var choosingType by remember { mutableStateOf(false) }
+    val filterType = typeFilter?.let { EntryType.valueOf(it) }
     var offerBiometric by remember {
         mutableStateOf(!pm.settings.biometricOffered && Biometrics.available(context) && !Biometrics.enabled(context))
     }
 
     val q = query.trim().lowercase()
     val shown = entries.filter { e ->
-        (!favorites || e.favorite) &&
+        (!favorites || e.favorite) && (filterType == null || e.entryType == filterType) &&
             (q.isEmpty() || e.title.lowercase().contains(q) || e.username.lowercase().contains(q) ||
-                e.url.lowercase().contains(q) || e.folder.lowercase().contains(q))
+                e.url.lowercase().contains(q) || e.folder.lowercase().contains(q) || e.detail.lowercase().contains(q))
     }
+    val noun = filterType?.many?.lowercase() ?: "items"
 
     Scaffold(
         topBar = {
@@ -125,8 +108,26 @@ fun VaultListScreen(status: VaultStatus) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { nav.push(Route(Route.EDIT)) }, containerColor = Palette.accent, contentColor = Palette.accentFg) {
-                Icon(Icons.Default.Add, contentDescription = "New login")
+            Box {
+                FloatingActionButton(
+                    onClick = { if (filterType != null) nav.push(Route(Route.NEW, filterType.name)) else choosingType = true },
+                    containerColor = Palette.accent,
+                    contentColor = Palette.accentFg,
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "New ${filterType?.one?.lowercase() ?: "item"}")
+                }
+                DropdownMenu(expanded = choosingType, onDismissRequest = { choosingType = false }) {
+                    EntryType.entries.forEach { type ->
+                        DropdownMenuItem(
+                            text = { Text(type.one) },
+                            leadingIcon = { Icon(typeIcon(type), contentDescription = null) },
+                            onClick = {
+                                choosingType = false
+                                nav.push(Route(Route.NEW, type.name))
+                            },
+                        )
+                    }
+                }
             }
         },
     ) { padding ->
@@ -156,22 +157,36 @@ fun VaultListScreen(status: VaultStatus) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = { Text("Search ${entries.size} logins") },
+                    placeholder = { Text("Search ${entries.size} items") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                 )
-                Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = !favorites, onClick = { favorites = false }, label = { Text("All") })
-                    FilterChip(selected = favorites, onClick = { favorites = true }, label = { Text("Favorites") })
+                Row(
+                    Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterChip(selected = !favorites && filterType == null, onClick = {
+                        favorites = false
+                        typeFilter = null
+                    }, label = { Text("All") })
+                    FilterChip(selected = favorites, onClick = { favorites = !favorites }, label = { Text("Favorites") })
+                    EntryType.entries.forEach { type ->
+                        FilterChip(
+                            selected = filterType == type,
+                            onClick = { typeFilter = if (filterType == type) null else type.name },
+                            label = { Text(type.many) },
+                        )
+                    }
                 }
             }
             if (shown.isEmpty()) {
                 item {
                     Text(
                         when {
-                            entries.isEmpty() && pm.settings.peers.value.isNotEmpty() -> "No logins yet. Sync with your computer, or add one with +."
-                            entries.isEmpty() -> "No logins yet. Add one with +."
+                            entries.isEmpty() && pm.settings.peers.value.isNotEmpty() -> "Nothing saved yet. Sync with your computer, or add something with +."
+                            entries.isEmpty() -> "Nothing saved yet. Add something with +."
+                            q.isEmpty() && !favorites -> "No $noun yet. Add one with +."
                             else -> "Nothing matches."
                         },
                         color = Palette.muted,
@@ -257,214 +272,7 @@ private fun PendingKeyBanner() {
     }
 }
 
-@Composable
-fun EntryScreen(id: String, status: VaultStatus) {
-    val context = LocalContext.current
-    val pm = context.pm
-    val nav = LocalNavigator.current
-    val entry = remember(status.revision) { pm.vault.find(id) }
-    var revealed by remember { mutableStateOf(false) }
-    var confirmDelete by remember { mutableStateOf(false) }
-    var linkedApps by remember { mutableStateOf(pm.settings.appsLinkedTo(id)) }
-    if (entry == null) {
-        nav.back()
-        return
-    }
-
-    fun copy(label: String, value: String, sensitive: Boolean) {
-        pm.clipboard.copy(label, value, sensitive)
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(entry.title, maxLines = 1) },
-                colors = barColors,
-                navigationIcon = { IconButton(onClick = nav::back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
-                actions = {
-                    IconButton(onClick = {
-                        pm.vault.updateEntry(entry.id, EntryInput.of(entry).copy(favorite = !entry.favorite))
-                        pm.sync.syncSoon()
-                    }) {
-                        Icon(
-                            if (entry.favorite) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = if (entry.favorite) "Remove from favorites" else "Add to favorites",
-                            tint = if (entry.favorite) Palette.warn else Palette.fg,
-                        )
-                    }
-                    IconButton(onClick = { nav.push(Route(Route.EDIT, entry.id)) }) { Icon(Icons.Default.Edit, contentDescription = "Edit") }
-                    IconButton(onClick = { confirmDelete = true }) { Icon(Icons.Default.Delete, contentDescription = "Delete") }
-                },
-            )
-        },
-    ) { padding ->
-        Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Panel {
-                DetailRow("Username", entry.username.ifEmpty { null }) {
-                    IconButton(onClick = { copy("Username", entry.username, false) }) { Icon(Icons.Default.ContentCopy, contentDescription = "Copy username") }
-                }
-                HorizontalDivider(color = Palette.line)
-                DetailRow("Password", if (entry.password.isEmpty()) null else if (revealed) entry.password else "••••••••••••", mono = revealed) {
-                    if (entry.password.isNotEmpty()) {
-                        IconButton(onClick = { revealed = !revealed }) {
-                            Icon(if (revealed) Icons.Default.VisibilityOff else Icons.Default.Visibility, contentDescription = if (revealed) "Hide" else "Show")
-                        }
-                        IconButton(onClick = { copy("Password", entry.password, true) }) { Icon(Icons.Default.ContentCopy, contentDescription = "Copy password") }
-                    }
-                }
-                HorizontalDivider(color = Palette.line)
-                val web = entry.url.startsWith("http://") || entry.url.startsWith("https://") || (entry.url.isNotBlank() && !entry.url.contains("://"))
-                DetailRow("Website", entry.url.ifBlank { null }?.let(::displayUrl)) {
-                    if (web) {
-                        IconButton(onClick = {
-                            val url = if (entry.url.contains("://")) entry.url else "https://${entry.url}"
-                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                        }) { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open website") }
-                    }
-                }
-                if (entry.folder.isNotBlank()) {
-                    HorizontalDivider(color = Palette.line)
-                    DetailRow("Folder", entry.folder)
-                }
-                if (entry.totp.isNotBlank()) {
-                    HorizontalDivider(color = Palette.line)
-                    DetailRow("Two-factor", "Secret stored")
-                }
-            }
-            if (entry.notes.isNotBlank()) {
-                Panel {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Notes", color = Palette.muted, style = MaterialTheme.typography.labelMedium)
-                        Spacer(Modifier.height(4.dp))
-                        Text(entry.notes, color = Palette.fg)
-                    }
-                }
-            }
-            if (linkedApps.isNotEmpty()) {
-                Panel {
-                    Column(Modifier.padding(vertical = 8.dp)) {
-                        Text("Also offered in these apps", color = Palette.muted, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 16.dp))
-                        linkedApps.forEach { pkg ->
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 16.dp)) {
-                                Text(appLabel(context, pkg), color = Palette.fg, modifier = Modifier.weight(1f))
-                                TextButton(onClick = {
-                                    pm.settings.unlinkApp(pkg, entry.id)
-                                    linkedApps = pm.settings.appsLinkedTo(entry.id)
-                                }) { Text("Remove", color = Palette.danger) }
-                            }
-                        }
-                    }
-                }
-            }
-            val format = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-            Text(
-                "Modified ${format.format(Date(entry.updatedAt))} · Password changed ${format.format(Date(entry.passwordUpdatedAt))}",
-                color = Palette.faint,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-    }
-
-    if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text("Delete ${entry.title}?") },
-            text = { Text("It will also be removed from your synced devices.") },
-            confirmButton = {
-                Button(onClick = {
-                    pm.vault.deleteEntry(entry.id)
-                    pm.sync.syncSoon()
-                    confirmDelete = false
-                    nav.back()
-                }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Palette.danger)) { Text("Delete") }
-            },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
-        )
-    }
-}
-
 fun appLabel(context: android.content.Context, packageName: String): String = runCatching {
     val pmgr = context.packageManager
     pmgr.getApplicationLabel(pmgr.getApplicationInfo(packageName, 0)).toString()
 }.getOrDefault(packageName)
-
-@Composable
-private fun DetailRow(label: String, value: String?, mono: Boolean = false, actions: @Composable () -> Unit = {}) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp)) {
-        Column(Modifier.weight(1f)) {
-            Text(label, color = Palette.muted, style = MaterialTheme.typography.labelMedium)
-            Text(
-                value ?: "—",
-                color = if (value == null) Palette.faint else Palette.bright,
-                fontFamily = if (mono) FontFamily.Monospace else null,
-            )
-        }
-        actions()
-    }
-}
-
-@Composable
-fun EditScreen(id: String?) {
-    val context = LocalContext.current
-    val pm = context.pm
-    val nav = LocalNavigator.current
-    val existing = remember { id?.let { pm.vault.find(it) } }
-    val generator = remember { Generator(context) }
-    var title by rememberSaveable { mutableStateOf(existing?.title ?: "") }
-    var username by rememberSaveable { mutableStateOf(existing?.username ?: "") }
-    var password by rememberSaveable { mutableStateOf(existing?.password ?: "") }
-    var url by rememberSaveable { mutableStateOf(existing?.url ?: "") }
-    var folder by rememberSaveable { mutableStateOf(existing?.folder ?: "") }
-    var notes by rememberSaveable { mutableStateOf(existing?.notes ?: "") }
-    var totp by rememberSaveable { mutableStateOf(existing?.totp ?: "") }
-    var favorite by rememberSaveable { mutableStateOf(existing?.favorite ?: false) }
-
-    fun save() {
-        val input = EntryInput(title, username, password, url, notes, totp, folder, favorite)
-        val saved = if (existing != null) pm.vault.updateEntry(existing.id, input) else pm.vault.createEntry(input)
-        pm.sync.syncSoon()
-        if (existing != null) nav.back() else nav.replace(Route(Route.ENTRY, saved.id))
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (existing != null) "Edit login" else "New login") },
-                colors = barColors,
-                navigationIcon = { IconButton(onClick = nav::back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel") } },
-                actions = { TextButton(onClick = ::save) { Text("Save", color = Palette.accent) } },
-            )
-        },
-    ) { padding ->
-        Column(
-            Modifier.padding(padding).fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            val words = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next)
-            val plain = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Next)
-            OutlinedTextField(title, { title = it }, label = { Text("Title") }, singleLine = true, keyboardOptions = words, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(username, { username = it }, label = { Text("Username or email") }, singleLine = true,
-                keyboardOptions = plain.copy(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PasswordField(password, { password = it }, "Password", modifier = Modifier.weight(1f), imeAction = ImeAction.Next)
-                IconButton(onClick = { password = generator.generate(pm.settings.generator) }) {
-                    Icon(Icons.Default.Autorenew, contentDescription = "Generate password", tint = Palette.accent)
-                }
-            }
-            OutlinedTextField(url, { url = it }, label = { Text("Website") }, placeholder = { Text("example.com") }, singleLine = true,
-                keyboardOptions = plain.copy(keyboardType = KeyboardType.Uri), modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(folder, { folder = it }, label = { Text("Folder") }, singleLine = true, keyboardOptions = words, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(totp, { totp = it }, label = { Text("Two-factor secret") }, placeholder = { Text("otpauth://… or base32") }, singleLine = true,
-                keyboardOptions = plain, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(notes, { notes = it }, label = { Text("Notes") }, minLines = 3, modifier = Modifier.fillMaxWidth())
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { favorite = !favorite }) {
-                Text("Favorite", color = Palette.fg, modifier = Modifier.weight(1f))
-                Switch(checked = favorite, onCheckedChange = { favorite = it })
-            }
-            Spacer(Modifier.width(1.dp))
-        }
-    }
-}

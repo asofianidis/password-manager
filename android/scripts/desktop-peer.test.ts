@@ -57,6 +57,53 @@ it('serves a demo vault', async () => {
       favorite: false
     })
   }
+  const blank = {
+    username: '',
+    password: '',
+    url: '',
+    notes: '',
+    totp: '',
+    folder: '',
+    favorite: false
+  }
+  await vault.createEntry({
+    ...blank,
+    title: 'Everyday Visa',
+    type: 'card',
+    card: {
+      cardholder: 'Jane Doe',
+      number: '4242424242424242',
+      expiry: '08/27',
+      cvv: '123',
+      pin: ''
+    }
+  })
+  await vault.createEntry({
+    ...blank,
+    title: 'Home address',
+    type: 'note',
+    notes: 'Street: 1 Main St\nCity: Springfield\nPostal code: 12345'
+  })
+  // A tiny PNG (one red pixel), so the phone has an image attachment to show
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
+    'base64'
+  )
+  await vault.createEntry({
+    ...blank,
+    title: 'Passport',
+    type: 'identity',
+    identity: {
+      kind: 'passport',
+      fullName: 'Jane Doe',
+      number: 'X1234567',
+      issuer: 'United States',
+      issuedOn: '2020-01-31',
+      expiresOn: '2030-01-30',
+      birthDate: '1990-05-04'
+    },
+    attachments: [await vault.addAttachment('passport.png', 'image/png', png)]
+  })
   await sync.reconcile()
   const { pairing, listenAddresses } = await sync.startPairing()
   log(`Desktop peer on ${listenAddresses.join(', ')} (emulator: 10.0.2.2:${PORT})`)
@@ -68,10 +115,20 @@ it('serves a demo vault', async () => {
     await new Promise((resolve) => setTimeout(resolve, 2000))
     const now = vault
       .list()
-      .map((e) => `${e.title}=${e.username}/${e.password}`)
+      .map(
+        (e) =>
+          `${e.title}=${e.username}/${e.password}${e.attachments ? ` [${e.attachments.length} files]` : ''}`
+      )
       .sort()
       .join(', ')
-    if (now !== last) log(`[${new Date().toLocaleTimeString()}] entries: ${now}`)
+    if (now !== last) {
+      const files = await Promise.all(
+        [...vault.attachmentRefs().keys()].map((id) => vault.hasAttachmentBlob(id))
+      )
+      log(
+        `[${new Date().toLocaleTimeString()}] entries: ${now} · files on disk: ${files.filter(Boolean).length}/${files.length}`
+      )
+    }
     last = now
   }
   await sync.stop()

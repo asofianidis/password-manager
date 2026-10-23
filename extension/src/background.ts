@@ -1,6 +1,10 @@
-import { compareVersions, type BridgeLogin } from '../../src/shared/browser-protocol'
+import {
+  compareVersions,
+  type BridgeFillable,
+  type BridgeLogin
+} from '../../src/shared/browser-protocol'
 import { NativeClient, ext, type ClientError } from './native'
-import type { FillMessage } from './content'
+import type { FillFieldsMessage, FillMessage } from './content'
 
 const ROOT = 'pm'
 const PAIR_TIMEOUT_MS = 2 * 60 * 1000
@@ -31,7 +35,8 @@ async function getToken(): Promise<string | null> {
 const setToken = (token: string | null): Promise<void> =>
   token ? ext.storage.local.set({ [TOKEN_KEY]: token }) : ext.storage.local.remove(TOKEN_KEY)
 
-type MenuItem = { id: string; title: string; enabled?: boolean } | { separator: true }
+type MenuItem =
+  { id: string; title: string; enabled?: boolean; children?: MenuItem[] } | { separator: true }
 
 const isWebPage = (url: string | undefined): url is string => /^https?:\/\//.test(url ?? '')
 
@@ -46,6 +51,40 @@ function loginTitle(login: BridgeLogin): string {
 }
 
 const showItem = (title: string): MenuItem => ({ id: `${ROOT}:show`, title })
+
+const TYPE_LABELS: Record<BridgeFillable['type'], string> = {
+  login: 'Login',
+  card: 'Card',
+  identity: 'ID',
+  note: 'Note',
+  document: 'Document'
+}
+
+/**
+ * A submenu per note, card, or ID: fill the whole form by matching labels, or put one field's
+ * value into the field that was right-clicked. Only labels are shown, never values.
+ */
+function fillableItems(fillables: BridgeFillable[]): MenuItem[] {
+  if (fillables.length === 0) return []
+  return [
+    {
+      id: `${ROOT}:fillables`,
+      title: 'Notes, cards & IDs',
+      children: fillables.map((item) => ({
+        id: `${ROOT}:entry:${item.id}`,
+        title: label(`${item.title || 'Untitled'} (${TYPE_LABELS[item.type]})`),
+        children: [
+          { id: `${ROOT}:form:${item.id}`, title: 'Fill matching fields' },
+          { separator: true },
+          ...item.labels.map((text, index) => ({
+            id: `${ROOT}:field:${item.id}:${index}`,
+            title: label(`Insert ${text}`)
+          }))
+        ]
+      }))
+    }
+  ]
+}
 
 function errorItems(error: ClientError): MenuItem[] {
   switch (error) {
@@ -88,12 +127,22 @@ async function menuFor(url: string | undefined): Promise<MenuItem[]> {
   if (status.result.state === 'locked') return errorItems('locked')
   if (status.result.state === 'no-vault') return errorItems('no-vault')
 
-  const logins = await client.request({ type: 'logins', token, url })
+  const [logins, fillables] = await Promise.all([
+    client.request({ type: 'logins', token, url }),
+    client.request({ type: 'fillables', token })
+  ])
   if (!logins.ok) return errorItems(logins.error)
   const items: MenuItem[] = logins.result.length
     ? logins.result.map((login) => ({ id: `${ROOT}:fill:${login.id}`, title: loginTitle(login) }))
     : [{ id: `${ROOT}:info`, title: label(`No logins for ${hostOf(url)}`), enabled: false }]
-  return [...items, { separator: true }, showItem('Open Password Manager')]
+  // An app from before fillables answers bad-request; just leave the submenu out
+  const extra = fillables.ok ? fillableItems(fillables.result) : []
+  return [
+    ...items,
+    ...(extra.length ? [{ separator: true } as const, ...extra] : []),
+    { separator: true },
+    showItem('Open Password Manager')
+  ]
 }
 
 let generation = 0
@@ -111,22 +160,27 @@ async function refresh(url: string | undefined): Promise<void> {
 
   await menus.removeAll()
   menus.create({ id: ROOT, title: 'Password Manager', contexts: ['editable'] })
+  createItems(items, ROOT)
+}
+
+function createItems(items: MenuItem[], parentId: string): void {
   items.forEach((item, index) => {
     if ('separator' in item) {
       menus.create({
-        id: `${ROOT}:sep:${index}`,
-        parentId: ROOT,
+        id: `${parentId}:sep:${index}`,
+        parentId,
         type: 'separator',
         contexts: ['editable']
       })
     } else {
       menus.create({
         id: item.id,
-        parentId: ROOT,
+        parentId,
         title: item.title,
         enabled: item.enabled ?? true,
         contexts: ['editable']
       })
+      if (item.children) createItems(item.children, item.id)
     }
   })
 }
@@ -188,12 +242,44 @@ async function fill(
   await ext.tabs.sendMessage(tab.id, message, { frameId: info.frameId ?? 0 })
 }
 
+/** Fills the form around the right-clicked field, or just that field, from a note, card, or ID. */
+async function fillFields(
+  entryId: string,
+  fieldIndex: number | null,
+  info: chrome.contextMenus.OnClickData,
+  tab: chrome.tabs.Tab
+): Promise<void> {
+  const token = await getToken()
+  const url = info.frameUrl ?? info.pageUrl ?? tab.url
+  if (!token || tab.id === undefined || !isWebPage(url)) return
+  const response = await client.request({ type: 'fill-fields', token, entryId })
+  if (!response.ok) {
+    console.warn('Password Manager: fill failed:', response.error)
+    return
+  }
+  const fields = fieldIndex === null ? response.result : [response.result[fieldIndex]]
+  if (!fields[0]) return
+  const message: FillFieldsMessage = {
+    type: 'pm-fill-fields',
+    origin: new URL(url).origin,
+    mode: fieldIndex === null ? 'form' : 'field',
+    fields
+  }
+  await ext.tabs.sendMessage(tab.id, message, { frameId: info.frameId ?? 0 })
+}
+
 menus.onClicked.addListener((info, tab) => {
   const id = String(info.menuItemId)
   if (id === `${ROOT}:connect`) void pair()
   else if (id === `${ROOT}:show`) void client.request({ type: 'show' })
   else if (id.startsWith(`${ROOT}:fill:`) && tab) {
     void fill(id.slice(`${ROOT}:fill:`.length), info, tab)
+  } else if (id.startsWith(`${ROOT}:form:`) && tab) {
+    void fillFields(id.slice(`${ROOT}:form:`.length), null, info, tab)
+  } else if (id.startsWith(`${ROOT}:field:`) && tab) {
+    const rest = id.slice(`${ROOT}:field:`.length)
+    const split = rest.lastIndexOf(':')
+    void fillFields(rest.slice(0, split), Number(rest.slice(split + 1)), info, tab)
   }
 })
 
