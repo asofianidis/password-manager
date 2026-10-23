@@ -23,6 +23,9 @@ a UTF-8 string:
 | Encrypted export      | `pm:export:v1`                                        |
 | Sync request payload  | `pm:sync-req:v1:<vaultId>`                            |
 | Sync response payload | `pm:sync-res:v1:<vaultId>:<nonce>`                    |
+| Attachment file       | `pm:attachment:v1:<attachmentId>`                     |
+| Attachment request    | `pm:att-req:v1:<vaultId>`                             |
+| Attachment response   | `pm:att-res:v1:<vaultId>:<nonce>`                     |
 
 On Android: Argon2id via `org.bouncycastle.crypto.generators.Argon2BytesGenerator`
 (or argon2kt), and AES-GCM via `javax.crypto.Cipher("AES/GCM/NoPadding")`, which
@@ -107,6 +110,9 @@ could send one the user's password can't open. Instead:
 
 ## `VaultEntry`
 
+An entry is a login, a payment card, a photo ID, a secure note, or a document. All share
+the same record; the fields that don't apply to a type are `""`.
+
 ```jsonc
 {
   "id": "uuid",
@@ -121,15 +127,75 @@ could send one the user's password can't open. Instead:
   "createdAt": 0, // ms epoch
   "updatedAt": 0, // ms epoch, bumped on every change; drives sync
   "passwordUpdatedAt": 0, // ms epoch, bumped only when the password changes
+  "type": "card", // absent on logins; else "card" | "identity" | "note" | "document"
+  "card": {/* only when type is "card", see below */},
+  "identity": {/* only when type is "identity", see below */},
+  "attachments": [/* absent when empty, see below */],
   "deleted": true // present only on tombstones
 }
 ```
 
+```jsonc
+// card
+{
+  "cardholder": "Jane Doe",
+  "number": "4242424242424242", // digits only
+  "expiry": "08/27", // MM/YY as typed
+  "cvv": "123",
+  "pin": ""
+}
+// identity (a photo ID; the photos are attachments)
+{
+  "kind": "passport", // "passport" | "drivers-license" | "national-id" | "other"
+  "fullName": "Jane Doe",
+  "number": "X1234567",
+  "issuer": "United States", // issuing country or state
+  "issuedOn": "2020-01-31", // YYYY-MM-DD, or ""
+  "expiresOn": "2030-01-30",
+  "birthDate": "1990-05-04"
+}
+// attachment
+{
+  "id": "uuid", // [A-Za-z0-9_-]{8,64}; also the attachment's file name
+  "name": "passport-front.jpg",
+  "mime": "image/jpeg",
+  "size": 482113, // plaintext bytes, at most 10 MiB
+  "key": "base64, 32 random bytes",
+  "createdAt": 0
+}
+```
+
+A **note** keeps its text in `notes`. Lines of the form `Label: value` in a note are offered
+as fillable fields by the browser extension. A **document** is a title, `notes`, and its
+attachments. Any type may have attachments; at most 20 per entry.
+
+**Key order matters.** Entries must be written with their keys in exactly the order shown
+above, and optional keys (`type`, `card`, `identity`, `attachments`, `deleted`) left out, not
+set to `null`, when they don't apply. Nested objects use the key order shown too. See the
+merge rule for why. Reference: `composeEntry` in `src/shared/entries.ts`.
+
 Deleting an entry replaces it with a **tombstone**: the same `id`, `deleted: true`, a
-new `updatedAt`, and every secret field set to `""`. Tombstones are kept forever so
-deletions reach devices that have been offline.
+new `updatedAt`, and every secret field set to `""`. Tombstones have no `type`, `card`,
+`identity`, or `attachments`. Tombstones are kept forever so deletions reach devices that
+have been offline.
 
 Edits must set `updatedAt = max(now, previous.updatedAt + 1)`.
+
+Android app versions from before these types existed drop the new fields when they rewrite
+the vault, so update every device together.
+
+## Attachments
+
+An attachment's content is stored **outside** the vault data, in a file named by its `id`
+in an `attachments/` directory next to `vault.json`. The file holds
+`seal(attachment key, file bytes, AAD = pm:attachment:v1:<id>)` as base64 text, the same
+sealed-blob layout as everything else. Because each attachment has its own key, rotating the
+vault key doesn't touch attachment files.
+
+Attachments never change: replacing a photo adds a new attachment with a new id and key.
+A file no live entry refers to is deleted; devices fetch missing files from each other after
+syncing entries (see [SYNC_PROTOCOL.md](./SYNC_PROTOCOL.md#post-v1attachments)). An entry can
+therefore arrive before its files do; show such attachments as not downloaded yet.
 
 ## Merge rule (used by sync)
 
@@ -153,3 +219,5 @@ converge.
 
 A plaintext export has the same shape with `"encrypted": false` and an `entries` array
 in place of `kdf`/`data`. Exported entries have no `id`; they get new ids on import.
+Exported entries carry `type`, `card`, and `identity` like vault entries. Their
+`attachments` hold the file itself instead of a key: `{ "name", "mime", "data": "base64" }`.

@@ -1,4 +1,58 @@
-/** A single stored credential. Deleted entries are kept as tombstones so deletions sync. */
+/** What an entry holds. Logins have no `type` field on disk. */
+export type EntryType = 'login' | 'card' | 'identity' | 'note' | 'document'
+
+export const ENTRY_TYPES: readonly EntryType[] = ['login', 'card', 'identity', 'note', 'document']
+
+export interface CardDetails {
+  cardholder: string
+  number: string
+  /** MM/YY */
+  expiry: string
+  cvv: string
+  pin: string
+}
+
+export type IdentityKind = 'passport' | 'drivers-license' | 'national-id' | 'other'
+
+export const IDENTITY_KINDS: readonly IdentityKind[] = [
+  'passport',
+  'drivers-license',
+  'national-id',
+  'other'
+]
+
+/** A photo ID. Dates are YYYY-MM-DD, or "" when unknown. */
+export interface IdentityDetails {
+  kind: IdentityKind
+  fullName: string
+  number: string
+  /** Issuing country or state */
+  issuer: string
+  issuedOn: string
+  expiresOn: string
+  birthDate: string
+}
+
+/**
+ * A file stored outside the vault data, in its own blob sealed with `key`. Attachments never
+ * change: replacing a file adds a new attachment with a new id.
+ */
+export interface Attachment {
+  id: string
+  name: string
+  mime: string
+  /** Plaintext size in bytes */
+  size: number
+  /** base64 32-byte AES key for the blob */
+  key: string
+  createdAt: number
+}
+
+/** Largest file that can be attached */
+export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
+export const MAX_ATTACHMENTS_PER_ENTRY = 20
+
+/** A single stored item. Deleted entries are kept as tombstones so deletions sync. */
 export interface VaultEntry {
   id: string
   title: string
@@ -12,20 +66,40 @@ export interface VaultEntry {
   createdAt: number
   updatedAt: number
   passwordUpdatedAt: number
+  /** Absent on logins */
+  type?: Exclude<EntryType, 'login'>
+  /** Present only when type is 'card' */
+  card?: CardDetails
+  /** Present only when type is 'identity' */
+  identity?: IdentityDetails
+  /** Absent when there are none */
+  attachments?: Attachment[]
   deleted?: boolean
 }
 
 export type EntryInput = Pick<
   VaultEntry,
   'title' | 'username' | 'password' | 'url' | 'notes' | 'totp' | 'folder' | 'favorite'
->
+> & {
+  /** Defaults to 'login' */
+  type?: EntryType
+  card?: CardDetails
+  identity?: IdentityDetails
+  attachments?: Attachment[]
+}
+
+export const entryType = (entry: { type?: EntryType }): EntryType => entry.type ?? 'login'
 
 export type StrengthScore = 0 | 1 | 2 | 3 | 4
 
 /** Entry metadata sent to the renderer for lists; secrets are fetched on demand. */
 export interface EntrySummary {
   id: string
+  type: EntryType
   title: string
+  /** A non-secret second line for lists: the card's last digits, the ID's kind, a note's first line */
+  detail: string
+  attachments: number
   username: string
   url: string
   folder: string

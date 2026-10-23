@@ -10,8 +10,10 @@ import {
   duplicateKey,
   normalizeImported,
   parseImport,
+  type ExportedFile,
   type ImportedEntry
 } from '../shared/importers'
+import type { Attachment, EntryInput } from '../shared/types'
 import {
   AAD,
   DecryptionError,
@@ -33,7 +35,8 @@ interface PendingImport {
 
 const pending = new Map<string, PendingImport>()
 
-const MAX_IMPORT_BYTES = 50 * 1024 * 1024
+// Backups from this app can carry attachments
+const MAX_IMPORT_BYTES = 400 * 1024 * 1024
 
 /** Pulls the relevant file out of ZIP-based exports (Dashlane ZIP, 1Password 1PUX). */
 function extractFromZip(buffer: Buffer): string {
@@ -97,16 +100,17 @@ interface PlainExport {
   entries: ExportedEntry[]
 }
 
-type ExportedEntry = Omit<ImportedEntry, 'createdAt' | 'updatedAt'> & {
+type ExportedEntry = Omit<ImportedEntry, 'createdAt' | 'updatedAt' | 'files'> & {
   createdAt: number
   updatedAt: number
+  attachments?: ExportedFile[]
 }
 
 async function decryptExport(text: string, password: string): Promise<ImportedEntry[]> {
   const file = JSON.parse(text) as EncryptedExport
   const key = await deriveKey(password, file.kdf)
   try {
-    const { entries } = openJson<{ entries: Partial<ImportedEntry>[] }>(
+    const { entries } = openJson<{ entries: Parameters<typeof normalizeImported>[0][] }>(
       key,
       file.data,
       AAD.exportData
@@ -169,7 +173,17 @@ export async function commitImport(token: string, skipDuplicates: boolean): Prom
     seen.add(key)
     return true
   })
-  await vault.createEntries(toAdd)
+  const inputs: (EntryInput & { createdAt?: number; updatedAt?: number })[] = []
+  for (const { files, ...entry } of toAdd) {
+    const attachments: Attachment[] = []
+    for (const file of files ?? []) {
+      attachments.push(
+        await vault.addAttachment(file.name, file.mime, Buffer.from(file.data, 'base64'))
+      )
+    }
+    inputs.push({ ...entry, attachments })
+  }
+  await vault.createEntries(inputs)
   pending.delete(token)
   return toAdd.length
 }
@@ -178,19 +192,37 @@ export function cancelImport(token: string): void {
   pending.delete(token)
 }
 
-function exportEntries(): ExportedEntry[] {
-  return vault.list().map((e) => ({
-    title: e.title,
-    username: e.username,
-    password: e.password,
-    url: e.url,
-    notes: e.notes,
-    totp: e.totp,
-    folder: e.folder,
-    favorite: e.favorite,
-    createdAt: e.createdAt,
-    updatedAt: e.passwordUpdatedAt
-  }))
+async function exportEntries(withFiles: boolean): Promise<ExportedEntry[]> {
+  const exported: ExportedEntry[] = []
+  for (const e of vault.list()) {
+    const attachments: ExportedFile[] = []
+    for (const a of withFiles ? (e.attachments ?? []) : []) {
+      const data = await vault.readAttachment(e.id, a.id).catch(() => {
+        throw new Error(
+          `"${a.name}" in ${e.title} hasn't been downloaded to this device yet. Sync, then ` +
+            'export again.'
+        )
+      })
+      attachments.push({ name: a.name, mime: a.mime, data: data.toString('base64') })
+    }
+    exported.push({
+      ...(e.type && { type: e.type }),
+      title: e.title,
+      username: e.username,
+      password: e.password,
+      url: e.url,
+      notes: e.notes,
+      totp: e.totp,
+      folder: e.folder,
+      favorite: e.favorite,
+      ...(e.card && { card: e.card }),
+      ...(e.identity && { identity: e.identity }),
+      ...(attachments.length > 0 && { attachments }),
+      createdAt: e.createdAt,
+      updatedAt: e.passwordUpdatedAt
+    })
+  }
+  return exported
 }
 
 export async function saveExport(
@@ -214,21 +246,24 @@ export async function saveExport(
     : await dialog.showSaveDialog(options)
   if (result.canceled || !result.filePath) return null
 
-  const entries = exportEntries()
+  // CSV is for moving logins to other apps; cards, IDs, notes, and files only fit this app's formats
+  const entries = await exportEntries(format !== 'csv')
   let contents: string
   if (format === 'csv') {
     contents = stringifyCsv([
       ['title', 'url', 'username', 'password', 'notes', 'totp', 'folder', 'favorite'],
-      ...entries.map((e) => [
-        e.title,
-        e.url,
-        e.username,
-        e.password,
-        e.notes,
-        e.totp,
-        e.folder,
-        e.favorite ? 'true' : 'false'
-      ])
+      ...entries
+        .filter((e) => !e.type)
+        .map((e) => [
+          e.title,
+          e.url,
+          e.username,
+          e.password,
+          e.notes,
+          e.totp,
+          e.folder,
+          e.favorite ? 'true' : 'false'
+        ])
     ])
   } else if (format === 'pm-json') {
     const file: PlainExport = {

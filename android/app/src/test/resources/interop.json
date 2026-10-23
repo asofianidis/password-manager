@@ -4,47 +4,79 @@
   "vault": {
     "format": "pm-vault",
     "version": 1,
-    "vaultId": "42064db8-7bf3-40d7-95e1-62d4ac1e6461",
+    "vaultId": "1cd5b4f8-85bd-4c14-80f3-4b4f06259f14",
     "key": {
       "kdf": {
         "algorithm": "argon2id",
-        "salt": "FC8zxE4RUtArlejbT34Ntg==",
+        "salt": "h1zg48yuh/3wclxLUcn8HQ==",
         "memoryKiB": 65536,
         "iterations": 3,
         "parallelism": 1
       },
-      "wrappedKey": "ASm6SEMd/O+LkfBqq770+PBPSKMTXXt0pZxljx59NmIbpHTEQmNIjehz1/PoqFWZP5DY3QTq3GFpIiVZ",
-      "updatedAt": 1792680860407,
-      "keyId": "Nc9k8S9nHeLP6roJAwdGiM",
+      "wrappedKey": "Zzrm3b4oz7JhLHRZ17UOBkRcrYt0YVqTgX9vtOh3YDy8i3vhJ37DBv6kOQ0IbHcyyAOmXqfMqc83uBL2",
+      "updatedAt": 1792793076278,
+      "keyId": "6X-6dfS-WjFDAkY1zbrne8",
       "previousKeys": [
         {
-          "keyId": "aTV9pJ2nKG1ywSIgABEEkA",
+          "keyId": "huCNNZiUXBVbY7eIVpKHQo",
           "revoked": false,
-          "wrappedKey": "nHnothgeLwPMxBvgLw7GHRvWL9cxKTr/3gnVZE2gJIXZY+0B6cHrFgZWZpb1zHe4dhn/d+hnd0iZ34qf"
+          "wrappedKey": "ntnIiXgnM8eS4W9nvJPe+IpRk6kia/cgXNZTUeHfROgG1ENyD0A79581a4NLvimQXY+jijBBNdGPzSoY"
         }
       ]
     },
-    "data": "42k7dIOihS9Ry/dP92lTvEv8RLIK9O9XAKoEq/nHiNRFB0WIda2ycp4p+ajCdtHoxPARbdFu7c7D0TL9vw88qDrZJG4netl8hLpVXYaS8q+01ReENoilZ7RypRLg55xJN1hpLddYdVu9yMEX2MGuEcOXhUX36h8AimG8VFnBnEC1w3egPjBXfT2K23TnmfeZs4lBHTQP18FVs4eukEF3camBuHnG8zY/gzFX9D8AVL5v5yKMDbj+BrhL/oOB6iPD5u+X0/W3N8+2LpppwB3gb9YJlRHVvqRnAZ8MunXFu6dkPkC0YyuUZqmdKiSK46WXMDSPPpkBr5D6oAlsjOIwIs5Kml4fkztn6yF8HMpMv82N8abCclCUyuHfO03H1cEZqn1+c5wIhsH19CSPuPT6KpAh2sC2QXXRgO/M4fIzbOt6AbvcHS5UFmdJZMFxuxga5jV0XbUlqaATwe2sMu/BDrr+rDwWCCFs7V13CBsxF5bNz+wAzgFP+Pt6IPCHjWecQhXJkKazAteEYmH40Tk4ANzYqAwWYjbBJb3fCqG4O0vLX/h1u7Kd7AkM8Paf5pJ0IIYSRnjUeoq9lrfP7Ts4emttgRPr/cfQltZAWayUqW25iU0Op3xjqYPS4nx6HxI91ZPgkTACTFus+bLRMuMb7mRMfZ1/0wRBRwIfe38vaBaR207+E0kNTyWK7abLLDb9HFthSvKav4eE8Gi74iQEwUEk/b7NrkK5XS+6Kvx51pAQ3/nGOHE/pUlfkbvl1u1zNFUFSkEx/1P5gy7jufuwZaS2",
-    "savedAt": 1792680860581
+    "data": "JLdT0Jy9CRagB8yadrny2GBOTzsmBU90w+WpHeKISWMu5GlXj/+GnOYxebY54GGufdfLi3ul8FNZNsNvy1tiEHE/QeMkgDE8OboxookI5B1rsfwCYJi8NnhX2VKCUkMZrPiurb9pQfLRmPL2oNed7LPylFoIdubmKxyAoRBd4DkQo7nMtWcEd7+6T1pl6+UMVPTmsOSNDlRwjBA852S7ozh/CFjUl18bnoDI4IJjNrFSvhNSqtj+bOfsQq/C/7/ao5qsydpjbcLYaY0L+IiqGZUmsFFP8TigCL/YuLhR2Cl6b8rZM9pnDhAZ/CWtPBscH6LbA2SGiTguK661ZjvvGGr0CFaxX//pvjc+YDwM8FHQWLJaklbGlNvm7V8FHQ1/b9supL/hYtsLp+3mX/EYGIfv5hc9pMJ4qiJ88sLh2G7lsq7mwwOPL7a6FS1nkuYB0OYoHv4pze6Pf/j4ukhYj87yw91AV2N57xlNFvs8oyNxGQN4AxVyVAaygzg73vUKomTyveoItez7qARkoNSRQGe1gquKDFC7U8D2Sc5QqDFq7ybtCwXiCfUPIMhnKQQyCE+t0h+tdHKnEhkjNHza7jP567HqlMJgWeI3q8mrWuiRUMl0/OH9utvnnIfYFuATn4gV+JEzrw93F17JQy1wE4Asl1qc3EeYAC5VA0eLtDeY6xXiOTCXVl215NHPHCMKVVM+uDMHgKP9RLNMfUXQu2IpIVAK+4jABkky8LPARXhfcvVcfCGz47bWPGum3wGi9i1uXcQMiTj3IizfkUP+K7LK",
+    "savedAt": 1792793076456
   },
   "oldVault": {
     "format": "pm-vault",
     "version": 1,
-    "vaultId": "42064db8-7bf3-40d7-95e1-62d4ac1e6461",
+    "vaultId": "1cd5b4f8-85bd-4c14-80f3-4b4f06259f14",
     "key": {
       "kdf": {
         "algorithm": "argon2id",
-        "salt": "LeUgnBqGPxhWwjhzIkvEIw==",
+        "salt": "jKgUWOCgNAUKrXT6peAL6A==",
         "memoryKiB": 65536,
         "iterations": 3,
         "parallelism": 1
       },
-      "wrappedKey": "0zmdSw9px+xPUPXnou6sIIBwqmfP/aKZvF0QHVC4m7mLaRMQt46wNh1IlT1ku7zJcLeVNvJvyHxGfWEL",
-      "updatedAt": 1792680860024,
-      "keyId": "aTV9pJ2nKG1ywSIgABEEkA"
+      "wrappedKey": "c8tp/WXGTP/RifgSMVF/MvBq7r6NlIy1Vkvr/H60ctEHbCIdzQ0q4801YSwqdgD88teGKJHRXbjjZrCG",
+      "updatedAt": 1792793075889,
+      "keyId": "huCNNZiUXBVbY7eIVpKHQo"
     },
-    "data": "vITC22QTmghhVyD3BJR/AGMZu/lH9VYxEj6PgyS5+YkqxAJg3THxPqQpENAUc6j1zRE6VWguUK7qDi2E3echaY8glHmWpn4X/H7ObMZ1EQqhZQ/XsQ2etClLHQvqNO/DdyIxfBqIqQTyHEgEry9lqYfYZfflnM1xL1Y7TJO91lxLoqlRGBjKuDAFeyYphGqCQBis1BONtNEijgs4ra23i6DwOG2BRM4PLzxqOiMRyHOkaWIrKqBsFT+fcYPqxgaxt253vdlzswbK9eQMTxwbpv2N0Eg3MSne+Ehb69hHWA1J+rF6EnxP+xd9bjMCLthuNbYV1wUVJ2yz+B4+IVuGcytszyjTx/zPOT1lmsGJ9643DlIp5qBvO/tUUvwLOVlU9DfuvElbbeEoRg13ipwa5PwhVtcAx5RdrW/ICPkOOAU24SW7jqFJ8PmGvRcwW5UlQD3E6F/8LiHth5Fxeq4SC3ohd04SLKSAil16Mn/ZqGl3n6Pk4hgsj2596vab/lI40rVl9KNMbiJ68cuR936N/zu5s0owt/lQ2GFIK1PehOPd7CNHxVprCWAxIKzI3Ha6pL01pv+Br7q+szvUy0ThIsenVGBz6gkKKW7QeELy64CljPC0gukmbwJ2bOAzZgbhpZV2pnQdYHgTSP7wj7ATP3gx4EB1vEActKOE7PHBSlP3XWjkxmDk6P1nCGL7VuSH8F3YQMe3Zda2NoBFItgpP3+aj2U1HUfmhoqtjLgeFgVe58pIy/fhLGObof2oVSw5K8kCmplkc8xePEzQSSfTAKss",
-    "savedAt": 1792680860228
+    "data": "lNR25JbSbVXRdl9tbmyXUYiEs4eg21vx0KEBsyBV1VtSkb9UX2RVNDmgCVHAFz+XYwvgkxOlPhrEfcJ3N/BjToBAxqUzXW5WknwG+UK+u7O1kdOZGzz7lVaAcZsrtKF6yfIvggKa+OzCERM2psJ3upDx98dwskehlm8SeKAVZVJq3MTih00FPKqgm4e6/OxRNnflKr41rIfRyep1ocAXbUpn/gT0jhd59ssQ1gqD0cAMb+sWrJqk21SRxT6tRkAviYMz+Dv1Jq09MUF4/m95BZ5qEc38Iu6/hdhe02e65VXEQTfBXf6Q/e9U4z1pSAVQ7d+uQzGfsR88qZcEFuGpcRXcavvJGkoneG8ZN4SU9qZdFlTEJmQPlIdRaX9FMIPjSG5JzzH4kezhVl7x6FqHCIJdSqz3zH/vg1uMd6Y01bzZW3O73xbJqWNPaJCIDMxWi/0eVZYgNcKga6FCuEX8TLw9YT4yWpMImQ1yMhwW6jwKkShf+8cRgnVVKuR+XKkAIuZvnOJMa1xtFagOhLQci1B3fIPZMngGCVwBgbvY8eC/NE5qcYMhs9icSGOk2Hu5JDYXEQFUkDUfPDppTgnKRWtNhfCInwaodvTken396dTBT4o0lWqJ/7j+MaDGxLNAEVvPb+mZJHMBdAaoUI1tlV99B0ikXh62RqKsmHxNWx3F+4CsRBV7z3bcybV53no4J/VrsnXaWYFCR+3S3gVHdqXfDo/lkb60slx9RsyM8peWQcSJrwCTRAM4FUkCizXi/b0SEBVQWff1EAAwEhdbyVqP",
+    "savedAt": 1792793076097
+  },
+  "typedVault": {
+    "format": "pm-vault",
+    "version": 1,
+    "vaultId": "1cd5b4f8-85bd-4c14-80f3-4b4f06259f14",
+    "key": {
+      "kdf": {
+        "algorithm": "argon2id",
+        "salt": "h1zg48yuh/3wclxLUcn8HQ==",
+        "memoryKiB": 65536,
+        "iterations": 3,
+        "parallelism": 1
+      },
+      "wrappedKey": "Zzrm3b4oz7JhLHRZ17UOBkRcrYt0YVqTgX9vtOh3YDy8i3vhJ37DBv6kOQ0IbHcyyAOmXqfMqc83uBL2",
+      "updatedAt": 1792793076278,
+      "keyId": "6X-6dfS-WjFDAkY1zbrne8",
+      "previousKeys": [
+        {
+          "keyId": "huCNNZiUXBVbY7eIVpKHQo",
+          "revoked": false,
+          "wrappedKey": "ntnIiXgnM8eS4W9nvJPe+IpRk6kia/cgXNZTUeHfROgG1ENyD0A79581a4NLvimQXY+jijBBNdGPzSoY"
+        }
+      ]
+    },
+    "data": "hz7+3rfkZCsVAomyivwyJQOvWlCsFJf8eyMevsN9CVqlU1VSOKYypKytFlzp69UVcWjoOfADQkp7xQFIy/MRlixYt8ewwi4JcIAk9Ph1oFvykSiRS1iAfIWj6U+BMYJBI42E4/ckhB5HspGpfx4z7hLWHst1WYia3Dhm2Bvp1RDcU61dOXSjhCbA1hw/uHDkAPnAArxwEA+Yn+euVOQMVqkpWzWnlgF5Sbdmi3Z/3ZHg0RngyLRp61GzY4St6XI8AaQy1KNKguZzdOyyhmvhxFm5AAr18x5G8wScgcpZBIJowE5D2NnNYuqFOSyZicpNOz87/anZtg5OXH2Z4dGiL2gniDuWmZZ5/p7Gkjek3yrPH2dxOVdXwJ+C9RAHaXfRgsa0kTMpDWZOzvCSTVIFO3MVqB+OdFIneN28go2H+p58wuCFwLEE7bje1JuVyExmU4r87dAx49xWO76NolSjReJF8tyg9cIZ504mZc53K0Qy8pWy4WwKQyPYYujLJETBuEbrWahBgafe0iMQlBI+W7gmPKkRTC03GBsrJG5fVeuHjgB1tcTeW1yjAtRHJjbDP+tHirCtZrRzwTydOxQVfM/2iPclYtHPAUmIAnS//KcQ7Qfy/3y9jYDUloOXvEcg+svBaDhOBoBw/3z93Odyg4nI6atIosgNMZzxu18FCBSUjNgeM+fWI4FQeHDS4/5TV2CH2YkAGXQtcn5GS7z20M9dw0wCLi+S6IJmiTcffYDzt8bIXOf+6Enwp+LJeoClbYY8H+AmT9p+F5yv5/qMxBILPkGkc8rYp4X0lXyFFLocZyHHlF5NuL3neTzpIys4verY4jqIQsjLHdPd2Q5uvycoPa5ietG0Zt8JtQLXo51gQEYFqXvPX3JdZn28oT3/198+wBdJomJn41AZCNWB6jZzqRVkDQwZ+zxv4vN2rw/uSj60LQEq0VMzj0ku4jpPnlQ8kQygFZNJs51orxKLShcLzfHy5fjN+mTMpJOeEEE7WDmtX73ig1x1H+NAVy70UDhI0pz17sALtBYtmV7MKerKKfXBy4YYPYHNNJvZHQ+ZXq5LVXELVKA5CnuEyJ/z4n2cv7Lbh+iCozSwtjLlvA99zKhTCD8YtSeSyB9taCBSsssjfT8xVfsmze1UI6G2pIiRIgmet3e7pg9p44txeIU1ZktXp1itGjNlzuqcOgxfp0VkGt6GNuJfipifUidN3/hGUmSlBZYhCL0SdO1IPKk2WPwQ0koYu15ZLJsSaUjfFAETBVgCMYLw8r5gjEmhg+Fqs2xf68aLpyxJTT1wI1UV0rtLEQlBXeQvu04kWkXIxN9c/TOcQl8ckzPzRGUwm9t9YgbotGsFW3xscrKuKlidXmfAqYA6LnwxN8yT/QwVqPwPBGCR2GU0/dI9OcQ5xXN2BaaN+46GVseGJG7mNdMtfE0BcM9Ud1WULY29lvMtOeYThQIBDU+uYiGyswZJXp1QiI5/OKLn4dvEvcOzBYb9KjhTE47Am7QaQxcVUug8vhf8R1USAMo8dfPRzqXqIABxcv3IL2eJDQI5tAfaGH5vU+4reVVA9pDcN0A/FAUfagW0/KOf5V5H/JydzJrwJddYujGwjMM6BQWBl2WBcpatLzJfJqByNHEQinoKDKhmNc0FpZkjiVAGqNqpslttcouSKEXR3MKJbEnKCosAwo/9PK5bL4Ckiv/a1fCE1RtciG3pKHkGgvW1t6XcOl4RbtuQQae6MBzV7KAUuuzCsO6ksPD0mxOWNIKbS6PYH/AhSR0UupXhAcArmgFMNtvKPnB3r9Nrw6y2knrZQTP1DdGeDDta+eVBOkZFh8lM2BCJQvA6VxgRK1/kpdEt24I/yPBL0I9PiFmQihopnIa428XxawgE7e22BNyYN99H93PWVFKDioywTgGmscx+ggD3AFXwdc/dO3x82WLAx39cdilfbgQSS7LopJzZk2ucwWErnInRu02cdS4DKVc5vZm7Cf2lVzhftWs9oaKzFCmL0UfGRwEa3mnNV8PvtrGWZKU0V8YwWVHTsHiCN5UY9Yi59nlh/AMCP3erYtiEQvwcL+0vIeL0+TmxI3MVU7pFswUUj4rJiuy3HOwFMY+KNfwXrbKDhyZ9GTJ4kQopnZQJGgsY5alySB183cnsEgsdpIWxK6VoCM+LhETXc0kea9TsixQSKl/6DHy+d6fxHSjJ118R0VpzqNNN+ZQ0O4JprU14IE7HOeoavBJq75hglShiseOsPhyHPQ+3EII4eFxTbBUgyfGAA1ne+a7gpQlKJ6IHm1NysIpdOlzElSsjsr74z9tZDD3t5DtOTQTFYHtzOLw+dqjcBNKJw6LPJXZFM/5Ez65iQNu2ILEQDGIdXYUTZIG2SVuQIA6dAUDNOqhV4s4BtZG1oY5iLdW4iGtQcYs3iX0SGOagPyZ+Yqp1CmRFpO8wpE1cpDggw/ONLWhXvu8+vlCL968n9w==",
+    "savedAt": 1792793076473
+  },
+  "attachment": {
+    "entryId": "8de03dbd-ab71-4b6c-9a1f-180e666e4abd",
+    "id": "5c124829-25c9-4fe0-9681-3aadf2198f39",
+    "blob": "39s7KyrSy7A/kA7JgGqKt2iVXKfSVJrxQURCSLzoBRzWrJKnVQsTmnknJ10q4o+p",
+    "content": "not really a jpeg é"
   },
   "canonical": [
     {
@@ -148,6 +180,654 @@
         "passwordUpdatedAt": 1700000000000
       },
       "json": "{\"id\":\"e1\",\"title\":\"GitHub\",\"username\":\"me@example.com\",\"password\":\"hunter2\",\"url\":\"https://github.com\",\"notes\":\"z\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "plain",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Card\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"card\",\"card\":{\"cardholder\":\"plain\",\"number\":\"4242424242424242\",\"expiry\":\"08/27\",\"cvv\":\"123\",\"pin\":\"\"}}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "plain",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"ID\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"identity\",\"identity\":{\"kind\":\"passport\",\"fullName\":\"Jane Doe\",\"number\":\"X1234567\",\"issuer\":\"plain\",\"issuedOn\":\"2020-01-31\",\"expiresOn\":\"2030-01-30\",\"birthDate\":\"1990-05-04\"},\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan plain.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Note\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"plain\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"note\"}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Doc\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"document\",\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan plain.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "quote \" back \\ slash",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Card\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"card\",\"card\":{\"cardholder\":\"quote \\\" back \\\\ slash\",\"number\":\"4242424242424242\",\"expiry\":\"08/27\",\"cvv\":\"123\",\"pin\":\"\"}}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "quote \" back \\ slash",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"ID\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"identity\",\"identity\":{\"kind\":\"passport\",\"fullName\":\"Jane Doe\",\"number\":\"X1234567\",\"issuer\":\"quote \\\" back \\\\ slash\",\"issuedOn\":\"2020-01-31\",\"expiresOn\":\"2030-01-30\",\"birthDate\":\"1990-05-04\"},\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan quote \\\" back \\\\ slash.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Note\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"quote \\\" back \\\\ slash\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"note\"}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Doc\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"document\",\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan quote \\\" back \\\\ slash.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "ctl \u0001\u001f\b",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Card\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"card\",\"card\":{\"cardholder\":\"ctl \\u0001\\u001f\\b\",\"number\":\"4242424242424242\",\"expiry\":\"08/27\",\"cvv\":\"123\",\"pin\":\"\"}}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "ctl \u0001\u001f\b",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"ID\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"identity\",\"identity\":{\"kind\":\"passport\",\"fullName\":\"Jane Doe\",\"number\":\"X1234567\",\"issuer\":\"ctl \\u0001\\u001f\\b\",\"issuedOn\":\"2020-01-31\",\"expiresOn\":\"2030-01-30\",\"birthDate\":\"1990-05-04\"},\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan ctl \\u0001\\u001f\\b\\f\\n\\r\\t.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Note\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"ctl \\u0001\\u001f\\b\\f\\n\\r\\t\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"note\"}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Doc\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"document\",\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan ctl \\u0001\\u001f\\b\\f\\n\\r\\t.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "é ü 中文 🔑",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Card\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"card\",\"card\":{\"cardholder\":\"é ü 中文 🔑\",\"number\":\"4242424242424242\",\"expiry\":\"08/27\",\"cvv\":\"123\",\"pin\":\"\"}}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "é ü 中文 🔑",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"ID\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"identity\",\"identity\":{\"kind\":\"passport\",\"fullName\":\"Jane Doe\",\"number\":\"X1234567\",\"issuer\":\"é ü 中文 🔑\",\"issuedOn\":\"2020-01-31\",\"expiresOn\":\"2030-01-30\",\"birthDate\":\"1990-05-04\"},\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan é ü 中文 🔑.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Note\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"é ü 中文 🔑\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"note\"}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Doc\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"document\",\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan é ü 中文 🔑.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "\ud800 lone",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Card\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"card\",\"card\":{\"cardholder\":\"\\ud800 lone\",\"number\":\"4242424242424242\",\"expiry\":\"08/27\",\"cvv\":\"123\",\"pin\":\"\"}}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "\ud800 lone",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"ID\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"identity\",\"identity\":{\"kind\":\"passport\",\"fullName\":\"Jane Doe\",\"number\":\"X1234567\",\"issuer\":\"\\ud800 lone\",\"issuedOn\":\"2020-01-31\",\"expiresOn\":\"2030-01-30\",\"birthDate\":\"1990-05-04\"},\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan \\ud800 lone.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Note\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\\ud800 lone\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"note\"}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Doc\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"document\",\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan \\ud800 lone.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "z",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Card\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"card\",\"card\":{\"cardholder\":\"z\",\"number\":\"4242424242424242\",\"expiry\":\"08/27\",\"cvv\":\"123\",\"pin\":\"\"}}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "z",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan z.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"ID\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"identity\",\"identity\":{\"kind\":\"passport\",\"fullName\":\"Jane Doe\",\"number\":\"X1234567\",\"issuer\":\"z\",\"issuedOn\":\"2020-01-31\",\"expiresOn\":\"2030-01-30\",\"birthDate\":\"1990-05-04\"},\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan z.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Note\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"z\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"note\"}"
+    },
+    {
+      "entry": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan z.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "json": "{\"id\":\"e1\",\"title\":\"Doc\",\"username\":\"\",\"password\":\"\",\"url\":\"\",\"notes\":\"\",\"totp\":\"\",\"folder\":\"\",\"favorite\":false,\"createdAt\":1700000000000,\"updatedAt\":1700000000000,\"passwordUpdatedAt\":1700000000000,\"type\":\"document\",\"attachments\":[{\"id\":\"a1b2c3d4-0000-4000-8000-000000000000\",\"name\":\"scan z.pdf\",\"mime\":\"application/pdf\",\"size\":1234,\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"createdAt\":1700000000001}]}"
     }
   ],
   "ties": [
@@ -615,6 +1295,2164 @@
         "passwordUpdatedAt": 1700000000000
       },
       "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "plain",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "plain",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "quote \" back \\ slash",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "quote \" back \\ slash",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "ctl \u0001\u001f\b",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "ctl \u0001\u001f\b",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "é ü 中文 🔑",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "é ü 中文 🔑",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "\ud800 lone",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "\ud800 lone",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "z",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "z",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan z.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "GitHub",
+        "username": "me@example.com",
+        "password": "hunter2",
+        "url": "https://github.com",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan z.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "plain",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "plain",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "plain",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "plain",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan plain.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "quote \" back \\ slash",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "quote \" back \\ slash",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "quote \" back \\ slash",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "quote \" back \\ slash",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "quote \" back \\ slash",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan quote \" back \\ slash.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "ctl \u0001\u001f\b",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "ctl \u0001\u001f\b",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "ctl \u0001\u001f\b",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "ctl \u0001\u001f\b",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "ctl \u0001\u001f\b\f\n\r\t",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan ctl \u0001\u001f\b\f\n\r\t.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "é ü 中文 🔑",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "é ü 中文 🔑",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "é ü 中文 🔑",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "é ü 中文 🔑",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "é ü 中文 🔑",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan é ü 中文 🔑.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "\ud800 lone",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "\ud800 lone",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "\ud800 lone",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "\ud800 lone",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "\ud800 lone",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan \ud800 lone.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "z",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "winner": "a"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Card",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "card",
+        "card": {
+          "cardholder": "z",
+          "number": "4242424242424242",
+          "expiry": "08/27",
+          "cvv": "123",
+          "pin": ""
+        }
+      },
+      "b": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "z",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan z.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "ID",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "identity",
+        "identity": {
+          "kind": "passport",
+          "fullName": "Jane Doe",
+          "number": "X1234567",
+          "issuer": "z",
+          "issuedOn": "2020-01-31",
+          "expiresOn": "2030-01-30",
+          "birthDate": "1990-05-04"
+        },
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan z.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "b": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "winner": "b"
+    },
+    {
+      "a": {
+        "id": "e1",
+        "title": "Note",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "z",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "note"
+      },
+      "b": {
+        "id": "e1",
+        "title": "Doc",
+        "username": "",
+        "password": "",
+        "url": "",
+        "notes": "",
+        "totp": "",
+        "folder": "",
+        "favorite": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000,
+        "passwordUpdatedAt": 1700000000000,
+        "type": "document",
+        "attachments": [
+          {
+            "id": "a1b2c3d4-0000-4000-8000-000000000000",
+            "name": "scan z.pdf",
+            "mime": "application/pdf",
+            "size": 1234,
+            "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "createdAt": 1700000000001
+          }
+        ]
+      },
+      "winner": "a"
     }
   ],
   "matches": [

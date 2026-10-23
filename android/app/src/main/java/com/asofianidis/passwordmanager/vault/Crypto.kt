@@ -118,4 +118,7 @@ object Aad {
         "pm:prev-key:v1:$vaultId:$keyId:${if (revoked) "revoked" else "forward"}"
     fun syncRequest(vaultId: String) = "pm:sync-req:v1:$vaultId"
     fun syncResponse(vaultId: String, nonce: String) = "pm:sync-res:v1:$vaultId:$nonce"
+    fun attachment(attachmentId: String) = "pm:attachment:v1:$attachmentId"
+    fun attachmentRequest(vaultId: String) = "pm:att-req:v1:$vaultId"
+    fun attachmentResponse(vaultId: String, nonce: String) = "pm:att-res:v1:$vaultId:$nonce"
 }

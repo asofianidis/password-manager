@@ -79,11 +79,64 @@ The server:
 7. Responds with its full post-merge record set and header, bound to the request nonce.
 
 The client merges the response in the same way. After one round trip both devices hold
-identical data.
+identical data. The client then exchanges attachment files (below).
 
 If the server answers `401` and the client has non-revoked retired keys, the server may
 still be on one of them. The client retries with each (newest first, up to 3), sending its
 header and no entries, and ignores the entries in the reply.
+
+### `POST /v1/attachments`
+
+Moves attachment files (see [Attachments](./VAULT_FORMAT.md#attachments)) between devices.
+A client calls it after each successful `/v1/sync`, when both sides refer to the same
+attachments. Servers that predate attachments answer `404`; skip the exchange then.
+
+```jsonc
+// request
+{
+  "vaultId": "uuid",
+  "keyId": "key id of the current vault key",
+  "nonce": "≥16 chars, random",
+  "payload": "seal(vaultKey, AttachmentRequest, AAD = pm:att-req:v1:<vaultId>)"
+}
+// response 200
+{ "payload": "seal(vaultKey, AttachmentResponse, AAD = pm:att-res:v1:<vaultId>:<nonce>)" }
+```
+
+```jsonc
+// AttachmentRequest
+{
+  "nonce": "same as outer nonce",
+  "sentAt": 1739999999999,
+  "want": ["id", …], // files the client lacks and wants sent (≤ 1000)
+  "check": ["id", …], // files the client has; the server lists the ones it lacks (≤ 10000)
+  "put": [{ "id": "…", "data": "the attachment file's contents" }] // files the server asked for
+}
+// AttachmentResponse
+{
+  "attachments": [{ "id": "…", "data": "the attachment file's contents" }],
+  "missing": ["id", …], // ids in `want` the server can't send
+  "need": ["id", …] // ids in `check` the server lacks
+}
+```
+
+The server checks the request like `/v1/sync` (423 locked, 409 vault mismatch, nonce, clock
+and replay checks), except that only the **current** vault key is accepted (`401` otherwise).
+It only sends, accepts, or asks for files that a live entry in its vault refers to. Before
+storing a file it opens it with that entry's attachment key and drops it if that fails.
+
+`attachments` holds the wanted files in order until their total size passes 12 MiB (at
+least one file is sent). Wanted ids that are in neither `attachments` nor `missing` were
+held back for size: ask again. Likewise, send `put` in batches of at most 12 MiB (a single
+file may exceed that), with empty `want` and `check`. Allow up to 2 minutes per request.
+
+A client's exchange is therefore:
+
+1. Collect the attachment ids of all live entries. `want` = the ones whose file is missing
+   locally, `check` = the rest.
+2. Send `want` + `check`. Store each returned file after opening it with its key. Repeat with
+   the remaining `want` while the server keeps sending files.
+3. Send the files listed in `need` with `put`, in batches.
 
 ## Android implementation notes
 

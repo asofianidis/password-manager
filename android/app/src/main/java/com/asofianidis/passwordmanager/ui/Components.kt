@@ -17,7 +17,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -30,13 +35,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import com.asofianidis.passwordmanager.Biometrics
 import com.asofianidis.passwordmanager.pm
+import com.asofianidis.passwordmanager.vault.EntryType
 import com.asofianidis.passwordmanager.vault.IncorrectPasswordException
 import com.asofianidis.passwordmanager.vault.VaultEntry
 import kotlinx.coroutines.Dispatchers
@@ -202,7 +208,7 @@ fun EntryRow(entry: VaultEntry, onClick: () -> Unit, trailing: @Composable (() -
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
-        Monogram(entry.title.ifBlank { entry.url })
+        if (entry.isLogin) Monogram(entry.title.ifBlank { entry.url }) else TypeTile(entry.entryType)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -219,13 +225,36 @@ fun EntryRow(entry: VaultEntry, onClick: () -> Unit, trailing: @Composable (() -
                     Icon(Icons.Default.Star, contentDescription = "Favorite", tint = Palette.warn, modifier = Modifier.size(14.dp))
                 }
             }
-            val subtitle = entry.username.ifBlank { displayUrl(entry.url) }
+            val subtitle = if (entry.isLogin) entry.username.ifBlank { displayUrl(entry.url) } else entry.detail
             if (subtitle.isNotBlank()) {
                 Text(subtitle, color = Palette.muted, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
         trailing?.invoke()
     }
+}
+
+/** A tile with the entry type's icon, in place of a monogram for non-logins. */
+@Composable
+fun TypeTile(type: EntryType, modifier: Modifier = Modifier) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Palette.raised)
+            .border(1.dp, Palette.lineStrong, RoundedCornerShape(10.dp)),
+    ) {
+        Icon(typeIcon(type), contentDescription = type.one, tint = Palette.accent, modifier = Modifier.size(20.dp))
+    }
+}
+
+fun typeIcon(type: EntryType): androidx.compose.ui.graphics.vector.ImageVector = when (type) {
+    EntryType.LOGIN -> Icons.Default.Key
+    EntryType.CARD -> Icons.Default.CreditCard
+    EntryType.IDENTITY -> Icons.Default.Badge
+    EntryType.NOTE -> Icons.AutoMirrored.Filled.StickyNote2
+    EntryType.DOCUMENT -> Icons.Default.Description
 }
 
 fun displayUrl(url: String): String =

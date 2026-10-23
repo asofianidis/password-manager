@@ -5,6 +5,7 @@ import type {
   BridgeEnvelope,
   BridgeError,
   BridgeEvent,
+  BridgeFillable,
   BridgeLogin,
   BridgeReply,
   BridgeRequest,
@@ -13,10 +14,12 @@ import type {
   BridgeStatus
 } from '../../shared/browser-protocol'
 import type { BrowserClient, VaultEntry, VaultStatus } from '../../shared/types'
+import { fillableFields } from '../../shared/fill'
 import { LineDecoder, encodeLine } from './framing'
 import { matchLevel } from './match'
 
 const MAX_LOGINS = 20
+const MAX_FILLABLES = 25
 
 export interface BridgeDeps {
   vault: { status(): VaultStatus; list(): VaultEntry[] }
@@ -115,7 +118,9 @@ export function createBridgeHandler(deps: BridgeDeps) {
       const url = str(request.url)
       return unlockedEntries()
         .map((entry) => ({ entry, level: matchLevel(entry.url, url) }))
-        .filter(({ entry, level }) => level > 0 && (entry.username || entry.password))
+        .filter(
+          ({ entry, level }) => !entry.type && level > 0 && (entry.username || entry.password)
+        )
         .sort(
           (a, b) =>
             b.level - a.level ||
@@ -130,7 +135,7 @@ export function createBridgeHandler(deps: BridgeDeps) {
       const client = requireClient(request.token)
       const url = str(request.url)
       const entryId = str(request.entryId, 200)
-      const entry = unlockedEntries().find((e) => e.id === entryId)
+      const entry = unlockedEntries().find((e) => e.id === entryId && !e.type)
       // Catches an extension bug that would fill a login into the wrong site. It is not a
       // security boundary: the caller supplies the URL, so anything holding a client token can
       // name whatever site it likes and get any login. Tokens come from the pairing prompt,
@@ -139,6 +144,36 @@ export function createBridgeHandler(deps: BridgeDeps) {
       if (!entry || matchLevel(entry.url, url) === 0) throw new RequestError('no-match')
       deps.touchClient(client.id)
       return { username: entry.username, password: entry.password }
+    },
+
+    // Notes, cards, and IDs aren't tied to a site, so these fill on any page the user picks
+    fillables: (request): BridgeFillable[] => {
+      requireClient(request.token)
+      return unlockedEntries()
+        .map((entry) => ({ entry, fields: fillableFields(entry) }))
+        .filter(({ fields }) => fields.length > 0)
+        .sort(
+          (a, b) =>
+            Number(b.entry.favorite) - Number(a.entry.favorite) ||
+            a.entry.title.localeCompare(b.entry.title)
+        )
+        .slice(0, MAX_FILLABLES)
+        .map(({ entry, fields }) => ({
+          id: entry.id,
+          type: entry.type ?? 'login',
+          title: entry.title,
+          labels: fields.map((f) => f.label)
+        }))
+    },
+
+    'fill-fields': (request) => {
+      const client = requireClient(request.token)
+      const entryId = str(request.entryId, 200)
+      const entry = unlockedEntries().find((e) => e.id === entryId)
+      const fields = entry ? fillableFields(entry) : []
+      if (fields.length === 0) throw new RequestError('no-match')
+      deps.touchClient(client.id)
+      return fields
     }
   }
 

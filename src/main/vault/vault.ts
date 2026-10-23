@@ -1,9 +1,17 @@
 import { app } from 'electron'
 import { EventEmitter } from 'events'
 import { randomBytes, randomUUID } from 'crypto'
+import { promises as fs } from 'fs'
 import { join } from 'path'
-import type { EntryInput, VaultEntry, VaultStatus } from '../../shared/types'
+import {
+  MAX_ATTACHMENT_BYTES,
+  type Attachment,
+  type EntryInput,
+  type VaultEntry,
+  type VaultStatus
+} from '../../shared/types'
 import { mergeEntries, toTombstone } from '../../shared/merge'
+import { composeEntry, isAttachmentId, sanitizeInput } from '../../shared/entries'
 import { readFileIfExists, writeFileAtomic } from '../fs-utils'
 import {
   AAD,
@@ -91,26 +99,20 @@ export class IncorrectPasswordError extends Error {
   }
 }
 
-function sanitizeInput(input: EntryInput): EntryInput {
-  return {
-    title: String(input.title ?? '').trim() || 'Untitled',
-    username: String(input.username ?? ''),
-    password: String(input.password ?? ''),
-    url: String(input.url ?? '').trim(),
-    notes: String(input.notes ?? ''),
-    totp: String(input.totp ?? '').trim(),
-    folder: String(input.folder ?? '').trim(),
-    favorite: Boolean(input.favorite)
-  }
-}
-
 class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] }> {
   private file: VaultFile | null = null
   private session: Session | null = null
   private writeQueue: Promise<void> = Promise.resolve()
+  /** Attachments added this session that no saved entry refers to yet; spared from cleanup */
+  private staged = new Set<string>()
 
   get path(): string {
     return join(app.getPath('userData'), 'vault.json')
+  }
+
+  /** Each attachment is a file named by its id, holding the blob sealed with the attachment's key. */
+  get attachmentsDir(): string {
+    return join(app.getPath('userData'), 'attachments')
   }
 
   async init(): Promise<void> {
@@ -264,6 +266,7 @@ class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] 
     } else {
       this.session = { ...current!, entries }
     }
+    void this.collectGarbage().catch(() => undefined)
     this.emit('unlocked')
     return this.status()
   }
@@ -273,6 +276,7 @@ class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] 
       wipe(this.session)
       this.session.entries.clear()
       this.session = null
+      this.staged.clear()
       this.emit('locked')
     }
     return this.status()
@@ -392,35 +396,39 @@ class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] 
   async createEntries(
     inputs: (EntryInput & { createdAt?: number; updatedAt?: number })[]
   ): Promise<VaultEntry[]> {
-    const session = this.requireSession()
+    this.requireSession()
     const now = Date.now()
     const created = inputs.map((input): VaultEntry => {
       const createdAt = input.createdAt ?? now
-      return {
-        id: randomUUID(),
-        ...sanitizeInput(input),
-        createdAt,
-        updatedAt: now,
-        passwordUpdatedAt: input.updatedAt ?? createdAt
-      }
+      return composeEntry(
+        {
+          id: randomUUID(),
+          createdAt,
+          updatedAt: now,
+          passwordUpdatedAt: input.updatedAt ?? createdAt
+        },
+        sanitizeInput(input)
+      )
     })
-    for (const entry of created) session.entries.set(entry.id, entry)
+    for (const entry of created) this.put(entry)
     await this.commit()
     return created
   }
 
   async updateEntry(id: string, input: EntryInput): Promise<VaultEntry> {
-    const session = this.requireSession()
     const existing = this.get(id)
     const clean = sanitizeInput(input)
     const now = Date.now()
-    const updated: VaultEntry = {
-      ...existing,
-      ...clean,
-      updatedAt: Math.max(now, existing.updatedAt + 1),
-      passwordUpdatedAt: clean.password !== existing.password ? now : existing.passwordUpdatedAt
-    }
-    session.entries.set(id, updated)
+    const updated = composeEntry(
+      {
+        id,
+        createdAt: existing.createdAt,
+        updatedAt: Math.max(now, existing.updatedAt + 1),
+        passwordUpdatedAt: clean.password !== existing.password ? now : existing.passwordUpdatedAt
+      },
+      clean
+    )
+    this.put(updated)
     await this.commit()
     return updated
   }
@@ -430,6 +438,106 @@ class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] 
     const existing = this.get(id)
     session.entries.set(id, toTombstone(existing, Math.max(Date.now(), existing.updatedAt + 1)))
     await this.commit()
+  }
+
+  /** Stores an edited entry. Its attachments are saved now, so they no longer need sparing. */
+  private put(entry: VaultEntry): void {
+    this.requireSession().entries.set(entry.id, entry)
+    for (const a of entry.attachments ?? []) this.staged.delete(a.id)
+  }
+
+  /**
+   * Encrypts a file with a new random key and stores it. It stays unreferenced (and is cleaned up
+   * on the next unlock) until an entry saved with it in `attachments` refers to it.
+   */
+  async addAttachment(name: string, mime: string, data: Buffer): Promise<Attachment> {
+    this.requireSession()
+    if (data.length > MAX_ATTACHMENT_BYTES) {
+      throw new Error(`Files must be ${MAX_ATTACHMENT_BYTES / 1024 / 1024} MB or smaller`)
+    }
+    const id = randomUUID()
+    const key = randomBytes(32)
+    const attachment: Attachment = {
+      id,
+      name: name.trim().slice(0, 255) || 'file',
+      mime: mime.trim().slice(0, 100) || 'application/octet-stream',
+      size: data.length,
+      key: key.toString('base64'),
+      createdAt: Date.now()
+    }
+    try {
+      await writeFileAtomic(join(this.attachmentsDir, id), seal(key, data, AAD.attachment(id)))
+    } finally {
+      key.fill(0)
+    }
+    this.staged.add(id)
+    return attachment
+  }
+
+  /** Decrypts an attachment of a live entry. Throws if this device doesn't have its file yet. */
+  async readAttachment(entryId: string, attachmentId: string): Promise<Buffer> {
+    const attachment = this.get(entryId).attachments?.find((a) => a.id === attachmentId)
+    if (!attachment) throw new Error('Attachment not found')
+    const blob = await this.attachmentBlob(attachmentId)
+    if (blob === null) {
+      throw new Error("This file hasn't been downloaded to this device yet. Sync to fetch it.")
+    }
+    return openAttachment(attachment, blob)
+  }
+
+  /** Attachments of live entries, by id. Sync transfers only these. */
+  attachmentRefs(): Map<string, Attachment> {
+    const refs = new Map<string, Attachment>()
+    for (const entry of this.list()) for (const a of entry.attachments ?? []) refs.set(a.id, a)
+    return refs
+  }
+
+  /** The stored (sealed) blob of an attachment, or null if this device doesn't have it. */
+  async attachmentBlob(id: string): Promise<string | null> {
+    if (!isAttachmentId(id)) return null
+    return readFileIfExists(join(this.attachmentsDir, id))
+  }
+
+  async hasAttachmentBlob(id: string): Promise<boolean> {
+    if (!isAttachmentId(id)) return false
+    return fs
+      .access(join(this.attachmentsDir, id))
+      .then(() => true)
+      .catch(() => false)
+  }
+
+  /**
+   * Stores a blob received from a peer, if a live entry refers to it and it opens with that
+   * entry's key. Returns whether it was stored.
+   */
+  async storeAttachmentBlob(id: string, blob: string): Promise<boolean> {
+    const attachment = this.attachmentRefs().get(id)
+    if (!attachment || typeof blob !== 'string') return false
+    try {
+      openAttachment(attachment, blob)
+    } catch {
+      return false
+    }
+    await writeFileAtomic(join(this.attachmentsDir, id), blob)
+    return true
+  }
+
+  /** Deletes attachment files that no live entry refers to. */
+  async collectGarbage(): Promise<void> {
+    if (!this.session) return
+    const refs = this.attachmentRefs()
+    let names: string[]
+    try {
+      names = await fs.readdir(this.attachmentsDir)
+    } catch {
+      return
+    }
+    await Promise.all(
+      names
+        // Temp files from writes in progress don't look like ids
+        .filter((name) => isAttachmentId(name) && !refs.has(name) && !this.staged.has(name))
+        .map((name) => fs.rm(join(this.attachmentsDir, name), { force: true }))
+    )
   }
 
   /**
@@ -462,6 +570,7 @@ class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] 
   private async commit(): Promise<void> {
     await this.persist()
     this.emit('changed')
+    void this.collectGarbage().catch(() => undefined)
   }
 
   /** Serializes writes so concurrent edits and syncs can't interleave on disk. */
@@ -490,6 +599,15 @@ class VaultService extends EventEmitter<{ locked: []; unlocked: []; changed: [] 
 function assertMasterPassword(password: string): void {
   if (password.length < MIN_MASTER_PASSWORD_LENGTH) {
     throw new Error(`Master password must be at least ${MIN_MASTER_PASSWORD_LENGTH} characters`)
+  }
+}
+
+function openAttachment(attachment: Attachment, blob: string): Buffer {
+  const key = Buffer.from(attachment.key, 'base64')
+  try {
+    return open(key, blob, AAD.attachment(attachment.id))
+  } finally {
+    key.fill(0)
   }
 }
 

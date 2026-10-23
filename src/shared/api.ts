@@ -1,4 +1,5 @@
 import type {
+  Attachment,
   BrowserBridgeStatus,
   EntryInput,
   EntrySummary,
@@ -39,7 +40,16 @@ export interface InvokeApi {
   'entries:create': (input: EntryInput) => VaultEntry
   'entries:update': (id: string, input: EntryInput) => VaultEntry
   'entries:delete': (id: string) => void
-  'entries:copy': (id: string, field: 'username' | 'password' | 'url') => void
+  /** `primary`: the password, card number, ID number, or note text, by type */
+  'entries:copy': (id: string, field: 'username' | 'password' | 'url' | 'primary') => void
+
+  /** Encrypts and stores a file; it's kept once an entry is saved with it */
+  'attachments:add': (name: string, mime: string, data: Uint8Array) => Attachment
+  'attachments:read': (entryId: string, attachmentId: string) => Uint8Array
+  /** Decrypts an attachment to a file the user picks. Returns the path, or null if cancelled. */
+  'attachments:save': (entryId: string, attachmentId: string) => string | null
+  /** Which of these attachments have their file on this device */
+  'attachments:present': (ids: string[]) => string[]
 
   'health:report': () => HealthReport
   'strength:check': (password: string) => StrengthResult
@@ -91,6 +101,10 @@ export const INVOKE_CHANNELS = [
   'entries:update',
   'entries:delete',
   'entries:copy',
+  'attachments:add',
+  'attachments:read',
+  'attachments:save',
+  'attachments:present',
   'health:report',
   'strength:check',
   'generator:generate',

@@ -55,6 +55,45 @@ export interface SyncMessage {
   entries: VaultEntry[]
 }
 
+/** POST /v1/attachments. `payload` is sealed AttachmentRequest, AAD = pm:att-req:v1:<vaultId> */
+export interface AttachmentEnvelope {
+  vaultId: string
+  keyId: string
+  nonce: string
+  payload: string
+}
+
+/** An attachment file's contents: the attachment sealed with its own key, base64 */
+export interface AttachmentBlob {
+  id: string
+  data: string
+}
+
+export interface AttachmentRequest {
+  nonce: string
+  sentAt: number
+  /** Files the sender lacks and wants */
+  want: string[]
+  /** Files the sender has; the reply lists the ones the receiver lacks */
+  check: string[]
+  /** Files the receiver asked for */
+  put: AttachmentBlob[]
+}
+
+/** Response `payload` is sealed AttachmentResponse, AAD = pm:att-res:v1:<vaultId>:<nonce> */
+export interface AttachmentResponse {
+  attachments: AttachmentBlob[]
+  /** Wanted ids that can't be sent; wanted ids in neither list were held back for size */
+  missing: string[]
+  /** Checked ids the receiver lacks */
+  need: string[]
+}
+
+/** Files in one attachment message stop once their total passes this (one file always goes) */
+export const ATTACHMENT_BATCH_BYTES = 12 * 1024 * 1024
+export const MAX_WANT = 1000
+export const MAX_CHECK = 10_000
+
 export interface ErrorResponse {
   error: string
 }

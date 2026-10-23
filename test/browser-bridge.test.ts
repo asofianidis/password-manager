@@ -313,3 +313,67 @@ describe('native host relay', () => {
     }
   })
 })
+
+describe('bridge fillables', () => {
+  const note = entry('note', '', {
+    type: 'note',
+    title: 'Address',
+    notes: 'Street: 1 Main St\nCity: Springfield'
+  })
+  const card = entry('card', 'https://example.com', {
+    type: 'card',
+    title: 'Visa',
+    favorite: true,
+    card: { cardholder: 'Jo', number: '4242', expiry: '08/27', cvv: '123', pin: '0000' }
+  })
+
+  it('lists notes and cards by label only, and fills them on any site', async () => {
+    const { fake, handle, token } = await paired()
+    fake.entries.push(note, card)
+    const list = await handle({ type: 'fillables', token })
+    expect(list).toEqual({
+      ok: true,
+      result: [
+        {
+          id: 'card',
+          type: 'card',
+          title: 'Visa',
+          labels: ['Cardholder name', 'Card number', 'Expiry', 'Security code']
+        },
+        { id: 'note', type: 'note', title: 'Address', labels: ['Street', 'City'] }
+      ]
+    })
+    expect(JSON.stringify(list)).not.toContain('Main St')
+
+    const fill = await handle({ type: 'fill-fields', token, entryId: 'note' })
+    expect(fill).toEqual({
+      ok: true,
+      result: [
+        { label: 'Street', value: '1 Main St', concept: 'address-line1' },
+        { label: 'City', value: 'Springfield', concept: 'address-level2' }
+      ]
+    })
+    expect(await handle({ type: 'fill-fields', token, entryId: 'sub' })).toEqual({
+      ok: false,
+      error: 'no-match'
+    })
+  })
+
+  it('never offers a card as a login, even with a matching URL', async () => {
+    const { fake, handle, token } = await paired()
+    fake.entries.push(card)
+    const logins = await handle({ type: 'logins', token, url: 'https://example.com' })
+    expect(logins.ok && logins.result.map((l: { id: string }) => l.id)).not.toContain('card')
+    expect(
+      await handle({ type: 'fill', token, url: 'https://example.com', entryId: 'card' })
+    ).toEqual({ ok: false, error: 'no-match' })
+  })
+
+  it('requires a paired token', async () => {
+    const { handle } = setup()
+    expect(await handle({ type: 'fillables', token: 'nope' })).toEqual({
+      ok: false,
+      error: 'not-paired'
+    })
+  })
+})

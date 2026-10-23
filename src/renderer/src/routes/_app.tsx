@@ -12,14 +12,16 @@ import {
   Activity,
   ArrowLeftRight,
   Folder,
-  KeyRound,
   Lock,
   Search,
   Settings,
   Sparkles,
   Star,
+  Vault,
   type LucideIcon
 } from 'lucide-react'
+import { ENTRY_TYPES } from '@shared/types'
+import { ENTRY_TYPE_LABELS } from '@shared/entries'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
 import { timeAgo } from '@renderer/lib/format'
@@ -27,6 +29,7 @@ import { MOD, SHIFT, isMac, isMod } from '@renderer/lib/keys'
 import { toastError } from '@renderer/lib/toast'
 import { openPalette } from '@renderer/lib/workspace'
 import { CommandPalette } from '@renderer/components/CommandPalette'
+import { TYPE_ICONS } from '@renderer/lib/entry-types'
 import { UpdateButton } from '@renderer/components/UpdateButton'
 import { PendingKeyBanner } from '@renderer/components/PendingKeyBanner'
 import { Eyebrow, Kbd, LogoMark } from '@renderer/components/ui'
@@ -147,9 +150,14 @@ function Sidebar(): React.JSX.Element {
   const { data: sync } = useQuery(queries.syncStatus())
 
   const path = location.pathname
-  const search = location.search as { folder?: string; favorites?: boolean }
+  const search = location.search as { folder?: string; favorites?: boolean; type?: string }
   const issues = entries.filter((e) => e.hasPassword && (e.score <= 2 || e.reused)).length
   const favorites = entries.filter((e) => e.favorite).length
+  const typeCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const e of entries) counts.set(e.type, (counts.get(e.type) ?? 0) + 1)
+    return counts
+  }, [entries])
   const folders = useMemo(() => {
     const counts = new Map<string, number>()
     for (const e of entries) if (e.folder) counts.set(e.folder, (counts.get(e.folder) ?? 0) + 1)
@@ -160,7 +168,7 @@ function Sidebar(): React.JSX.Element {
   const lastSync = Math.max(0, ...peers.map((p) => p.lastSyncAt ?? 0))
   const failing = peers.some((p) => p.lastError)
   const onVault = path === '/passwords'
-  const scoped = Boolean(search.folder || search.favorites)
+  const scoped = Boolean(search.folder || search.favorites || search.type)
 
   return (
     <aside className="flex w-60 shrink-0 flex-col">
@@ -192,7 +200,7 @@ function Sidebar(): React.JSX.Element {
       <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3">
         <NavItem
           to="/passwords"
-          icon={KeyRound}
+          icon={Vault}
           label="Vault"
           active={onVault && !scoped}
           trailing={<Count>{entries.length}</Count>}
@@ -221,6 +229,19 @@ function Sidebar(): React.JSX.Element {
             ) : undefined
           }
         />
+
+        <Eyebrow className="px-2.5 pt-5 pb-1.5">Categories</Eyebrow>
+        {ENTRY_TYPES.map((type) => (
+          <NavItem
+            key={type}
+            to="/passwords"
+            search={{ type }}
+            icon={TYPE_ICONS[type]}
+            label={ENTRY_TYPE_LABELS[type].many}
+            active={onVault && search.type === type}
+            trailing={typeCounts.get(type) ? <Count>{typeCounts.get(type)}</Count> : undefined}
+          />
+        ))}
 
         {(favorites > 0 || folders.length > 0) && (
           <>

@@ -1,7 +1,9 @@
 package com.asofianidis.passwordmanager
 
 import com.asofianidis.passwordmanager.match.UrlMatch
+import com.asofianidis.passwordmanager.vault.Attachment
 import com.asofianidis.passwordmanager.vault.EntryInput
+import com.asofianidis.passwordmanager.vault.EntryType
 import com.asofianidis.passwordmanager.vault.IncorrectPasswordException
 import com.asofianidis.passwordmanager.vault.Vault
 import com.asofianidis.passwordmanager.vault.VaultEntry
@@ -35,11 +37,16 @@ class InteropTest {
     data class MatchCase(val entryUrl: String, val pageUrl: String, val level: Int)
 
     @Serializable
+    data class AttachmentCase(val entryId: String, val id: String, val blob: String, val content: String)
+
+    @Serializable
     data class Fixtures(
         val password: String,
         val oldPassword: String,
         val vault: VaultFile,
         val oldVault: VaultFile,
+        val typedVault: VaultFile,
+        val attachment: AttachmentCase,
         val canonical: List<CanonicalCase>,
         val ties: List<TieCase>,
         val matches: List<MatchCase>,
@@ -161,8 +168,73 @@ class InteropTest {
         for (case in fixtures.canonical) assertEquals(case.json, canonicalJson(case.entry))
         // The serializer used for sync writes keys in the same order. (It can't encode lone
         // surrogates, which only a corrupt entry would contain.)
-        for (case in fixtures.canonical.filter { c -> c.entry.notes.none { it.isSurrogate() } }) {
+        for (case in fixtures.canonical.filter { !it.json.contains("\\ud800") }) {
             assertEquals(case.json, VaultJson.encodeToString(VaultEntry.serializer(), case.entry))
+        }
+    }
+
+    @Test
+    fun readsCardsIdsNotesAndAttachmentsFromTheDesktop() {
+        val file = vaultFile(fixtures.typedVault)
+        val vault = Vault(file)
+        vault.unlock(fixtures.password)
+        val byTitle = vault.list().associateBy { it.title }
+        val card = byTitle.getValue("Visa")
+        assertEquals(EntryType.CARD, card.entryType)
+        assertEquals("4242424242424242", card.card?.number)
+        assertEquals("Visa •••• 4242", card.detail)
+        val passport = byTitle.getValue("Passport")
+        assertEquals("passport", passport.identity?.kind)
+        assertEquals("Passport · United States", passport.detail)
+        assertEquals("Street: 1 Main St", byTitle.getValue("Address").detail)
+        assertTrue(byTitle.getValue("GitHub").isLogin)
+        assertEquals(listOf("GitHub"), vault.logins().map { it.title })
+
+        // The entry arrives before its file does
+        val a = fixtures.attachment
+        assertEquals(null, vault.readAttachment(a.entryId, a.id))
+        assertFalse(vault.storeAttachmentBlob(a.id, fixtures.vault.data))
+        assertTrue(vault.storeAttachmentBlob(a.id, a.blob))
+        assertEquals(a.content, vault.readAttachment(a.entryId, a.id)!!.toString(Charsets.UTF_8))
+        assertFalse("only referenced files are stored", vault.storeAttachmentBlob("unreferenced-id", a.blob))
+
+        // Editing a typed entry here keeps everything the desktop wrote
+        val updated = vault.updateEntry(passport.id, EntryInput.of(passport))
+        assertEquals(passport.copy(updatedAt = updated.updatedAt), updated)
+        vault.lock()
+        val reopened = Vault(file)
+        reopened.unlock(fixtures.password)
+        assertEquals(updated, reopened.get(updated.id))
+        assertTrue(reopened.hasAttachmentBlob(a.id))
+    }
+
+    @Test
+    fun storesAndCleansUpAttachments() {
+        val vault = Vault(vaultFile(fixtures.typedVault))
+        vault.unlock(fixtures.password)
+        val added = vault.addAttachment("  scan.pdf ", "application/pdf", byteArrayOf(1, 2, 3))
+        assertEquals("scan.pdf", added.name)
+        assertEquals(3L, added.size)
+        assertEquals(listOf<Byte>(1, 2, 3), vault.decryptAttachment(added)!!.toList())
+        // Unsaved attachments survive cleanup until the vault locks
+        vault.collectGarbage()
+        assertTrue(vault.hasAttachmentBlob(added.id))
+        val note = vault.createEntry(EntryInput.empty(EntryType.DOCUMENT).copy(title = "Scan", attachments = listOf(added)))
+        assertEquals(listOf(added), note.attachments)
+        assertTrue(added.id in vault.attachmentRefs())
+
+        // Removing it from the entry, then locking, lets cleanup delete the file
+        vault.updateEntry(note.id, EntryInput.of(note).copy(attachments = emptyList()))
+        val orphan = vault.addAttachment("orphan", "text/plain", byteArrayOf(9))
+        vault.lock()
+        vault.unlock(fixtures.password)
+        assertFalse(vault.hasAttachmentBlob(added.id))
+        assertFalse(vault.hasAttachmentBlob(orphan.id))
+        try {
+            vault.addAttachment("big", "x", ByteArray(Attachment.MAX_BYTES + 1))
+            fail("oversized files are refused")
+        } catch (e: IllegalArgumentException) {
+            // expected
         }
     }
 

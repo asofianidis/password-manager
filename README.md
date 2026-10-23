@@ -57,6 +57,9 @@ the app updates itself.
 - **Dashboard**: a health score plus counts of weak (zxcvbn), reused, and old passwords.
 - **Passwords**: search, filter (favorites/weak/reused/old), add/edit/delete, and copy to the
   clipboard with auto-clear.
+- **Cards, photo IDs, notes, and documents**: save payment cards, passports and other IDs (with
+  photos of them), secure notes, and documents. Any item can have files attached (up to 10 MB
+  each); they're encrypted and sync between your devices like everything else.
 - **Generator**: random characters or EFF-diceware passphrases, with a strength estimate.
 - **Import**: Dashlane (CSV or ZIP), Chrome/Edge/Brave, Firefox, Safari/Apple Passwords,
   Bitwarden (CSV/JSON), 1Password (CSV/1PUX), LastPass, KeePass/KeePassXC, Proton Pass, and
@@ -76,6 +79,26 @@ the app updates itself.
 
 The extension in `extension/` adds a **Password Manager** submenu when you right-click an input
 field. It lists the saved logins that match the site; picking one fills the username and password.
+
+The same menu has **Notes, cards & IDs**, which works on any site. Pick an item, then either:
+
+- **Fill matching fields**: fills every field in the form whose label, name, or `autocomplete`
+  attribute matches one of the item's fields (e.g. "Postal code" fills a `zip` field, and a card's
+  expiry fills separate month and year fields).
+- **Insert *field***: puts that one value into the field you right-clicked.
+
+A note's fields are its lines of the form `Label: value`, for example:
+
+```
+Street: 1 Main St
+City: Springfield
+Postal code: 90210
+Phone: 555-0100
+```
+
+A note without such lines can still be inserted whole. Cards offer the cardholder, number, expiry,
+and security code (never the PIN), and IDs their name, number, and dates. Only labels appear in
+the menu; values are fetched from the app when you pick one.
 
 - **Chrome, Edge, Brave, Arc, Vivaldi**: in the app, open **Settings → Browser** and click **Open
   folder**. In the browser, open `chrome://extensions`, turn on Developer mode, click **Load
@@ -137,6 +160,11 @@ listening for the 5-minute window). On the phone, enter one of the addresses it 
 the 6-digit code, and your master password. The phone has to reach the computer: the same Wi-Fi,
 or Tailscale on both (use the `100.x.y.z` address or MagicDNS name). To keep syncing afterwards,
 turn on **Accept sync connections** on the computer.
+
+**Cards, IDs, notes, and documents** work on the phone too, attached files included; files added
+on one device are fetched by the others when they sync. Update the phone along with your
+computers: Android app versions from before these items existed drop their details when they save
+the vault.
 
 **Autofill.** Under **Settings → Autofill**, tap **Turn on autofill** and pick Password Manager.
 That one setting covers both apps and browsers; there is no keyboard to install.
