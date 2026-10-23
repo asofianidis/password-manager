@@ -1,0 +1,122 @@
+# The Xcode project is generated from this file: `brew install xcodegen`, then `xcodegen` in this
+# folder writes PasswordManager.xcodeproj (not checked in). See README.md → iPhone and iPad app.
+name: PasswordManager
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    # Set these to your own team and a bundle id you can register (Signing & Capabilities in
+    # Xcode shows both). The AutoFill extension and the app group derive from PM_BUNDLE_ID.
+    DEVELOPMENT_TEAM: ""
+    PM_BUNDLE_ID: com.asofianidis.passwordmanager
+    CODE_SIGN_STYLE: Automatic
+    # CI passes the version from package.json
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+packages:
+  PMCore:
+    path: Core
+
+targets:
+  PasswordManager:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Shared
+    dependencies:
+      - package: PMCore
+      - target: AutoFill
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(PM_BUNDLE_ID)
+        PRODUCT_NAME: Password Manager
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    entitlements:
+      path: App/PasswordManager.entitlements
+      properties:
+        com.apple.security.application-groups: [group.$(PM_BUNDLE_ID)]
+        keychain-access-groups: [$(AppIdentifierPrefix)$(PM_BUNDLE_ID)]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Password Manager
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        PMAppGroup: group.$(PM_BUNDLE_ID)
+        PMKeychainGroup: $(AppIdentifierPrefix)$(PM_BUNDLE_ID)
+        ITSAppUsesNonExemptEncryption: false
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UIUserInterfaceStyle: Dark
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad:
+          [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        NSFaceIDUsageDescription: Unlock your vault with Face ID instead of typing your master password.
+        NSLocalNetworkUsageDescription: Password Manager syncs your vault directly with your computers on your network.
+        # Sync is plain HTTP to your computers (by IP, MagicDNS name, or .local), sealed with the
+        # vault key; see docs/SYNC_PROTOCOL.md. GitHub links still need HTTPS.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+          NSExceptionDomains:
+            github.com:
+              NSIncludesSubdomains: true
+              NSExceptionAllowsInsecureHTTPLoads: false
+
+  AutoFill:
+    type: app-extension
+    platform: iOS
+    sources:
+      - AutoFill
+      - Shared
+    dependencies:
+      - package: PMCore
+      - sdk: AuthenticationServices.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(PM_BUNDLE_ID).autofill
+        PRODUCT_NAME: AutoFill
+    entitlements:
+      path: AutoFill/AutoFill.entitlements
+      properties:
+        com.apple.developer.authentication-services.autofill-credential-provider: true
+        com.apple.security.application-groups: [group.$(PM_BUNDLE_ID)]
+        keychain-access-groups: [$(AppIdentifierPrefix)$(PM_BUNDLE_ID)]
+    info:
+      path: AutoFill/Info.plist
+      properties:
+        CFBundleDisplayName: Password Manager
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        PMAppGroup: group.$(PM_BUNDLE_ID)
+        PMKeychainGroup: $(AppIdentifierPrefix)$(PM_BUNDLE_ID)
+        NSFaceIDUsageDescription: Unlock your vault with Face ID to fill a password.
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.authentication-services-credential-provider-ui
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).CredentialProviderViewController
+          NSExtensionAttributes:
+            ASCredentialProviderExtensionCapabilities:
+              ProvidesPasswords: true
+
+schemes:
+  PasswordManager:
+    build:
+      targets:
+        PasswordManager: all
+        AutoFill: all
+    run:
+      config: Debug
+    archive:
+      config: Release
