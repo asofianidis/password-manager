@@ -154,3 +154,17 @@ The Android app (`android/`, reference: `sync/SyncClient.kt`) follows these:
   serialize entries with the desktop's key order and JavaScript's string escaping
   (`canonicalJson` in `vault/Merge.kt`).
 - Keep device clocks synced (the 5-minute window).
+
+## iOS implementation notes
+
+The iPhone and iPad app (`ios/`, reference: `Core/Sources/PMCore/SyncClient.swift`) follows the
+same rules as Android, and is likewise a client only. Differences:
+
+- App Transport Security blocks plain HTTP, and can't allow an IP range either, so the app sets
+  `NSAllowsArbitraryLoads` and keeps HTTPS required for GitHub.
+- iOS asks for Local Network access the first time the app connects to a LAN address. Tailscale
+  addresses go through the VPN and don't need it.
+- Swift's `JSONEncoder` doesn't promise a key order, so the app writes all JSON through its own
+  writer (`JSON.swift`), with the desktop's key order and JavaScript's string escaping. A Swift
+  `String` can't hold a lone surrogate, so the one escape it can't reproduce is that of a corrupt
+  entry.

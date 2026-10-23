@@ -15,7 +15,8 @@ permissions:
   contents: read
 
 jobs:
-  # Decides what to build: the desktop app, the browser extension, the Android app, or several.
+  # Decides what to build: the desktop app, the browser extension, the Android app, the iOS app,
+  # or several.
   # Tag pushes and manual runs build everything; pushes and pull requests build only what their
   # changed files affect.
   changes:
@@ -25,6 +26,7 @@ jobs:
       desktop: ${{ steps.diff.outputs.desktop }}
       extension: ${{ steps.diff.outputs.extension }}
       android: ${{ steps.diff.outputs.android }}
+      ios: ${{ steps.diff.outputs.ios }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,6 +43,7 @@ jobs:
             echo "desktop=true" >> "$GITHUB_OUTPUT"
             echo "extension=true" >> "$GITHUB_OUTPUT"
             echo "android=true" >> "$GITHUB_OUTPUT"
+            echo "ios=true" >> "$GITHUB_OUTPUT"
             exit 0
           }
           [[ "$GITHUB_REF" == refs/tags/* ]] && everything "tag push"
@@ -63,10 +66,13 @@ jobs:
           desktop="$(affects "$shared|^src/(main|preload|renderer|shared)/|^(build|resources)/|^electron-builder\.yml$|^electron\.vite\.config\.ts$|^tsconfig[^/]*\.json$")"
           extension="$(affects "$shared|^extension/|^scripts/(build|pack)-extension\.mjs$|^src/shared/browser-protocol\.ts$")"
           android="$(affects "$shared|^android/")"
-          echo "Desktop app: $desktop, browser extension: $extension, Android app: $android"
+          # The iOS tests read the desktop fixtures written for the Android tests
+          ios="$(affects "$shared|^ios/|^android/app/src/test/resources/interop\.json$")"
+          echo "Desktop app: $desktop, browser extension: $extension, Android app: $android, iOS app: $ios"
           echo "desktop=$desktop" >> "$GITHUB_OUTPUT"
           echo "extension=$extension" >> "$GITHUB_OUTPUT"
           echo "android=$android" >> "$GITHUB_OUTPUT"
+          echo "ios=$ios" >> "$GITHUB_OUTPUT"
 
   check:
     name: Lint, typecheck, test
@@ -288,6 +294,34 @@ jobs:
           name: password-manager-android
           if-no-files-found: error
           path: android/release/*.apk
+
+  # The iOS app is installed from Xcode (see README), so CI only tests and compiles it; nothing is
+  # released. The build is unsigned: signing needs your own Apple team.
+  ios:
+    name: Build iOS app
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test core
+        working-directory: ios/Core
+        run: swift test
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: |
+          brew install xcodegen
+          xcodegen
+
+      - name: Build app and AutoFill extension
+        shell: bash
+        run: |
+          set -o pipefail
+          version="$(node -p "require('./package.json').version")"
+          xcodebuild build             -project ios/PasswordManager.xcodeproj             -scheme PasswordManager             -configuration Release             -destination 'generic/platform=iOS'             -derivedDataPath "$RUNNER_TEMP/derived"             CODE_SIGNING_ALLOWED=NO             MARKETING_VERSION="$version"             | grep -E '(error|warning: .*\.swift|BUILD (SUCCEEDED|FAILED)|\*\*)' || true
+          test -d "$RUNNER_TEMP/derived/Build/Products/Release-iphoneos/Password Manager.app/PlugIns/AutoFill.appex"
 
   release:
     name: Publish GitHub release

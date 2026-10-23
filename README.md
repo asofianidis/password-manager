@@ -50,6 +50,11 @@ Download `password-manager-<version>.apk` from the
 (allow your browser to install apps when asked). Then see [Android app](#android-app). After that
 the app updates itself.
 
+### iPhone and iPad
+
+There's no download: build it with Xcode on a Mac and run it on your device. See
+[iPhone and iPad app](#iphone-and-ipad-app).
+
 ## Features
 
 - **Encrypted vault**: Argon2id + AES-256-GCM, unlocked with a master password. It auto-locks
@@ -74,6 +79,8 @@ the app updates itself.
   end-to-end encrypted with the vault key.
 - **Android app**: fills logins in apps and browsers, including from the keyboard's suggestion
   strip (see [Android app](#android-app)).
+- **iPhone and iPad app**: fills logins in Safari and apps through iOS AutoFill (see
+  [iPhone and iPad app](#iphone-and-ipad-app)).
 
 ## Browser extension
 
@@ -224,6 +231,76 @@ against a real desktop without the GUI, run
 port 47999 (from an emulator, the computer is `10.0.2.2`) and writes the pairing code to
 `pm-desktop-peer.log` in the temp folder.
 
+## iPhone and iPad app
+
+The app in `ios/` (Swift, SwiftUI) does what the Android app does: it holds a copy of the vault,
+pairs with the desktop app (it can't create a vault), and syncs as a client. Logins, cards, photo
+IDs, notes, and documents work, attached files included. On iPad the vault list and the open item
+sit side by side.
+
+**Setup** is the same as on Android: on the computer, open **Sync** and click **Pair a new
+device**; on the iPhone or iPad, enter an address it shows, the port, the 6-digit code, and your
+master password. The first sync asks to find devices on your local network; allow it (or turn on
+Password Manager later under **Settings → Privacy & Security → Local Network**). Over Tailscale,
+use the `100.x.y.z` address or MagicDNS name.
+
+**AutoFill.** Under **Settings → AutoFill** in the app, tap **Turn on AutoFill** (or open
+**Settings → General → AutoFill & Passwords** and turn on Password Manager).
+
+- Tapping the key icon above the keyboard in Safari or an app opens Password Manager: unlock, then
+  pick one of the logins saved for that site, or search the vault. Filling a login that isn't saved
+  for the site asks first. Websites match by the same rules as the browser extension.
+- With **Suggest logins above the keyboard** on (the default), iOS shows matching usernames in the
+  QuickType bar. iOS gets each login's site and username, never its password; picking one still
+  unlocks the vault first.
+- Unlock AutoFill with Face ID or Touch ID when you can. Unlocking with the master password runs
+  Argon2 with 64 MiB of memory inside the extension, which iOS limits; it works on current devices,
+  but Face ID is faster.
+
+**Locking.** Unlock with the master password or, after turning it on, Face ID or Touch ID. The
+vault key is then stored in the keychain under an access control that needs the current biometric
+enrollment, so adding a face or fingerprint turns it off. The vault locks after inactivity (5
+minutes by default) and optionally when you leave the app; the app switcher shows a cover instead
+of the vault. The vault file is unreadable while the device is locked and isn't backed up. Copied
+passwords stay on the device (no Universal Clipboard) and expire after 30 seconds by default.
+
+**Sync** works as on Android: on unlock, shortly after each change, and when you pull to refresh
+or tap the sync button. A master password change on a computer reaches the device on its next sync;
+it then asks for the new master password.
+
+### Building
+
+You need a Mac with Xcode 16 or later, and [XcodeGen](https://github.com/yonaskolb/XcodeGen),
+which writes the Xcode project from `ios/project.yml`:
+
+```bash
+brew install xcodegen
+cd ios
+xcodegen               # writes PasswordManager.xcodeproj
+open PasswordManager.xcodeproj
+```
+
+In `ios/project.yml`, set `DEVELOPMENT_TEAM` to your team ID, and `PM_BUNDLE_ID` to a bundle ID
+your team can register (the default belongs to this repo's owner). Run `xcodegen` again after
+changing it. A free Apple ID works but its builds expire after 7 days; a paid developer account's
+last a year. Then pick your iPhone or iPad and press Run. The app group and keychain group the app
+shares with the AutoFill extension are set up from `PM_BUNDLE_ID` when Xcode signs it.
+
+The vault, crypto, sync, and URL matching are a Swift package in `ios/Core` with no UIKit
+dependency, so its tests run on macOS or Linux:
+
+```bash
+cd ios/Core
+swift test     # includes the checks against the desktop's own output, shared with Android
+```
+
+On a machine without Swift, Docker works:
+`docker run --rm -v "$PWD:/src" -w /src/ios/Core swift:6.0-jammy swift test` from the repo root.
+To try pairing and sync against a real desktop, start the headless peer described under
+[Android app → Building](#building), then run
+`PM_PEER_HOST=127.0.0.1 PM_PEER_CODE=<code> swift test --filter LivePeerTests` (from Docker, use
+`host.docker.internal`).
+
 ## Keyboard shortcuts
 
 | Shortcut       | Action                                  |
@@ -259,6 +336,8 @@ builds only what the changed files affect:
   built, and on releases the Firefox add-on signed by Mozilla and the `extension-latest` update
   feed refreshed. Every desktop build also bundles the current extension.
 - **Android app** (`android/`): unit tests, then an APK. Releases need the signing secrets below.
+- **iOS app** (`ios/`): the core package's tests on macOS, then an unsigned build of the app and
+  its AutoFill extension. Nothing is released; you build it yourself from Xcode.
 - `package.json`, `package-lock.json`, and the workflow itself rebuild both. Tag pushes, manual
   runs, and new branches also build both. Changes elsewhere (docs, tests) only run the checks.
 
@@ -316,6 +395,11 @@ src/
   renderer/       React UI (TanStack Router file routes in src/routes)
   shared/         Types, IPC contract, CSV/importers, sync merge (pure, portable)
 extension/        Browser extension (Chrome-family and Firefox), built by scripts/build-extension.mjs
+ios/              iPhone and iPad app (Swift, SwiftUI); project.yml generates the Xcode project
+  Core/           Swift package: vault and crypto, merge, sync client, URL matching (no UIKit)
+  App/            The app's SwiftUI screens
+  AutoFill/       AutoFill credential provider extension
+  Shared/         Code both use: settings, biometric unlock, the unlock form
 android/          Android app (Kotlin, Compose)
   app/src/main/java/com/asofianidis/passwordmanager/
     vault/        Vault file and crypto, a port of src/main/vault
@@ -334,4 +418,4 @@ an entry's secrets only when it is opened.
 ## Other clients
 
 [docs/VAULT_FORMAT.md](docs/VAULT_FORMAT.md) and [docs/SYNC_PROTOCOL.md](docs/SYNC_PROTOCOL.md)
-describe everything another client needs; the Android app is one.
+describe everything another client needs; the Android and iOS apps are two.

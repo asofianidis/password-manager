@@ -31,6 +31,10 @@ On Android: Argon2id via `org.bouncycastle.crypto.generators.Argon2BytesGenerato
 (or argon2kt), and AES-GCM via `javax.crypto.Cipher("AES/GCM/NoPadding")`, which
 appends the tag to the ciphertext, the same layout as above.
 
+On iOS: Argon2id from the reference implementation (`ios/Core/Sources/CArgon2`), and
+AES-GCM and HMAC from CryptoKit; `AES.GCM.SealedBox` keeps the tag separate, so it is
+appended to the ciphertext by hand.
+
 ## Key hierarchy
 
 ```

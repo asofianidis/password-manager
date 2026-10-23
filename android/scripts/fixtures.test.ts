@@ -9,8 +9,8 @@ import type { EntryInput, VaultEntry } from '../../src/shared/types'
 
 /**
  * Writes android/app/src/test/resources/interop.json from the desktop implementation, so the
- * Android unit tests check the phone against the real thing. Regenerate after changing the vault
- * format, the merge rule, or URL matching:
+ * Android and iOS unit tests check the apps against the real thing. Regenerate after changing the
+ * vault format, the merge rule, or URL matching:
  *
  *   npx vitest run --config android/scripts/vitest.config.ts fixtures
  */
