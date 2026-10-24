@@ -4,12 +4,15 @@
 // fails with "Version X already exists" and the signed file has to be fetched instead.
 //
 //   WEB_EXT_API_KEY=… WEB_EXT_API_SECRET=… node scripts/amo-download-signed.mjs <guid> <version> <out.xpi>
-import { createHmac, randomUUID } from 'crypto'
+import { createHash, createHmac, randomUUID } from 'crypto'
 import { writeFile } from 'fs/promises'
 
 const API = 'https://addons.mozilla.org/api/v5'
 
-/** A short-lived JWT for the AMO API (https://mozilla.github.io/addons-server/topics/api/auth.html) */
+/**
+ * A short-lived JWT for the AMO API (https://mozilla.github.io/addons-server/topics/api/auth.html).
+ * The HMAC is the JWT's HS256 signature, not a password hash.
+ */
 export function amoToken(issuer, secret, now = Math.floor(Date.now() / 1000)) {
   const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url')
   const body = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ iss: issuer, jti: randomUUID(), iat: now, exp: now + 60 })}`
@@ -24,7 +27,7 @@ async function get(url, issuer, secret) {
   return response
 }
 
-async function main() {
+export async function main() {
   const [guid, version, out] = process.argv.slice(2)
   const issuer = process.env.WEB_EXT_API_KEY
   const secret = process.env.WEB_EXT_API_SECRET
@@ -40,7 +43,14 @@ async function main() {
   if (info.version !== version || !info.file?.url) {
     throw new Error(`AMO returned version ${info.version} without a file for ${version}`)
   }
+  const [algorithm, expected] = String(info.file.hash).split(':')
+  if (algorithm !== 'sha256' || !expected) {
+    throw new Error(`AMO returned no sha256 hash for ${version} (${info.file.hash})`)
+  }
   const file = Buffer.from(await (await get(info.file.url, issuer, secret)).arrayBuffer())
+  // Only write a file that matches the hash AMO reported for this version
+  const actual = createHash('sha256').update(file).digest('hex')
+  if (actual !== expected) throw new Error(`Download doesn't match AMO's hash for ${version}`)
   await writeFile(out, file)
   console.log(
     `Downloaded signed ${guid} ${version} (${info.channel}, ${file.length} bytes) to ${out}`
