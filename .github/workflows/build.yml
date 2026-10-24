@@ -346,11 +346,32 @@ jobs:
             echo "::warning::AMO_JWT_ISSUER/AMO_JWT_SECRET not set; skipping Firefox signing"
             exit 0
           fi
+          version="${TAG#v}"
+          xpi="extension/release/password-manager-extension-$version-firefox.xpi"
+          set +e
           npx --yes web-ext@8 sign \
             --source-dir extension/dist/firefox \
             --channel unlisted \
-            --artifacts-dir extension/signed
-          mv extension/signed/*.xpi "extension/release/password-manager-extension-${TAG#v}-firefox.xpi"
+            --artifacts-dir extension/signed 2>&1 | tee sign.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [[ "$status" == 0 ]]; then
+            mv extension/signed/*.xpi "$xpi"
+          elif grep -q "Version $version already exists" sign.log; then
+            # AMO signs each version once. A re-run of a release whose first attempt signed it
+            # (and then failed elsewhere) downloads that signed file instead.
+            guid="$(jq -r .browser_specific_settings.gecko.id extension/dist/firefox/manifest.json)"
+            node scripts/amo-download-signed.mjs "$guid" "$version" "$xpi"
+            if ! unzip -l "$xpi" | grep -q "META-INF/mozilla.rsa" \
+              || [[ "$(unzip -p "$xpi" manifest.json | jq -r .version)" != "$version" ]]; then
+              echo "::error::The file AMO returned isn't a signed $version"
+              rm -f "$xpi"
+              exit 1
+            fi
+            echo "::notice::Firefox $version was already signed by an earlier run; using AMO's signed file"
+          else
+            exit "$status"
+          fi
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

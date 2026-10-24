@@ -125,6 +125,10 @@ lost, users have to uninstall and reinstall. Release runs without these build a 
 Without them the release still ships the unsigned Firefox `.zip`, and Firefox keeps the previous
 signed add-on.
 
+Mozilla signs each version only once. If a release run is re-run after its first attempt signed the
+add-on, `web-ext sign` reports that the version already exists, and the job downloads the signed
+file from addons.mozilla.org instead (`scripts/amo-download-signed.mjs`).
+
 ### Windows
 
 Windows builds aren't code signed, so SmartScreen warns on first download. electron-builder reads
