@@ -16,3 +16,11 @@ updates:
     groups:
       npm-minor:
         update-types: [minor, patch]
+        # Below 1.0 a minor bump can break things (esbuild 0.25 → 0.28, react-refresh 0.4 → 0.5),
+        # so these arrive as separate PRs
+        exclude-patterns:
+          - '@types/chrome'
+          - esbuild
+          - eslint-plugin-react-refresh
+          - fflate
+          - prettier-plugin-tailwindcss
