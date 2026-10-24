@@ -54,7 +54,7 @@ const handlers: Handlers = {
   'entries:delete': (_, id) => vault.deleteEntry(id),
   'entries:copy': (_, id, field) => {
     const entry = vault.get(id)
-    copySecret(field === 'primary' ? primarySecret(entry) : entry[field])
+    return copySecret(field === 'primary' ? primarySecret(entry) : entry[field])
   },
 
   'attachments:add': (_, name, mime, data) => vault.addAttachment(name, mime, Buffer.from(data)),
@@ -146,7 +146,7 @@ export function broadcast(event: VaultEvent): void {
 
 export function wireEvents(): void {
   vault.on('locked', () => {
-    clearSecret()
+    void clearSecret()
     broadcast('locked')
   })
   vault.on('changed', () => broadcast('changed'))

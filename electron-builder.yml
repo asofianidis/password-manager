@@ -34,6 +34,8 @@ nsis:
 mac:
   artifactName: ${name}-${version}-${arch}-mac.${ext}
   category: public.app-category.productivity
+  # Electron 44 needs macOS 13 or later; older versions refuse to open the app with a clear message
+  minimumSystemVersion: '13.0'
   # Signed with the Developer ID certificate in CSC_LINK and notarized when APPLE_ID,
   # APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID are set (docs/RELEASING.md). Builds without a
   # certificate should be ad-hoc signed instead (-c.mac.identity=- -c.mac.hardenedRuntime=false):
