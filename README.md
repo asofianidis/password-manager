@@ -11,7 +11,8 @@ Sync is peer-to-peer (ideally over Tailscale) with no cloud server.
 Download the `.dmg` for your Mac from the
 [latest release](https://github.com/asofianidis/password-manager/releases/latest) (`arm64` for
 Apple Silicon, `x64` for Intel), open it, and drag Password Manager to Applications. Releases are
-signed with a Developer ID and notarized by Apple, so the app opens like any other.
+signed with a Developer ID and notarized by Apple, so the app opens like any other. It needs
+macOS 13 (Ventura) or later.
 
 Or install from the Terminal:
 

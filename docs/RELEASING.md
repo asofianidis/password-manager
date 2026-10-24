@@ -94,7 +94,7 @@ minutes. The dmg step allows two hours per file. If Apple rejects a submission, 
 the notary log and fails, and nothing is published.
 
 Entitlements: the app keeps only `com.apple.security.cs.allow-jit`, which V8 needs to compile
-JavaScript and WebAssembly (Argon2) at runtime. It was tested with Electron 39 under the hardened
+JavaScript and WebAssembly (Argon2) at runtime. It was tested with Electron 44 under the hardened
 runtime; the other usual Electron exceptions (`allow-unsigned-executable-memory`,
 `disable-library-validation`, `allow-dyld-environment-variables`) aren't needed and would weaken
 the runtime's protections.
