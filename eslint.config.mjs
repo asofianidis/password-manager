@@ -37,5 +37,14 @@ export default defineConfig(
       ...eslintPluginReactRefresh.configs.vite.rules
     }
   },
+  {
+    // Route files export a TanStack Router Route object. The router's Vite plugin
+    // (autoCodeSplitting) moves their components into separate modules and hot-reloads them, so
+    // the rule doesn't apply here.
+    files: ['src/renderer/src/routes/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off'
+    }
+  },
   eslintConfigPrettier
 )
