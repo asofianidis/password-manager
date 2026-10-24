@@ -1,5 +1,14 @@
 name: Build
 
+# Lints, tests and builds every push and pull request, and publishes a GitHub release for v* tags
+# and for pushes to main that change an app.
+#
+# The jobs that sign (the macOS desktop build, the browser extension and the Android app) run in
+# the protected "release" environment on release runs only. That environment may only be used
+# from main and v* tags and waits for the maintainer's approval, and the signing secrets live
+# there, so pull request builds never see them and nothing is published until the run is
+# approved. The release job needs those jobs, so it waits too. See docs/RELEASING.md.
+
 on:
   push:
     branches: [main]
@@ -28,7 +37,7 @@ jobs:
       android: ${{ steps.diff.outputs.android }}
       ios: ${{ steps.diff.outputs.ios }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
       - id: diff
@@ -78,8 +87,8 @@ jobs:
     name: Lint, typecheck, test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
           cache: npm
@@ -88,6 +97,17 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+      # Reads package-lock.json; accepted advisories and their reasons are listed in the script
+      - run: node scripts/audit.mjs
+
   version:
     name: Resolve release version
     needs: changes
@@ -95,7 +115,7 @@ jobs:
     outputs:
       tag: ${{ steps.resolve.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
       - id: resolve
@@ -125,9 +145,11 @@ jobs:
 
   build:
     name: Build (${{ matrix.name }})
-    needs: [changes, check, version]
+    needs: [changes, check, audit, version]
     if: needs.changes.outputs.desktop == 'true'
     runs-on: ${{ matrix.os }}
+    # Only the macOS build signs; an empty name means no environment
+    environment: ${{ matrix.name == 'macOS' && needs.version.outputs.tag != '' && 'release' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -142,8 +164,8 @@ jobs:
             os: ubuntu-latest
             platform: --linux
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
           cache: npm
@@ -169,7 +191,7 @@ jobs:
           # Builds are unsigned until signing secrets are configured (see README)
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: password-manager-${{ matrix.name }}
           if-no-files-found: error
@@ -184,12 +206,14 @@ jobs:
 
   extension:
     name: Build browser extension
-    needs: [changes, check, version]
+    needs: [changes, check, audit, version]
     if: needs.changes.outputs.extension == 'true'
     runs-on: ubuntu-latest
+    # Releases sign the Firefox add-on
+    environment: ${{ needs.version.outputs.tag != '' && 'release' || '' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
           cache: npm
@@ -232,7 +256,7 @@ jobs:
             --artifacts-dir extension/signed
           mv extension/signed/*.xpi "extension/release/password-manager-extension-${TAG#v}-firefox.xpi"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: password-manager-extension
           if-no-files-found: error
@@ -240,16 +264,18 @@ jobs:
 
   android:
     name: Build Android app
-    needs: [changes, check, version]
+    needs: [changes, check, audit, version]
     if: needs.changes.outputs.android == 'true'
     runs-on: ubuntu-latest
+    # Releases sign the APK with the release keystore
+    environment: ${{ needs.version.outputs.tag != '' && 'release' || '' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
         with:
           distribution: temurin
           java-version: 17
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
 
       # The app's version comes from package.json
       - name: Set version from tag
@@ -265,16 +291,17 @@ jobs:
 
       # Android only installs an update signed with the same key as the installed app, so releases
       # need a fixed keystore: ANDROID_KEYSTORE_BASE64 (base64 of the .jks), ANDROID_KEYSTORE_PASSWORD,
-      # ANDROID_KEY_ALIAS, and optionally ANDROID_KEY_PASSWORD. Without them CI builds a debug APK,
-      # signed with a throwaway key, that can't update an earlier install.
+      # ANDROID_KEY_ALIAS, and optionally ANDROID_KEY_PASSWORD. Only release runs read them; other
+      # builds, and releases without them, get a debug APK signed with a throwaway key that can't
+      # update an earlier install.
       - name: Build APK
         working-directory: android
         shell: bash
         env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          PM_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          PM_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          PM_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ needs.version.outputs.tag != '' && secrets.ANDROID_KEYSTORE_BASE64 || '' }}
+          PM_ANDROID_KEYSTORE_PASSWORD: ${{ needs.version.outputs.tag != '' && secrets.ANDROID_KEYSTORE_PASSWORD || '' }}
+          PM_ANDROID_KEY_ALIAS: ${{ needs.version.outputs.tag != '' && secrets.ANDROID_KEY_ALIAS || '' }}
+          PM_ANDROID_KEY_PASSWORD: ${{ needs.version.outputs.tag != '' && secrets.ANDROID_KEY_PASSWORD || '' }}
         run: |
           version="$(node -p "require('../package.json').version")"
           mkdir -p release
@@ -289,7 +316,7 @@ jobs:
             cp app/build/outputs/apk/debug/app-debug.apk "release/password-manager-$version-debug.apk"
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: password-manager-android
           if-no-files-found: error
@@ -303,7 +330,7 @@ jobs:
     if: needs.changes.outputs.ios == 'true'
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
       - name: Test core
         working-directory: ios/Core
@@ -329,21 +356,37 @@ jobs:
     if: >-
       always() && needs.version.outputs.tag != '' &&
       !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
-    needs: [changes, check, version, build, extension, android]
+    needs: [changes, check, audit, version, build, extension, android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Build-provenance attestations
+      id-token: write
+      attestations: write
     steps:
       # Only the README is needed, for the macOS install instructions in the release notes
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           sparse-checkout: README.md
           sparse-checkout-cone-mode: false
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: artifacts
           merge-multiple: true
-      - name: Create release
+      - name: Checksums
+        working-directory: artifacts
+        run: sha256sum -- * > ../SHA256SUMS.txt && mv ../SHA256SUMS.txt . && cat SHA256SUMS.txt
+
+      # Ties every file to this repository, workflow and commit: gh attestation verify <file>
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: 'artifacts/*'
+
+      # The release stays a draft until every file is uploaded, so installed apps and
+      # install-mac.sh never see a half-uploaded release
+      - name: Create draft release
+        id: draft
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.version.outputs.tag }}
@@ -351,13 +394,9 @@ jobs:
           EXTENSION: ${{ needs.changes.outputs.extension }}
           ANDROID: ${{ needs.changes.outputs.android }}
         run: |
-          # The app's updater and install-mac.sh read the release marked Latest, so only a release
-          # with desktop builds may take that spot. Other releases are published beside it.
           if [[ "$DESKTOP" == true ]]; then
-            latest=true
             title="$TAG"
           else
-            latest=false
             parts=()
             [[ "$EXTENSION" == true ]] && parts+=("browser extension")
             [[ "$ANDROID" == true ]] && parts+=("Android")
@@ -373,14 +412,59 @@ jobs:
               echo
             } > notes.md
           fi
-          # Creates the tag at this commit if it doesn't exist yet
+          cat >> notes.md <<NOTES
+          ## Verifying downloads
+
+          Every file is listed in \`SHA256SUMS.txt\` and has a build-provenance attestation tying it to
+          this repository and workflow run:
+
+          \`\`\`sh
+          shasum -a 256 -c SHA256SUMS.txt --ignore-missing
+          gh attestation verify <file> --repo $GITHUB_REPOSITORY
+          \`\`\`
+
+          Built from $GITHUB_SHA.
+
+          NOTES
+          # A re-run replaces the draft an earlier attempt left behind
+          gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+            --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id" |
+          while read -r id; do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
+          done
           gh release create "$TAG" artifacts/* \
             --repo "$GITHUB_REPOSITORY" \
+            --draft \
             --target "$GITHUB_SHA" \
             --title "$title" \
-            --latest="$latest" \
             --notes-file notes.md \
             --generate-notes
+          id="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+            --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id" | head -n1)"
+          if [[ -z "$id" ]]; then
+            echo "::error::Couldn't find the draft release for $TAG"
+            exit 1
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version.outputs.tag }}
+          RELEASE_ID: ${{ steps.draft.outputs.id }}
+          DESKTOP: ${{ needs.changes.outputs.desktop }}
+        run: |
+          # The app's updater and install-mac.sh read the release marked Latest, so only a release
+          # with desktop builds may take that spot. Other releases are published beside it.
+          latest=false
+          [[ "$DESKTOP" == true ]] && latest=true
+          # Name the tag explicitly: publishing a draft without it can leave an "untagged-<hash>"
+          # tag, which breaks the releases/download/<tag>/ URLs. Creates the tag at this commit if
+          # it doesn't exist yet.
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" \
+            -f tag_name="$TAG" -f target_commitish="$GITHUB_SHA" \
+            -F draft=false -f make_latest="$latest" --jq .html_url
+          echo "Published $TAG (latest: $latest)" >> "$GITHUB_STEP_SUMMARY"
 
       # The app downloads Chromium extension updates from extension.json, and Firefox reads
       # updates.json (the add-on's update_url). Both live on a rolling pre-release, which never
