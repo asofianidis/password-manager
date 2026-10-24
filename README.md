@@ -8,26 +8,32 @@ Sync is peer-to-peer (ideally over Tailscale) with no cloud server.
 
 ### macOS
 
-Install or update to the latest release with one command:
+Download the `.dmg` for your Mac from the
+[latest release](https://github.com/asofianidis/password-manager/releases/latest) (`arm64` for
+Apple Silicon, `x64` for Intel), open it, and drag Password Manager to Applications. Releases are
+signed with a Developer ID and notarized by Apple, so the app opens like any other.
+
+Or install from the Terminal:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/asofianidis/password-manager/main/scripts/install-mac.sh | bash
 ```
 
-Run the same command again to update. It downloads the right build for your Mac (Apple Silicon
-or Intel), quits the app if it's running, replaces `/Applications/Password Manager.app`, and
-opens it. Your vault and settings live in `~/Library/Application Support/password-manager`, so
-updating never touches them.
+It downloads the right build for your Mac, checks it against the release's `SHA256SUMS.txt`,
+refuses an app that isn't signed with this project's Developer ID (team `YLGZDPWZ2X`) and
+notarized, then quits the app if it's running, replaces `/Applications/Password Manager.app`, and
+opens it. From a clone of this repo, `bash scripts/install-mac.sh` does the same.
 
-From a clone of this repo, the same script works without `curl`:
+After that the app updates itself: when a new version is out, an update button appears in the
+bottom-left corner. Your vault and settings live in
+`~/Library/Application Support/password-manager`, so updating never touches them.
 
-```bash
-bash scripts/install-mac.sh
-```
+**Upgrading from 1.0.19 or earlier:** those versions weren't signed with a Developer ID, so they
+can't install a signed update; their update button opens the release page instead. Install the
+new version once by hand, with the `.dmg` or the command above. Updates after that install in
+place. macOS may ask again for Local Network access.
 
-The script downloads with `curl`, which doesn't mark the app as quarantined, so Gatekeeper
-doesn't block it even though builds aren't notarized. To keep a copy of your vault before an
-update:
+To keep a copy of your vault before an update:
 
 ```bash
 cp ~/Library/Application\ Support/password-manager/vault.json ~/vault-backup.json
@@ -130,7 +136,8 @@ Being a pre-release, it never becomes the **Latest** release the app's own updat
 For development, `npm run build:extension` writes `extension/dist/chrome` and
 `extension/dist/firefox`; load the first unpacked, or the second as a temporary add-on from
 `about:debugging#/runtime/this-firefox`. CI signs the Firefox add-on as unlisted on
-addons.mozilla.org using the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` repository secrets.
+addons.mozilla.org using the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` secrets of the `release`
+environment.
 
 Open the desktop app at least once afterwards: on each launch it registers its native messaging
 host with every browser it finds. Then right-click a login field and choose **Password Manager →
@@ -326,6 +333,9 @@ npm run lint
 npm run build:mac  # or build:win / build:linux
 ```
 
+Without a Developer ID certificate in your keychain, sign a local Mac build ad hoc so macOS
+doesn't report it as damaged: `npm run build:mac -- -c.mac.identity=- -c.mac.hardenedRuntime=false`.
+
 ## CI and releases
 
 `.github/workflows/build.yml` lints, typechecks, and tests every push and pull request. It then
@@ -350,7 +360,7 @@ builds only what the changed files affect:
 | Android           | `.apk`                                                                     |
 
 Download the builds from the run's **Artifacts** section. Every push to `main` that changes the app
-or the extension publishes a GitHub release: the version is `package.json`'s if it's ahead of the
+or the extension publishes a GitHub release once the maintainer approves the run: the version is `package.json`'s if it's ahead of the
 latest tag, otherwise the latest tag with the patch bumped. Pushing a `v*` tag releases that
 version. A release without desktop changes is titled "(browser extension)", "(Android)", or both, and not
 marked **Latest**, so the app's updater and the install script keep using the last desktop
@@ -362,25 +372,25 @@ Each release also carries the `latest*.yml` update feeds. Installed apps check G
 launch and every 4 hours (or via **Check for Updates** in the command palette). When a newer
 version exists, an update button appears in the bottom-left corner. On Windows and Linux it
 downloads the update and then offers to restart and install it. On macOS, Squirrel.Mac only
-installs signed builds, so the button opens the release page until signing is set up.
+installs an update signed by the same Developer ID as the running app, so ad-hoc signed builds
+(1.0.19 and earlier, or your own builds) open the release page instead.
 
-Builds are **not notarized**. On macOS the easiest way to install is the one-line script under
-[Install](#macos).
+macOS releases are signed with a Developer ID and notarized: electron-builder notarizes and
+staples the apps, and the workflow then notarizes and staples the `.dmg` files. Pull request and
+fork builds have no access to the signing secrets and produce ad-hoc signed apps. Windows builds
+aren't code signed yet, so SmartScreen warns on first launch.
 
-If you download the `.dmg` in a browser instead, the app is ad-hoc signed, so on first launch macOS
-will say it can't verify the developer: open **System Settings → Privacy & Security** and click
-**Open Anyway** (or run `xattr -dr com.apple.quarantine "/Applications/Password Manager.app"`).
-Windows SmartScreen
-will also warn on first launch. To sign properly, add electron-builder's signing secrets
-(`CSC_LINK`/`CSC_KEY_PASSWORD`, plus `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID` for
-notarization), pass them to the package step, remove `CSC_IDENTITY_AUTO_DISCOVERY: false`, and drop
-`identity: '-'` from `electron-builder.yml`.
+Releases wait for the maintainer's approval in the protected `release` environment, are
+published only once every file is uploaded, and carry `SHA256SUMS.txt` and build-provenance
+attestations. [docs/RELEASING.md](docs/RELEASING.md) covers the approval step, the secrets, and
+signing. See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 Android only installs an update signed with the same key as the installed app. Create a keystore
 once (`keytool -genkeypair -v -keystore release.jks -keyalg RSA -keysize 4096 -validity 10000 -alias pm`),
-keep it safe, and add the repository secrets `ANDROID_KEYSTORE_BASE64` (`base64 -w0 release.jks`),
-`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` if it differs from the
-keystore password. Without them CI builds a debug APK signed with a throwaway key, which can't
+keep it safe, and add the `release` environment secrets `ANDROID_KEYSTORE_BASE64`
+(`base64 -w0 release.jks`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and
+`ANDROID_KEY_PASSWORD` if it differs from the keystore password. Only release runs use them. Other
+builds, and releases without them, get a debug APK signed with a throwaway key, which can't
 update an earlier install.
 
 ## Layout

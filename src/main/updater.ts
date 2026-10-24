@@ -1,4 +1,7 @@
+import { execFile } from 'child_process'
 import { EventEmitter } from 'events'
+import { dirname, resolve } from 'path'
+import { promisify } from 'util'
 import { app, autoUpdater as nativeUpdater, shell } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { UpdateStatus } from '../shared/types'
@@ -7,14 +10,41 @@ const RELEASES_URL = 'https://github.com/asofianidis/password-manager/releases'
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
 /** How long the app gets to shut down cleanly before an update kills it */
 const FORCE_EXIT_MS = 1500
+/** Apple Developer team whose Developer ID signs official macOS releases */
+const MAC_TEAM_ID = 'YLGZDPWZ2X'
 
 /**
- * Checks GitHub releases for a newer version. Windows and Linux download and install in place.
- * macOS only installs signed builds (Squirrel.Mac), so there the update opens the release page.
+ * Whether this macOS app is signed with the project's Developer ID. Squirrel.Mac only installs an
+ * update signed by the same team as the running app, so ad-hoc signed builds (releases before
+ * signing was set up, or builds made without the certificate) can't update in place.
+ */
+async function hasDeveloperIdSignature(): Promise<boolean> {
+  // .../Password Manager.app/Contents/MacOS/Password Manager
+  const bundle = resolve(dirname(app.getPath('exe')), '..', '..')
+  const requirement = `anchor apple generic and certificate leaf[subject.OU] = "${MAC_TEAM_ID}"`
+  try {
+    await promisify(execFile)('/usr/bin/codesign', ['--verify', `-R=${requirement}`, bundle], {
+      timeout: 30_000
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Checks GitHub releases for a newer version and downloads and installs it in place. On macOS,
+ * Squirrel.Mac only installs updates into a Developer ID signed app, so an ad-hoc signed build
+ * opens the release page instead.
  */
 class Updater extends EventEmitter {
-  private state: UpdateStatus = { state: 'idle', version: null, progress: null, error: null }
-  private readonly canInstall = process.platform !== 'darwin'
+  private state: UpdateStatus = {
+    state: 'idle',
+    version: null,
+    progress: null,
+    error: null,
+    inPlace: process.platform !== 'darwin'
+  }
   private timer: NodeJS.Timeout | null = null
 
   start(): void {
@@ -38,7 +68,12 @@ class Updater extends EventEmitter {
       this.set({ state: 'available', progress: null, error: error.message })
     })
 
-    void this.check()
+    // Check the signature first, so an update found by the first check knows how it installs
+    const signature =
+      process.platform === 'darwin'
+        ? hasDeveloperIdSignature().then((inPlace) => this.set({ inPlace }))
+        : Promise.resolve()
+    void signature.then(() => this.check())
     this.timer = setInterval(() => void this.check(), CHECK_INTERVAL_MS)
   }
 
@@ -55,7 +90,7 @@ class Updater extends EventEmitter {
 
   /** Downloads the update, or installs it if already downloaded. */
   async install(): Promise<void> {
-    if (!this.canInstall) {
+    if (!this.state.inPlace) {
       if (this.state.version) await shell.openExternal(`${RELEASES_URL}/tag/v${this.state.version}`)
       return
     }

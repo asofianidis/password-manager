@@ -34,10 +34,13 @@ nsis:
 mac:
   artifactName: ${name}-${version}-${arch}-mac.${ext}
   category: public.app-category.productivity
+  # Signed with the Developer ID certificate in CSC_LINK and notarized when APPLE_ID,
+  # APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID are set (docs/RELEASING.md). Builds without a
+  # certificate should be ad-hoc signed instead (-c.mac.identity=- -c.mac.hardenedRuntime=false):
+  # macOS reports an unsigned arm64 app as "damaged".
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  # Ad-hoc sign when no Developer ID is configured. Unsigned arm64 apps are reported as "damaged"
-  # by Gatekeeper; an ad-hoc signature lets users allow the app via Privacy & Security instead.
-  identity: '-'
   extendInfo:
     # Without this, macOS 15+ silently blocks connections to other devices on the network (sync
     # fails with EHOSTUNREACH) instead of asking the user for Local Network access
@@ -47,9 +50,15 @@ mac:
       arch: [x64, arm64]
     - target: zip
       arch: [x64, arm64]
-  notarize: false
+  notarize: true
 dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
+  # Signed so Gatekeeper can check the disk image itself. electron-builder only notarizes the app,
+  # so CI notarizes and staples the dmg afterwards.
+  sign: true
+  # Stapling changes the dmg after electron-builder has hashed it, so leave it out of
+  # latest-mac.yml (and skip its blockmap). The updater only downloads the zip.
+  writeUpdateInfo: false
 linux:
   target:
     - target: AppImage

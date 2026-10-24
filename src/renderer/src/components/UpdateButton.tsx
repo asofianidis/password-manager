@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Download, LoaderCircle, RotateCw } from 'lucide-react'
 import { api, queries } from '@renderer/lib/api'
 import { cn } from '@renderer/lib/cn'
-import { isMac } from '@renderer/lib/keys'
 import { toastError } from '@renderer/lib/toast'
 
 /** Shown only while a newer release is available; renders nothing otherwise. */
@@ -10,7 +9,7 @@ export function UpdateButton({ className }: { className?: string }): React.JSX.E
   const { data: update } = useQuery(queries.update())
   if (!update || update.state === 'idle') return null
 
-  const { state, version, progress, error } = update
+  const { state, version, progress, error, inPlace } = update
   const label =
     state === 'ready'
       ? `Restart to update to v${version}`
@@ -21,9 +20,9 @@ export function UpdateButton({ className }: { className?: string }): React.JSX.E
     error ??
     (state === 'ready'
       ? 'Restart the app and install the update'
-      : isMac
-        ? 'Open the release page to download the update'
-        : 'Download the update')
+      : inPlace
+        ? 'Download the update'
+        : 'Open the release page to download the update')
   const Icon = state === 'ready' ? RotateCw : state === 'downloading' ? LoaderCircle : Download
 
   return (
