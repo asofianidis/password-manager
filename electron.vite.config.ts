@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
+// Vite 8 (rolldown) only keeps "use strict" that the source already has. The main and preload
+// bundles are CommonJS, so add it: the TypeScript they come from is written as strict ES modules.
+const output = { strict: true }
+
 export default defineConfig({
   main: {
     build: {
@@ -12,11 +16,14 @@ export default defineConfig({
           index: resolve('src/main/index.ts'),
           // Run by browsers as the native messaging host (see src/main/browser/install.ts)
           'native-host': resolve('src/main/browser/native-host.ts')
-        }
+        },
+        output
       }
     }
   },
-  preload: {},
+  preload: {
+    build: { rollupOptions: { output } }
+  },
   renderer: {
     resolve: {
       alias: {
