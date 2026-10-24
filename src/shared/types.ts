@@ -299,4 +299,6 @@ export interface UpdateStatus {
   /** Download progress, 0-100 */
   progress: number | null
   error: string | null
+  /** Whether updates install in place; otherwise installing opens the release page */
+  inPlace: boolean
 }

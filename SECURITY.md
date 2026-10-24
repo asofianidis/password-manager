@@ -65,5 +65,7 @@ shasum -a 256 -c SHA256SUMS.txt --ignore-missing
 gh attestation verify <file> --repo asofianidis/password-manager
 ```
 
-`scripts/install-mac.sh` checks the download against `SHA256SUMS.txt` before installing. See
-[docs/RELEASING.md](docs/RELEASING.md) for how releases are built and approved.
+macOS builds are signed with the Developer ID of team `YLGZDPWZ2X` and notarized by Apple.
+`scripts/install-mac.sh` checks the checksum, the signature and Gatekeeper before installing, and
+the app only installs updates signed by the same team. See [docs/RELEASING.md](docs/RELEASING.md)
+for how releases are built and approved.

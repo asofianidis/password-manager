@@ -185,11 +185,107 @@ jobs:
       - name: Build browser extension
         run: npm run build:extension
 
-      - name: Package with electron-builder
-        run: npx electron-builder ${{ matrix.platform }} --publish never
+      # The secrets only exist in the release environment, so pull requests, forks and other
+      # non-release runs build an ad-hoc signed app. Only variables that are set are exported, and
+      # the Apple credentials only as a complete set: electron-builder fails when APPLE_ID is set
+      # without the password or team ID.
+      - name: Configure code signing
+        id: signing
+        if: runner.os == 'macOS'
+        shell: bash
         env:
-          # Builds are unsigned until signing secrets are configured (see README)
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          export_if_set() {
+            for name in "$@"; do
+              if [[ -n "${!name}" ]]; then
+                { echo "$name<<__SIGNING_EOF__"; echo "${!name}"; echo "__SIGNING_EOF__"; } >> "$GITHUB_ENV"
+              fi
+            done
+          }
+          if [[ -n "$CSC_LINK" ]]; then
+            export_if_set CSC_LINK CSC_KEY_PASSWORD
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+            echo "Signing with the Developer ID certificate in CSC_LINK" >> "$GITHUB_STEP_SUMMARY"
+            if [[ -n "$APPLE_ID" && -n "$APPLE_APP_SPECIFIC_PASSWORD" && -n "$APPLE_TEAM_ID" ]]; then
+              export_if_set APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+              echo "notarized=true" >> "$GITHUB_OUTPUT"
+              echo "Notarizing with Apple" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::warning::macOS build is signed but not notarized (APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID missing)"
+            fi
+          else
+            # Unsigned arm64 apps are reported as "damaged"; an ad-hoc signature avoids that.
+            # Ad-hoc code can't pass library validation, so it runs without the hardened runtime.
+            echo "args=-c.mac.identity=- -c.mac.hardenedRuntime=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::macOS build is not code signed or notarized (CSC_LINK missing); building an ad-hoc signed app"
+          fi
+
+      # Signs and notarizes the apps when the variables above are set. A failed notarization fails
+      # the build.
+      - name: Package with electron-builder
+        run: npx electron-builder ${{ matrix.platform }} --publish never ${{ steps.signing.outputs.args }}
+
+      # electron-builder notarizes and staples the .app (so the zip that the updater and
+      # install-mac.sh use is covered) and signs the .dmg around it, but doesn't notarize the
+      # .dmg. Notarize and staple each one so Gatekeeper accepts a disk image downloaded in a
+      # browser. This runs before the upload, so SHA256SUMS.txt covers the stapled files.
+      - name: Notarize and staple the dmgs
+        if: steps.signing.outputs.notarized == 'true'
+        shell: bash
+        run: |
+          shopt -s nullglob
+          dmgs=(dist/*.dmg)
+          if [[ "${#dmgs[@]}" -ne 2 ]]; then
+            echo "::error::Expected two .dmg files (x64 and arm64), found ${#dmgs[@]}"
+            exit 1
+          fi
+          for dmg in "${dmgs[@]}"; do
+            if ! codesign -dvv "$dmg" 2>&1 | grep -q "^Authority=Developer ID Application:"; then
+              echo "::error::$dmg isn't signed with a Developer ID"
+              exit 1
+            fi
+            # A first submission from a team can take an hour or more
+            result="$(xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" \
+              --wait --timeout 2h --output-format json)"
+            echo "$result"
+            if [[ "$(jq -r .status <<< "$result")" != Accepted ]]; then
+              xcrun notarytool log "$(jq -r .id <<< "$result")" --apple-id "$APPLE_ID" \
+                --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" || true
+              echo "::error::Notarization of $dmg failed"
+              exit 1
+            fi
+            xcrun stapler staple "$dmg"
+            xcrun stapler validate "$dmg"
+            spctl -a -vvv -t open --context context:primary-signature "$dmg"
+            echo "Notarized and stapled $(basename "$dmg")" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Verify macOS signatures
+        if: steps.signing.outputs.signed == 'true'
+        shell: bash
+        env:
+          NOTARIZED: ${{ steps.signing.outputs.notarized }}
+        run: |
+          shopt -s nullglob
+          apps=(dist/mac*/*.app)
+          if [[ "${#apps[@]}" -ne 2 ]]; then
+            echo "::error::Expected two apps (x64 and arm64), found ${#apps[@]}"
+            exit 1
+          fi
+          for app in "${apps[@]}"; do
+            codesign --verify --deep --strict --verbose=2 "$app"
+            codesign -dvv "$app" 2>&1 | grep -E "^(Authority|TeamIdentifier|Timestamp|Runtime Version)="
+            if [[ "$NOTARIZED" == true ]]; then
+              xcrun stapler validate "$app"
+              spctl -a -vvv -t exec "$app"
+            fi
+          done
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
