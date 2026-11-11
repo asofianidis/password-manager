@@ -37,5 +37,13 @@ export default defineConfig(
       ...eslintPluginReactRefresh.configs.vite.rules
     }
   },
+  {
+    // Route files export only `Route` and keep their components local. The router plugin's
+    // autoCodeSplitting moves those components into their own modules, so fast refresh still works.
+    files: ['src/renderer/src/routes/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off'
+    }
+  },
   eslintConfigPrettier
 )
