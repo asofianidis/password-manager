@@ -17,8 +17,8 @@ type Kind = 'chromium' | 'firefox'
 interface Target {
   browser: string
   kind: Kind
-  /** Only register if this exists, i.e. the browser has been run on this machine */
-  ifExists: string
+  /** Only register if any of these exist, i.e. the browser has been run on this machine */
+  ifExists: string[]
   /** Folder the host manifest goes in */
   dir: string
 }
@@ -45,7 +45,7 @@ function unixTargets(): Target[] {
     const chromium = (browser: string, ...path: string[]): Target => ({
       browser,
       kind: 'chromium',
-      ifExists: join(support, ...path),
+      ifExists: [join(support, ...path)],
       dir: join(support, ...path, 'NativeMessagingHosts')
     })
     return [
@@ -58,7 +58,7 @@ function unixTargets(): Target[] {
       {
         browser: 'Firefox',
         kind: 'firefox',
-        ifExists: join(support, 'Firefox'),
+        ifExists: [join(support, 'Firefox')],
         dir: join(support, 'Mozilla', 'NativeMessagingHosts')
       }
     ]
@@ -67,7 +67,7 @@ function unixTargets(): Target[] {
   const chromium = (browser: string, ...path: string[]): Target => ({
     browser,
     kind: 'chromium',
-    ifExists: join(config, ...path),
+    ifExists: [join(config, ...path)],
     dir: join(config, ...path, 'NativeMessagingHosts')
   })
   return [
@@ -79,7 +79,13 @@ function unixTargets(): Target[] {
     {
       browser: 'Firefox',
       kind: 'firefox',
-      ifExists: join(home, '.mozilla'),
+      // Snap and Flatpak builds keep their profiles in a sandbox folder, but still read host
+      // manifests from ~/.mozilla/native-messaging-hosts on the host
+      ifExists: [
+        join(home, '.mozilla'),
+        join(home, 'snap', 'firefox', 'common', '.mozilla'),
+        join(home, '.var', 'app', 'org.mozilla.firefox', '.mozilla')
+      ],
       dir: join(home, '.mozilla', 'native-messaging-hosts')
     }
   ]
@@ -198,7 +204,8 @@ export async function registerNativeHost(socketPath: string): Promise<string[]> 
   }
 
   for (const target of unixTargets()) {
-    if (!(await exists(target.ifExists))) continue
+    const found = await Promise.all(target.ifExists.map(exists))
+    if (!found.includes(true)) continue
     try {
       await fs.mkdir(target.dir, { recursive: true })
       await fs.writeFile(
